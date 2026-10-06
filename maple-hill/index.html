@@ -259,8 +259,8 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const MOBILE = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
 const Q = MOBILE
-  ? { canopy: 7000, parkTrees: 14, parkLeaves: 640, distant: 300, grass: 8000, carpet: 6000, fall: 900, shadow: 1024, dpr: 1.5, refl: 0.35, rain: 1800, fireflies: 200 }
-  : { canopy: 13000, parkTrees: 24, parkLeaves: 1550, distant: 560, grass: 22000, carpet: 13000, fall: 1600, shadow: 2048, dpr: 2, refl: 0.5, rain: 4000, fireflies: 300 };
+  ? { canopy: 10000, parkTrees: 14, parkLeaves: 1100, distant: 240, distantLeaves: 60, grass: 8000, carpet: 6000, fall: 900, shadow: 1024, dpr: 1.5, refl: 0.35, rain: 1800, fireflies: 200 }
+  : { canopy: 21000, parkTrees: 24, parkLeaves: 2600, distant: 420, distantLeaves: 110, grass: 22000, carpet: 13000, fall: 1600, shadow: 2048, dpr: 2, refl: 0.5, rain: 4000, fireflies: 300 };
 
 /* ================================================================
    Parameters (what the panel edits)
@@ -729,7 +729,7 @@ const tree = { segs: [], tips: [], centers: [], trunk: null };   // the big mapl
 const trees = [];                                                 // every leafy tree, big maple first
 const canopyData = {};
 const proxies = [];
-let canopy, carpet, puffs;
+let canopy, carpet;
 {
   const saved = _seed;
   _seed = 4242;
@@ -865,12 +865,20 @@ let canopy, carpet, puffs;
   trees.forEach((t, ti) => {
     const big = ti === 0;
     const n = big ? Q.canopy : Q.parkLeaves;
-    const centers = t.b.centers.concat(t.b.tips);
-    const cr = big ? 1.4 : 1.25 * Math.max(t.scale, 0.6) + 0.3;
+    const centers = t.b.centers.concat(t.b.tips, t.b.tips);
+    const twigs = t.b.segs.filter((sg) => sg.level >= 2);
+    const cr = big ? 1.35 : 1.2 * Math.max(t.scale, 0.6) + 0.3;
     for (let i = 0; i < n; i++) {
-      const c = centers[i % centers.length];
+      let c, r;
+      if (rnd() < 0.3) {
+        const sg = twigs[Math.floor(rnd() * twigs.length)];
+        c = new V3().lerpVectors(sg.a, sg.b, rnd());
+        r = cr * 0.75 * Math.cbrt(rnd());
+      } else {
+        c = centers[i % centers.length];
+        r = cr * Math.cbrt(rnd());
+      }
       const out = new V3().subVectors(c, t.crown).normalize();
-      const r = cr * Math.cbrt(rnd());
       const dir = new V3(rand(-1, 1), rand(-1, 1), rand(-1, 1)).normalize();
       const p = c.clone().addScaledVector(dir, r).addScaledVector(out, 0.3 * t.scale);
       recs.push({ p, t: ti, rx: rand(-Math.PI, Math.PI), ry: rand(-Math.PI, Math.PI), rz: rand(-Math.PI, Math.PI), s: rand(0.75, 1.15), sa: rnd(), sb: rnd() });
@@ -894,26 +902,6 @@ let canopy, carpet, puffs;
   canopy.customDepthMaterial = patchMaterial(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: leafTex, alphaTest: 0.45 }), 'canopy', true);
   canopy.frustumCulled = false;
   scene.add(canopy);
-
-  // Inner foliage volume so no crown looks see-through
-  const precs = [];
-  trees.forEach((t, ti) => {
-    const big = ti === 0;
-    const centers = t.b.centers.concat(t.b.tips);
-    const n = big ? 90 : 30;
-    for (let i = 0; i < n; i++) {
-      const c = centers[Math.floor(rnd() * centers.length)];
-      const toward = new V3().subVectors(t.crown, c).multiplyScalar(0.32);
-      precs.push({ p: c.clone().add(toward), t: ti, s: (big ? rand(0.7, 1.0) : rand(0.65, 0.9)) * Math.max(t.scale, 0.65), sa: rnd(), sb: rnd(), ry: rnd() * 6.28 });
-    }
-  });
-  for (let i = precs.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [precs[i], precs[j]] = [precs[j], precs[i]]; }
-  canopyData.precs = precs;
-  puffs = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 2), patchMaterial(new THREE.MeshStandardMaterial({ roughness: 0.95 }), 'tree'), precs.length);
-  puffs.castShadow = true; puffs.receiveShadow = true;
-  puffs.customDepthMaterial = barkDepth;
-  puffs.frustumCulled = false;
-  scene.add(puffs);
 
   // Fallen-leaf carpet and leaf piles, under every tree
   const CN = Q.carpet;
@@ -969,7 +957,7 @@ function composeCanopy() {
     const r = recs[i];
     dummy.position.copy(r.p);
     dummy.rotation.set(r.rx, r.ry, r.rz);
-    dummy.scale.setScalar(r.s * P.leafSize * 0.36);
+    dummy.scale.setScalar(r.s * P.leafSize * 0.4);
     dummy.updateMatrix();
     canopy.setMatrixAt(i, dummy.matrix);
   }
@@ -984,16 +972,6 @@ function composeCanopy() {
     carpet.setMatrixAt(i, dummy.matrix);
   }
   carpet.instanceMatrix.needsUpdate = true;
-  const precs = canopyData.precs;
-  for (let i = 0; i < precs.length; i++) {
-    const r = precs[i];
-    dummy.position.copy(r.p);
-    dummy.rotation.set(0, r.ry, 0);
-    dummy.scale.set(r.s, r.s * 0.8, r.s);
-    dummy.updateMatrix();
-    puffs.setMatrixAt(i, dummy.matrix);
-  }
-  puffs.instanceMatrix.needsUpdate = true;
 }
 const palOf = (r) => trees[r.t].pal || P.palette;
 function colorCanopy() {
@@ -1002,12 +980,9 @@ function colorCanopy() {
   canopy.instanceColor.needsUpdate = true;
   canopyData.crecs.forEach((r, i) => carpet.setColorAt(i, leafColor(r.sa, r.sb, c, 0.18 + r.sb * 0.22, palOf(r))));
   carpet.instanceColor.needsUpdate = true;
-  canopyData.precs.forEach((r, i) => puffs.setColorAt(i, leafColor(r.sa, r.sb, c, 0, palOf(r)).multiplyScalar(0.72)));
-  puffs.instanceColor.needsUpdate = true;
 }
 function applyCounts() {
   canopy.count = Math.round(canopyData.recs.length * P.canopy);
-  puffs.count = Math.round(canopyData.precs.length * clamp(P.canopy * 1.25 - 0.2, 0, 1));
   carpet.count = Math.round(canopyData.crecs.length * P.groundCover);
 }
 composeCanopy(); colorCanopy(); applyCounts();
@@ -1384,35 +1359,57 @@ const city = { mats: [], cnShaft: null, cnRing: null, beacon: null };
 }
 
 /* ================================================================
-   Distant trees in the Don Valley
+   Distant trees in the Don Valley, built from leaves like the near ones
    ================================================================ */
+const distant = {};
 {
-  const N = Q.distant;
-  const mesh = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), new THREE.MeshStandardMaterial({ roughness: 1, flatShading: true }), N * 2);
-  const c = new THREE.Color();
-  const tones = ['#b5401f', '#d4662a', '#e09a33', '#c98a2e', '#8f2e1c', '#a8a03a', '#2f4a2c', '#3c5a32', '#6d7a34'];
+  const N = Q.distant, PER = Q.distantLeaves;
+  // leaves here are drawn ~6x larger than near leaves so each far crown reads as solid
+  const SPEC = ['sugar', 'red', 'norway', 'oak', 'birch', 'sugar', 'red'];
+  const recs = [], centers = [], trunkG = [], coneG = [];
   let n = 0;
   while (n < N) {
-    const a = rnd() * Math.PI * 2, r = rand(48, 150);
+    const a = rnd() * Math.PI * 2, r = rand(50, 150);
     const x = Math.cos(a) * r, z = Math.sin(a) * r;
-    const h = groundH(x, z);
     if (Math.hypot(x - PX, z - PZ) < 14) continue;
-    const s = rand(2.4, 5), sy = rand(3, 6);
-    dummy.position.set(x, h + sy * 0.55, z);
-    dummy.rotation.set(0, rnd() * 6.28, 0);
-    dummy.scale.set(s, sy, s * rand(0.85, 1.15));
-    dummy.updateMatrix();
-    mesh.setMatrixAt(n * 2, dummy.matrix);
-    c.set(pick(tones)).multiplyScalar(rand(0.8, 1.05));
-    mesh.setColorAt(n * 2, c);
-    dummy.position.set(x + rand(-1, 1) * s * 0.5, h + sy * 1.05, z + rand(-1, 1) * s * 0.5);
-    dummy.scale.set(s * 0.7, sy * 0.6, s * 0.7);
-    dummy.updateMatrix();
-    mesh.setMatrixAt(n * 2 + 1, dummy.matrix);
-    mesh.setColorAt(n * 2 + 1, c.multiplyScalar(1.12));
+    const h = groundH(x, z), s = rand(2.2, 4.4), sy = rand(2.6, 4.6);
     n++;
+    if (rnd() < 0.16) {
+      for (let k = 0; k < 4; k++) {
+        const cg = new THREE.ConeGeometry((1.0 - k * 0.2) * s * 0.75, sy * 0.8, 8);
+        cg.translate(x, h + sy * 0.5 + k * sy * 0.5, z); cg.deleteAttribute('uv'); coneG.push(cg.toNonIndexed());
+      }
+      continue;
+    }
+    const cy = h + sy * 1.15;
+    const tg = new THREE.CylinderGeometry(0.12 * s, 0.2 * s, sy * 1.1, 5); tg.translate(x, h + sy * 0.5, z);
+    tg.deleteAttribute('uv'); trunkG.push(tg.toNonIndexed());
+    const pal = pick(SPEC);
+    for (let i = 0; i < PER; i++) {
+      const d = new V3(rand(-1, 1), rand(-1, 1), rand(-1, 1)).normalize(), k = Math.cbrt(rnd());
+      recs.push({ p: new V3(x + d.x * s * k, cy + d.y * sy * 0.75 * k, z + d.z * s * k), pal, sa: rnd(), sb: rnd(),
+        rx: rand(-3, 3), ry: rand(-3, 3), rz: rand(-3, 3), s: rand(1.9, 2.9) });
+      centers.push(x, cy - sy * 0.3, z, Math.max(s, sy) * 1.1);
+    }
   }
+  if (trunkG.length) scene.add(new THREE.Mesh(mergeGeometries(trunkG), new THREE.MeshStandardMaterial({ color: '#3a2c22', roughness: 1 })));
+  if (coneG.length) scene.add(new THREE.Mesh(mergeGeometries(coneG), new THREE.MeshStandardMaterial({ color: '#2c4a2e', roughness: 1, flatShading: true })));
+  const geo = new THREE.PlaneGeometry(1, 1);
+  geo.setAttribute('aCenter', new THREE.InstancedBufferAttribute(new Float32Array(centers), 4));
+  const mesh = new THREE.InstancedMesh(geo, canopy.material, recs.length);
+  recs.forEach((r, i) => {
+    dummy.position.copy(r.p); dummy.rotation.set(r.rx, r.ry, r.rz); dummy.scale.setScalar(r.s); dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+  });
+  mesh.frustumCulled = false;
   scene.add(mesh);
+  Object.assign(distant, { mesh, recs });
+  colorDistant();
+}
+function colorDistant() {
+  const c = new THREE.Color();
+  distant.recs.forEach((r, i) => distant.mesh.setColorAt(i, leafColor(r.sa, r.sb, c, 0.08, r.pal)));
+  distant.mesh.instanceColor.needsUpdate = true;
 }
 
 /* ================================================================
@@ -2292,7 +2289,8 @@ function onParam(k, fromUser) {
   switch (k) {
     case 'canopy': case 'groundCover': applyCounts(); break;
     case 'leafSize': composeCanopy(); break;
-    case 'palette': case 'autumn': colorCanopy(); break;
+    case 'palette': colorCanopy(); break;
+    case 'autumn': colorCanopy(); colorDistant(); break;
     case 'raccoons': case 'squirrels': case 'geese': case 'birds': syncAnimals(); break;
     case 'sound': if (P.sound) Sound.start(); else Sound.stop(); break;
     case 'autoRotate': controls.autoRotate = P.autoRotate; break;
