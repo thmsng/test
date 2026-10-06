@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maple Hill, Toronto Autumn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a dusk-lit canvas hero with falling leaves and the skyline, then a single reading column (max 1120px)
+   that alternates full-width imagery with two-column text. Same smoky dark world as the Maple Hill scene, by choice. */
+:root {
+  --night: #140e0c;
+  --ember: #1d1411;
+  --well: rgba(255, 236, 214, 0.05);
+  --edge: rgba(255, 220, 186, 0.14);
+  --ink: #f7ecdf;
+  --ink-dim: #c9b39c;
+  --ink-faint: #9b8571;
+  --maple: #e2562b;
+  --amber: #f2b349;
+  --leaf-green: #6f9a33;
+  --leaf-gold: #f4ad38;
+  --leaf-red: #c4301c;
+  --leaf-brown: #6b3b1f;
+  --font-display: 'Young Serif', Georgia, 'Times New Roman', serif;
+  --font-body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+  --step-0: 1rem; --step-1: 1.2rem; --step-2: 1.6rem; --step-3: 2.3rem; --step-4: clamp(2.6rem, 6.2vw, 5.2rem);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--night); color: var(--ink);
+  font: 400 var(--step-0)/1.6 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 4px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; margin: 0; line-height: 1.08; }
+h2 { font-size: var(--step-3); }
+h3 { font-size: var(--step-1); line-height: 1.25; }
+p { margin: 0; }
+.eyebrow { font: 500 0.72rem/1.4 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--amber); }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.wrap { width: 100%; max-width: 1120px; margin-inline: auto; padding-inline: 20px; }
+.lede { font-size: var(--step-1); color: var(--ink-dim); max-width: 60ch; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 10px; text-decoration: none;
+  font: 600 0.98rem/1 var(--font-body); padding: 15px 22px; border-radius: 12px;
+  border: 1px solid var(--edge); background: var(--well); color: var(--ink);
+  transition: transform .15s, background .15s, border-color .15s;
+}
+.btn:hover { transform: translateY(-1px); border-color: rgba(242, 179, 73, 0.5); }
+.btn.primary { background: var(--maple); border-color: var(--maple); color: #fff8f0; }
+.btn.primary:hover { background: #ec6436; }
+.btn svg { width: 18px; height: 18px; }
+
+/* Top bar */
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  background: rgba(20, 14, 12, 0.78); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--edge);
+}
+.bar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 12px; }
+.mark { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 400 1.25rem var(--font-display); }
+.mark svg { width: 24px; height: 24px; color: var(--maple); }
+.nav { display: flex; gap: 22px; align-items: center; font-size: 0.92rem; }
+.nav a { text-decoration: none; color: var(--ink-dim); }
+.nav a:hover { color: var(--ink); }
+.nav .btn { padding: 10px 14px; font-size: 0.88rem; color: #fff8f0; }
+
+/* Hero */
+.hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--edge); }
+.hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero-inner { position: relative; display: grid; gap: 22px; padding-block: clamp(120px, 22vw, 240px) 56px; }
+.hero h1 { font-size: var(--step-4); max-width: 13ch; text-shadow: 0 2px 24px rgba(20, 10, 6, 0.5); }
+.hero .lede { color: var(--ink); text-shadow: 0 1px 14px rgba(20, 10, 6, 0.6); }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.coords {
+  display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 10px;
+  font: 400 0.8rem var(--font-mono); color: var(--ink-dim); font-variant-numeric: tabular-nums;
+}
+.coords b { color: var(--ink); font-weight: 500; }
+
+section { padding-block: clamp(64px, 9vw, 112px); }
+.section-head { display: grid; gap: 14px; margin-bottom: 36px; }
+
+/* Gallery */
+.gallery { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; }
+.gallery figure { margin: 0; position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--edge); background: var(--ember); }
+.gallery figure:first-child { grid-row: span 3; }
+.gallery img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: 16 / 10; }
+.gallery figure:first-child img { aspect-ratio: auto; min-height: 100%; }
+.gallery figcaption {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 30px 16px 12px;
+  background: linear-gradient(to top, rgba(14, 9, 7, 0.86), rgba(14, 9, 7, 0));
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 0.92rem;
+}
+.gallery figcaption .mono { font-size: 0.78rem; color: var(--amber); white-space: nowrap; }
+
+/* Controls list */
+.controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--edge); }
+.control { padding: 22px 22px 26px 0; border-bottom: 1px solid var(--edge); display: grid; gap: 8px; align-content: start; min-width: 0; }
+.control:not(:nth-child(3n + 1)) { padding-left: 22px; border-left: 1px solid var(--edge); }
+.control .tab { font: 500 0.74rem var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); }
+.control p { color: var(--ink-dim); font-size: 0.96rem; }
+.keys { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 10px 22px; color: var(--ink-dim); font-size: 0.92rem; }
+kbd { font: 500 0.8rem var(--font-mono); color: var(--ink); border: 1px solid var(--edge); border-bottom-width: 2px; border-radius: 6px; padding: 1px 7px; margin-right: 6px; }
+
+/* Colour calendar */
+.calendar { display: grid; gap: 30px; }
+.band-wrap { position: relative; padding-top: 34px; }
+.band {
+  height: 22px; border-radius: 999px;
+  background: linear-gradient(90deg, var(--leaf-green) 0%, #a3ad44 14%, var(--leaf-gold) 30%, #e86a24 46%, var(--leaf-red) 60%, #8e1a16 74%, var(--leaf-brown) 88%, #4a3020 100%);
+}
+.today { position: absolute; top: 0; transform: translateX(-50%); display: grid; justify-items: center; gap: 4px; transition: left .3s; }
+.today span { font: 500 0.72rem var(--font-mono); color: var(--ink); background: var(--maple); padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.today i { width: 2px; height: 34px; background: var(--ink); display: block; }
+.ticks { display: flex; justify-content: space-between; margin-top: 8px; font: 400 0.76rem var(--font-mono); color: var(--ink-faint); }
+.stages { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; list-style: none; margin: 0; padding: 0; counter-reset: stage; }
+.stages li { display: grid; gap: 8px; align-content: start; min-width: 0; padding-top: 14px; border-top: 3px solid var(--c); }
+.stages .when { font: 500 0.78rem var(--font-mono); color: var(--ink-dim); }
+.stages p { color: var(--ink-dim); font-size: 0.95rem; }
+
+/* Sun tool */
+.sun-tool {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 32px; align-items: center;
+  background: var(--ember); border: 1px solid var(--edge); border-radius: 18px; padding: 28px;
+}
+.sun-tool label { display: grid; gap: 8px; font-weight: 500; }
+.sun-tool input[type="date"] {
+  font: 500 1rem var(--font-mono); color: var(--ink); background: var(--well);
+  border: 1px solid var(--edge); border-radius: 10px; padding: 12px 14px; width: 100%; max-width: 260px;
+}
+.sun-tool .hint { font-size: 0.88rem; color: var(--ink-faint); margin-top: 10px; }
+.sun-read { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.sun-read div { display: grid; gap: 2px; }
+.sun-read b { font: 500 clamp(1.5rem, 3.2vw, 2.1rem)/1.1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.sun-read span { font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); }
+.sun-read .gold b { color: var(--amber); }
+.sun-note { grid-column: 1 / -1; color: var(--ink-dim); font-size: 0.95rem; }
+
+/* Places */
+.places { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 48px; }
+.place { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 16px; padding-block: 20px; border-bottom: 1px solid var(--edge); }
+.place .pin { grid-row: span 2; width: 12px; height: 12px; margin-top: 8px; border-radius: 50%; background: var(--c, var(--maple)); box-shadow: 0 0 0 4px rgba(226, 86, 43, 0.15); }
+.place h3 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.place h3 small { font: 400 0.76rem var(--font-mono); color: var(--ink-faint); letter-spacing: 0.04em; }
+.place p { color: var(--ink-dim); font-size: 0.96rem; }
+
+/* Residents */
+.residents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.resident { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.resident svg { width: 56px; height: 56px; color: var(--amber); }
+.resident p { color: var(--ink-dim); font-size: 0.96rem; }
+.resident .in-scene { font: 400 0.8rem var(--font-mono); color: var(--ink-faint); }
+
+/* Species */
+.species { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+.sp { display: grid; gap: 10px; min-width: 0; }
+.swatch { display: flex; height: 54px; border-radius: 10px; overflow: hidden; border: 1px solid var(--edge); }
+.swatch i { flex: 1; }
+.sp h3 { font-size: 1.05rem; }
+.sp p { color: var(--ink-faint); font-size: 0.86rem; font-style: italic; }
+
+/* Closing */
+.closing { position: relative; overflow: hidden; border-top: 1px solid var(--edge); }
+.closing img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.42; }
+.closing::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20, 14, 12, 0.92) 20%, rgba(20, 14, 12, 0.35)); }
+.closing .wrap { position: relative; z-index: 1; display: grid; gap: 20px; justify-items: start; }
+.closing h2 { font-size: clamp(2.2rem, 5vw, 3.6rem); max-width: 14ch; }
+.closing .small { color: var(--ink-dim); font-size: 0.92rem; }
+
+footer { border-top: 1px solid var(--edge); }
+footer .wrap { padding-block: 26px 34px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 24px; color: var(--ink-faint); font-size: 0.86rem; }
+
+@media (max-width: 900px) {
+  .controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .control:not(:nth-child(3n + 1)) { padding-left: 0; border-left: 0; }
+  .control:nth-child(2n) { padding-left: 20px; border-left: 1px solid var(--edge); }
+  .stages { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .species { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .sun-tool { grid-template-columns: 1fr; }
+}
+@media (max-width: 680px) {
+  .nav a:not(.btn) { display: none; }
+  .gallery { grid-template-columns: 1fr; }
+  .gallery figure:first-child { grid-row: auto; }
+  .gallery figure:first-child img { aspect-ratio: 16 / 10; }
+  .controls, .places, .residents, .stages { grid-template-columns: 1fr; }
+  .control, .control:nth-child(2n) { padding-left: 0; border-left: 0; }
+  .species { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sun-read { grid-template-columns: 1fr 1fr; }
+  .sun-tool { padding: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .btn, .today { transition: none; }
+}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="wrap">
+    <a class="mark" href="#top" aria-label="Maple Hill, back to top">
+      <svg viewBox="0 0 48 48" fill="currentColor" aria-hidden="true"><path d="M24 3l3.6 8.4 5-2.2-1.6 9.6 7.4-5.4.4 4.2 6-1.4-3.4 7 2.6 1.8-9.8 7 1.4 3.6-9.2-1.4.4 9.8h-2.4l.4-9.8-9.2 1.4 1.4-3.6-9.8-7 2.6-1.8-3.4-7 6 1.4.4-4.2 7.4 5.4-1.6-9.6 5 2.2z"/></svg>
+      Maple Hill
+    </a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#moods">The scene</a>
+      <a href="#calendar">Colour calendar</a>
+      <a href="#places">Where to go</a>
+      <a href="#residents">Residents</a>
+      <a class="btn primary" href="index.html">Open the scene</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" aria-labelledby="hero-title" style="padding-block: 0;">
+    <canvas id="heroCanvas" aria-hidden="true"></canvas>
+    <div class="wrap hero-inner">
+      <p class="eyebrow">Riverdale Park East · Toronto · October</p>
+      <h1 id="hero-title">Toronto, the week the maples turn.</h1>
+      <p class="lede">Maple Hill is a 3D autumn park on the slope above the Don Valley, looking west to the CN Tower. Set the wind, move the sun, shake a tree and watch a city's worth of leaves come down.</p>
+      <div class="hero-actions">
+        <a class="btn primary" href="index.html">
+          Step into Maple Hill
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h12M11 5l5 5-5 5"/></svg>
+        </a>
+        <a class="btn" href="#calendar">When to see the real thing</a>
+      </div>
+      <div class="coords" aria-label="Location and today's sun">
+        <span>43.67° N, 79.35° W</span>
+        <span>Sunset today <b id="heroSunset">--:--</b></span>
+        <span>Golden hour from <b id="heroGolden">--:--</b></span>
+        <span>Move your cursor to stir the wind</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="moods" aria-labelledby="moods-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">The scene</p>
+        <h2 id="moods-title">Four moods of the same hill</h2>
+        <p class="lede">One sugar maple, a grove of oaks, birches and spruces, a pond with Canada geese, and downtown on the horizon. Every frame below is the live scene with a different preset.</p>
+      </div>
+      <div class="gallery">
+        <figure>
+          <img src="img/golden-hour.jpg" alt="The big sugar maple glowing orange at golden hour, the CN Tower and downtown towers behind it, geese on the pond" width="1600" height="1000">
+          <figcaption><span>Golden hour, light westerly</span><span class="mono">18:06 · 14 km/h</span></figcaption>
+        </figure>
+        <figure>
+          <img src="img/gust-front.jpg" alt="Pale wind trails streaming across the park as a gust front tears leaves from the trees" width="1600" height="1000" loading="lazy">
+          <figcaption><span>Gust front</span><span class="mono">95 km/h</span></figcaption>
+        </figure>
+        <figure>
+          <img src="img/rainy-evening.jpg" alt="Rain falling over the park under grey cloud, the skyline faded in mist" width="1600" height="1000" loading="lazy">
+          <figcaption><span>Rainy evening</span><span class="mono">17:18 · rain 75%</span></figcaption>
+        </figure>
+        <figure>
+          <img src="img/autumn-night.jpg" alt="The park at night with fireflies over the grass, the stone lantern lit and downtown windows glowing" width="1600" height="1000" loading="lazy">
+          <figcaption><span>Autumn night</span><span class="mono">22:24 · fireflies</span></figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="controls-title" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">What you can change</p>
+        <h2 id="controls-title">A whole autumn on one panel</h2>
+      </div>
+      <div class="controls">
+        <div class="control"><span class="tab">Wind</span><h3>Speed, gusts and a compass dial</h3><p>Drag the dial to set where the wind comes from. Push it to 90 km/h, or send a gust front that sweeps the whole park.</p></div>
+        <div class="control"><span class="tab">Leaves</span><h3>Species, season and how fast they fall</h3><p>Turn the big tree from sugar to red or Norway maple, slide from early September to late October, then rake the lawn.</p></div>
+        <div class="control"><span class="tab">Sky</span><h3>Time of day or the sun's exact angle</h3><p>Follow the clock from dawn to the city lights at night, or place the sun by height and compass direction.</p></div>
+        <div class="control"><span class="tab">Weather</span><h3>Rain, cloud and valley mist</h3><p>A downpour roughens the pond, dims the sun and hides the towers behind a grey wall.</p></div>
+        <div class="control"><span class="tab">Wildlife</span><h3>Raccoons, black squirrels, geese</h3><p>Click the grass to scatter acorns or the pond to toss bread, and they come over to eat.</p></div>
+        <div class="control"><span class="tab">Sound</span><h3>Wind, leaves, rain, birds, crickets</h3><p>Every sound is generated in your browser and follows the wind speed and the hour.</p></div>
+      </div>
+      <div class="keys" aria-label="Keyboard shortcuts">
+        <span><kbd>G</kbd>Send a gust front</span>
+        <span><kbd>H</kbd>Hide the panel</span>
+        <span><kbd>Space</kbd>Pause everything</span>
+        <span>Click any tree to shake it</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="calendar" aria-labelledby="cal-title" style="background: var(--ember); border-block: 1px solid var(--edge);">
+    <div class="wrap calendar">
+      <div class="section-head" style="margin-bottom: 0;">
+        <p class="eyebrow">Colour calendar</p>
+        <h2 id="cal-title">How Toronto's ravines change colour</h2>
+        <p class="lede">The city turns from the north and the ravine floors first. Peak colour downtown usually lands in the second half of October, then the oaks hold on into November. Dates shift a week either way with the weather.</p>
+      </div>
+      <div class="band-wrap">
+        <div class="today" id="todayMark" hidden><span id="todayLabel">Today</span><i></i></div>
+        <div class="band" role="img" aria-label="Typical leaf colour from mid September, green, through gold and red in October, to brown in mid November"></div>
+        <div class="ticks mono" aria-hidden="true"><span>Sep 15</span><span>Oct 1</span><span>Oct 15</span><span>Nov 1</span><span>Nov 15</span></div>
+      </div>
+      <ol class="stages">
+        <li style="--c: var(--leaf-gold);"><span class="when">Late September</span><h3>First colour in the ravines</h3><p>Red and silver maples on the valley floors redden first, along with sumac on the slopes.</p></li>
+        <li style="--c: #e86a24;"><span class="when">Early to mid October</span><h3>Sugar maples go orange</h3><p>Street trees and park maples move through orange to scarlet. Thanksgiving weekend is often the first strong week.</p></li>
+        <li style="--c: var(--leaf-red);"><span class="when">Mid to late October</span><h3>Peak across the city</h3><p>The Don Valley, High Park and the Rouge are at their fullest. Norway maples are still gold.</p></li>
+        <li style="--c: var(--leaf-brown);"><span class="when">Early November</span><h3>Oaks and spruces carry it</h3><p>Most maples are bare. Red oaks hold russet leaves, and the evergreens stand out against them.</p></li>
+      </ol>
+
+      <div class="sun-tool" aria-labelledby="sun-title">
+        <div>
+          <h3 id="sun-title" style="font-size: var(--step-2);">Plan your golden hour</h3>
+          <label for="sunDate" style="margin-top: 14px;">Pick a day
+            <input type="date" id="sunDate" min="2026-01-01" max="2030-12-31">
+          </label>
+          <p class="hint">Times are for downtown Toronto, in local time.</p>
+        </div>
+        <div class="sun-read" aria-live="polite">
+          <div><b id="outRise">--:--</b><span>Sunrise</span></div>
+          <div class="gold"><b id="outGolden">--:--</b><span>Golden hour starts</span></div>
+          <div><b id="outSet">--:--</b><span>Sunset</span></div>
+          <p class="sun-note" id="outNote">Pick a day to see the times.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="places" aria-labelledby="places-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Where to go</p>
+        <h2 id="places-title">Seven places to see it in person</h2>
+        <p class="lede">Maple Hill is modelled on the first one. The rest are spread across the city, from the lake to the eastern edge.</p>
+      </div>
+      <div class="places">
+        <div class="place"><span class="pin"></span><h3>Riverdale Park East <small>Broadview Ave</small></h3><p>The hill that looks west over the Don Valley to the skyline. Best near sunset, when the towers go gold.</p></div>
+        <div class="place"><span class="pin" style="--c: var(--amber);"></span><h3>High Park <small>Bloor St W</small></h3><p>Rare black oak savanna, Grenadier Pond and long loops under maples and oaks.</p></div>
+        <div class="place"><span class="pin" style="--c: #e86a24;"></span><h3>Evergreen Brick Works <small>Bayview Ave</small></h3><p>Ravine trails and a quarry pond in the Don Valley, with a lookout over the treetops.</p></div>
+        <div class="place"><span class="pin" style="--c: var(--leaf-red);"></span><h3>Edwards Gardens <small>Lawrence Ave E</small></h3><p>Formal gardens that lead down into the wooded Wilket Creek ravine.</p></div>
+        <div class="place"><span class="pin" style="--c: var(--amber);"></span><h3>Scarborough Bluffs <small>Kingston Rd</small></h3><p>Pale cliffs above Lake Ontario with autumn woods along the top.</p></div>
+        <div class="place"><span class="pin" style="--c: #e86a24;"></span><h3>Toronto Island Park <small>Ferry from Jack Layton Terminal</small></h3><p>Quiet tree-lined paths and the classic view back across the harbour to downtown.</p></div>
+        <div class="place"><span class="pin" style="--c: var(--leaf-red);"></span><h3>Rouge National Urban Park <small>Eastern edge of the city</small></h3><p>Canada's first national urban park, with forest, marsh and river valley trails.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="residents" aria-labelledby="res-title" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Residents</p>
+        <h2 id="res-title">Who you'll meet under the trees</h2>
+      </div>
+      <div class="residents">
+        <div class="resident">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="26" cy="36" rx="16" ry="11"/><circle cx="44" cy="28" r="8"/><path d="M38 26h12M48 22l2-5M40 22l-1-5M10 34c-6 2-7 9-2 12M14 46v6M34 46v6"/></svg>
+          <h3>Raccoons</h3>
+          <p>Toronto's unofficial mascot. The city even redesigned its green bins in 2016 to keep them out.</p>
+          <p class="in-scene">In the scene they dig through leaf piles and come for acorns.</p>
+        </div>
+        <div class="resident">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M30 46c-8 0-12-6-10-13 2-6 9-8 14-5"/><circle cx="38" cy="22" r="6"/><path d="M36 16l1-4M22 34c-10-4-12-16-4-22 6-4 14 0 12 8"/><path d="M26 46v6M34 44v8"/></svg>
+          <h3>Black squirrels</h3>
+          <p>A dark colour form of the eastern grey squirrel, so common in Toronto that many visitors notice them first.</p>
+          <p class="in-scene">In the scene they hop across the lawn and climb the big maple.</p>
+        </div>
+        <div class="resident">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 40c0-7 9-11 20-11 8 0 14 3 16 8 1 4-3 8-10 8H20c-4 0-6-2-6-5z"/><path d="M42 30c2-6 2-12 0-16"/><circle cx="42" cy="12" r="3"/><path d="M44 12h6M8 50c8-3 40-3 48 0"/></svg>
+          <h3>Canada geese</h3>
+          <p>Year-round on the city's ponds and waterfront, and loud about it.</p>
+          <p class="in-scene">In the scene they paddle the pond, dip for food and leave ripples.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="sp-title" style="padding-top: 0;">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Trees in the scene</p>
+        <h2 id="sp-title">Five palettes of a Toronto October</h2>
+      </div>
+      <div class="species">
+        <div class="sp"><div class="swatch"><i style="background:#c4301c"></i><i style="background:#e86a24"></i><i style="background:#f08c2c"></i><i style="background:#f6c84a"></i></div><h3>Sugar maple</h3><p>Acer saccharum</p></div>
+        <div class="sp"><div class="swatch"><i style="background:#8e1a16"></i><i style="background:#a8211a"></i><i style="background:#d23b20"></i><i style="background:#9a2b3a"></i></div><h3>Red maple</h3><p>Acer rubrum</p></div>
+        <div class="sp"><div class="swatch"><i style="background:#c9922a"></i><i style="background:#e9c03e"></i><i style="background:#f2d14f"></i><i style="background:#b8a23a"></i></div><h3>Norway maple</h3><p>Acer platanoides</p></div>
+        <div class="sp"><div class="swatch"><i style="background:#6e341c"></i><i style="background:#8a3a1e"></i><i style="background:#a8622e"></i><i style="background:#b5532a"></i></div><h3>Red oak</h3><p>Quercus rubra</p></div>
+        <div class="sp"><div class="swatch"><i style="background:#c9a73a"></i><i style="background:#e8c94a"></i><i style="background:#f0d65c"></i><i style="background:#f3e07a"></i></div><h3>Birch</h3><p>Betula</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="closing" aria-labelledby="close-title">
+    <img src="img/golden-hour.jpg" alt="" width="1600" height="1000" loading="lazy">
+    <div class="wrap">
+      <p class="eyebrow">The hill is open</p>
+      <h2 id="close-title">Go stand under the big maple.</h2>
+      <a class="btn primary" href="index.html">
+        Step into Maple Hill
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h12M11 5l5 5-5 5"/></svg>
+      </a>
+      <p class="small">Runs in any recent desktop or phone browser with WebGL. Turn sound on in the Sound tab.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Maple Hill · Riverdale Park East, Toronto</span>
+    <span>Built with Three.js · Sun times calculated for 43.65° N, 79.38° W</span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Sun times for downtown Toronto (standard sunrise equation) ---------- */
+  function sunTimes(y, m, d, h0deg = -0.833, lat = 43.6532, lon = -79.3832) {
+    const rad = Math.PI / 180;
+    const jd = Date.UTC(y, m - 1, d, 12) / 86400000 + 2440587.5;
+    const n = Math.round(jd - 2451545.0 + 0.0008);
+    const Js = n - lon / 360;
+    const M = (357.5291 + 0.98560028 * Js) % 360;
+    const C = 1.9148 * Math.sin(M * rad) + 0.02 * Math.sin(2 * M * rad) + 0.0003 * Math.sin(3 * M * rad);
+    const L = (M + C + 180 + 102.9372) % 360;
+    const Jt = 2451545 + Js + 0.0053 * Math.sin(M * rad) - 0.0069 * Math.sin(2 * L * rad);
+    const sinD = Math.sin(L * rad) * Math.sin(23.4397 * rad), cosD = Math.cos(Math.asin(sinD));
+    const cosW = (Math.sin(h0deg * rad) - Math.sin(lat * rad) * sinD) / (Math.cos(lat * rad) * cosD);
+    const w = Math.acos(Math.max(-1, Math.min(1, cosW))) / rad;
+    const toDate = (J) => new Date((J - 2440587.5) * 86400000);
+    return { rise: toDate(Jt - w / 360), set: toDate(Jt + w / 360) };
+  }
+  const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', hour: '2-digit', minute: '2-digit', hour12: false });
+  const fmtDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit' });
+  const t = (d) => fmt.format(d);
+
+  const todayISO = fmtDay.format(new Date());   // yyyy-mm-dd in Toronto
+  const [ty, tm, td] = todayISO.split('-').map(Number);
+  const today = sunTimes(ty, tm, td), todayGold = sunTimes(ty, tm, td, 6);
+  document.getElementById('heroSunset').textContent = t(today.set);
+  document.getElementById('heroGolden').textContent = t(todayGold.set);
+
+  const input = document.getElementById('sunDate');
+  function updateSun() {
+    const v = input.value || todayISO;
+    const [y, m, d] = v.split('-').map(Number);
+    if (!y || !m || !d) return;
+    const s = sunTimes(y, m, d), g = sunTimes(y, m, d, 6);
+    document.getElementById('outRise').textContent = t(s.rise);
+    document.getElementById('outSet').textContent = t(s.set);
+    document.getElementById('outGolden').textContent = t(g.set);
+    const mins = Math.round((s.set - s.rise) / 60000);
+    const best = m === 10 && d >= 12 ? 'Peak colour is likely in the ravines.' : m === 10 ? 'Maples are turning; peak is usually a little later in the month.' : m === 9 ? 'Early days; look for red on the ravine floors.' : m === 11 && d <= 10 ? 'Late colour; the oaks will be at their best.' : 'Outside the usual colour season.';
+    document.getElementById('outNote').textContent = `${Math.floor(mins / 60)} h ${mins % 60} min of daylight. ${best}`;
+  }
+  try { input.value = todayISO; } catch (e) {}
+  input.addEventListener('input', updateSun);
+  updateSun();
+
+  // Today marker on the colour band (Sep 15 to Nov 15)
+  const start = Date.UTC(ty, 8, 15), end = Date.UTC(ty, 10, 15), now = Date.UTC(ty, tm - 1, td);
+  if (now >= start && now <= end) {
+    const mark = document.getElementById('todayMark');
+    mark.style.left = `${((now - start) / (end - start)) * 100}%`;
+    document.getElementById('todayLabel').textContent = `Today, ${new Intl.DateTimeFormat('en-CA', { month: 'short', day: 'numeric' }).format(new Date(ty, tm - 1, td))}`;
+    mark.hidden = false;
+  }
+
+  /* ---------- Hero: dusk over the Don Valley with falling maple leaves ---------- */
+  const cv = document.getElementById('heroCanvas');
+  const ctx = cv.getContext('2d');
+  const COLORS = ['#c4301c', '#d9481f', '#e86a24', '#f08c2c', '#f4ad38', '#f6c84a', '#a8211a', '#8e1a16'];
+  let W = 0, H = 0, DPR = 1, leaves = [], skyline = [];
+  let seed = 7;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+  const leafPath = new Path2D();
+  (() => {
+    for (let i = 0; i <= 120; i++) {
+      const rel = (i / 120) * Math.PI * 2 - Math.PI, a = rel - Math.PI / 2;
+      const L = Math.pow(Math.abs(Math.cos(2.5 * rel)), 2.2), amp = 0.6 + 0.4 * Math.cos(rel * 0.7);
+      const r = (0.3 + 0.7 * L * amp) * (1 + 0.07 * Math.pow(Math.abs(Math.sin(rel * 18)), 0.6) * L);
+      const x = Math.cos(a) * r, y = Math.sin(a) * r + 0.1;
+      i ? leafPath.lineTo(x, y) : leafPath.moveTo(x, y);
+    }
+    leafPath.closePath();
+  })();
+
+  function buildSkyline() {
+    seed = 11; skyline = [];
+    const base = H * 0.74;
+    let x = W * 0.36;
+    while (x < W * 1.02) {
+      const core = Math.exp(-(((x - W * 0.66) / (W * 0.12)) ** 2));
+      const w = (14 + rnd() * 26) * (W / 1400 + 0.4);
+      const h = (30 + rnd() * 50 + core * (120 + rnd() * 90)) * (H / 820);
+      skyline.push({ x, w, h, base });
+      x += w + rnd() * 6;
+    }
+  }
+  function resize() {
+    const r = cv.getBoundingClientRect();
+    DPR = Math.min(devicePixelRatio || 1, 2);
+    W = r.width; H = r.height;
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    buildSkyline();
+    const n = Math.round(Math.min(90, (W * H) / 14000));
+    seed = 3; leaves = [];
+    for (let i = 0; i < n; i++) leaves.push(newLeaf(true));
+    draw(0);
+  }
+  function newLeaf(anywhere) {
+    return {
+      x: rnd() * W, y: anywhere ? rnd() * H : -30 - rnd() * 80,
+      s: 7 + rnd() * 13, r: rnd() * 6.28, spin: (rnd() - 0.5) * 2.4,
+      vy: 26 + rnd() * 36, sway: rnd() * 6.28, c: COLORS[Math.floor(rnd() * COLORS.length)], vx: 0,
+    };
+  }
+  let wind = 18, lastX = null;
+  cv.parentElement.addEventListener('pointermove', (e) => {
+    const x = e.clientX;
+    if (lastX !== null) wind += (x - lastX) * 1.6;
+    lastX = x;
+  });
+  cv.parentElement.addEventListener('pointerleave', () => { lastX = null; });
+
+  function drawBackdrop() {
+    const sky = ctx.createLinearGradient(0, 0, 0, H * 0.78);
+    sky.addColorStop(0, '#2b3170'); sky.addColorStop(0.45, '#7a4d78'); sky.addColorStop(0.8, '#e0786a'); sky.addColorStop(1, '#ffa868');
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+    const sx = W * 0.79, sy = H * 0.66, sr = Math.max(22, W * 0.026);
+    const glow = ctx.createRadialGradient(sx, sy, sr * 0.4, sx, sy, sr * 7);
+    glow.addColorStop(0, 'rgba(255,214,150,0.75)'); glow.addColorStop(1, 'rgba(255,170,110,0)');
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#ffe6c2'; ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2); ctx.fill();
+    // skyline
+    ctx.fillStyle = 'rgba(70, 40, 60, 0.82)';
+    for (const b of skyline) ctx.fillRect(b.x, b.base - b.h, b.w, b.h + 2);
+    // CN Tower and the stadium dome
+    const cx = W * 0.58, base = H * 0.74, th = H * 0.56;
+    ctx.beginPath();
+    ctx.moveTo(cx - 9, base); ctx.lineTo(cx - 3, base - th * 0.8); ctx.lineTo(cx + 3, base - th * 0.8); ctx.lineTo(cx + 9, base); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx, base - th * 0.63, 15, 7, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(cx - 4, base - th * 0.82, 8, 6);
+    ctx.fillRect(cx - 1.5, base - th, 3, th * 0.2);
+    ctx.beginPath(); ctx.ellipse(cx - W * 0.06, base, W * 0.05, H * 0.035, 0, Math.PI, 0); ctx.fill();
+    // Don Valley tree line and the near hill
+    ctx.fillStyle = '#3a1f1a';
+    ctx.beginPath(); ctx.moveTo(0, H);
+    for (let x = 0; x <= W + 20; x += 18) ctx.lineTo(x, H * 0.76 + Math.sin(x * 0.045) * 7 + Math.sin(x * 0.13) * 5 - 6);
+    ctx.lineTo(W, H); ctx.fill();
+    ctx.fillStyle = '#1d1210';
+    ctx.beginPath(); ctx.moveTo(0, H);
+    for (let x = 0; x <= W + 20; x += 20) ctx.lineTo(x, H * 0.86 - Math.sin((x / W) * Math.PI) * H * 0.06);
+    ctx.lineTo(W, H); ctx.fill();
+    const fade = ctx.createLinearGradient(0, H * 0.35, 0, H);
+    fade.addColorStop(0, 'rgba(20,14,12,0)'); fade.addColorStop(1, 'rgba(20,14,12,0.7)');
+    ctx.fillStyle = fade; ctx.fillRect(0, 0, W, H);
+    const side = ctx.createLinearGradient(0, 0, W * 0.6, 0);
+    side.addColorStop(0, 'rgba(20,14,12,0.55)'); side.addColorStop(1, 'rgba(20,14,12,0)');
+    ctx.fillStyle = side; ctx.fillRect(0, 0, W, H);
+  }
+  function draw(dt) {
+    drawBackdrop();
+    wind += (18 - wind) * Math.min(1, dt * 0.8);
+    wind = Math.max(-260, Math.min(260, wind));
+    const time = performance.now() / 1000;
+    for (const l of leaves) {
+      if (dt > 0) {
+        l.vx += (wind * (0.6 + l.s / 30) - l.vx) * Math.min(1, dt * 1.5);
+        l.x += (l.vx + Math.sin(time * 1.3 + l.sway) * 22) * dt;
+        l.y += l.vy * dt;
+        l.r += (l.spin + l.vx * 0.004) * dt;
+        if (l.y > H + 30 || l.x < -60 || l.x > W + 60) Object.assign(l, newLeaf(false), { x: l.x < -60 ? W + 20 : l.x > W + 60 ? -20 : rnd() * W });
+      }
+      ctx.save();
+      ctx.translate(l.x, l.y); ctx.rotate(l.r);
+      ctx.scale(l.s, l.s * (0.55 + 0.45 * Math.abs(Math.cos(time * 1.7 + l.sway))));
+      ctx.fillStyle = l.c; ctx.fill(leafPath);
+      ctx.restore();
+    }
+  }
+  let last = performance.now(), running = true;
+  function loop(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (running) draw(dt);
+    requestAnimationFrame(loop);
+  }
+  new IntersectionObserver(([e]) => { running = e.isIntersecting; }).observe(cv);
+  addEventListener('resize', resize);
+  resize();
+  if (!REDUCED) requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
