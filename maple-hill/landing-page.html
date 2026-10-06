@@ -75,9 +75,31 @@ p { margin: 0; }
 .nav .btn { padding: 10px 14px; font-size: 0.88rem; color: #fff8f0; }
 
 /* Hero */
-.hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--edge); }
-.hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.hero-inner { position: relative; display: grid; gap: 22px; padding-block: clamp(120px, 22vw, 240px) 56px; }
+.hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--edge); height: clamp(560px, 86vh, 920px); background: var(--ember); }
+.hero-stage { position: absolute; inset: 0; }
+.hero-still, .hero iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+.hero-still { object-fit: cover; object-position: 70% 50%; }
+.hero-scrim { position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(20, 14, 12, 0.88) 0%, rgba(20, 14, 12, 0.6) 32%, rgba(20, 14, 12, 0) 60%),
+              linear-gradient(0deg, rgba(20, 14, 12, 0.7) 0%, rgba(20, 14, 12, 0) 30%); }
+.hero-inner { position: relative; height: 100%; display: grid; align-content: center; gap: 22px; padding-block: 40px; pointer-events: none; }
+.hero-inner a, .hero-inner button { pointer-events: auto; }
+.scene-cmds { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
+.scene-cmds .label { font: 500 0.72rem var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-dim); margin-right: 4px; }
+.chip {
+  border: 1px solid var(--edge); background: rgba(26, 17, 14, 0.62); color: var(--ink);
+  font: 500 0.86rem/1 var(--font-body); padding: 9px 12px; border-radius: 999px; cursor: pointer;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.chip:hover { border-color: rgba(242, 179, 73, 0.55); }
+.chip.gust { border-color: rgba(226, 86, 43, 0.7); }
+.hero-tip {
+  position: absolute; right: 20px; bottom: 18px; pointer-events: none;
+  font: 400 0.78rem var(--font-mono); color: var(--ink-dim);
+  background: rgba(26, 17, 14, 0.62); border: 1px solid var(--edge); border-radius: 999px; padding: 6px 12px;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.hero-tip b { color: var(--maple); font-weight: 500; }
 .hero h1 { font-size: var(--step-4); max-width: 13ch; text-shadow: 0 2px 24px rgba(20, 10, 6, 0.5); }
 .hero .lede { color: var(--ink); text-shadow: 0 1px 14px rgba(20, 10, 6, 0.6); }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -190,6 +212,14 @@ footer .wrap { padding-block: 26px 34px; display: flex; flex-wrap: wrap; justify
 }
 @media (max-width: 680px) {
   .nav a:not(.btn) { display: none; }
+  .hero { height: auto; }
+  .hero-stage { position: relative; height: 54vh; min-height: 340px; }
+  .hero-scrim { background: linear-gradient(0deg, rgba(20, 14, 12, 1) 0%, rgba(20, 14, 12, 0) 30%); }
+  .hero-inner { height: auto; padding-block: 4px 40px; gap: 16px; margin-top: -40px; }
+  .hero h1 { font-size: 2.6rem; }
+  .hero .lede { font-size: 1.02rem; }
+  .hero-tip { left: 16px; right: auto; top: 14px; bottom: auto; font-size: 0.72rem; }
+  .coords, .hero-tip .wide { display: none; }
   .gallery { grid-template-columns: 1fr; }
   .gallery figure:first-child { grid-row: auto; }
   .gallery figure:first-child img { aspect-ratio: 16 / 10; }
@@ -224,7 +254,12 @@ footer .wrap { padding-block: 26px 34px; display: flex; flex-wrap: wrap; justify
 
 <main id="top">
   <section class="hero" aria-labelledby="hero-title" style="padding-block: 0;">
-    <canvas id="heroCanvas" aria-hidden="true"></canvas>
+    <div class="hero-stage">
+      <img class="hero-still" src="img/golden-hour.jpg" alt="" width="1600" height="1000">
+      <iframe id="heroScene" src="index.html#embed" title="Maple Hill, a live 3D scene you can drag to look around" loading="eager"></iframe>
+      <div class="hero-scrim"></div>
+      <p class="hero-tip"><b>●</b> Live 3D · drag to look around<span class="wide"> · click a tree to shake it</span></p>
+    </div>
     <div class="wrap hero-inner">
       <p class="eyebrow">Riverdale Park East · Toronto · October</p>
       <h1 id="hero-title">Toronto, the week the maples turn.</h1>
@@ -240,7 +275,13 @@ footer .wrap { padding-block: 26px 34px; display: flex; flex-wrap: wrap; justify
         <span>43.67° N, 79.35° W</span>
         <span>Sunset today <b id="heroSunset">--:--</b></span>
         <span>Golden hour from <b id="heroGolden">--:--</b></span>
-        <span>Move your cursor to stir the wind</span>
+      </div>
+      <div class="scene-cmds" role="group" aria-label="Change the live scene">
+        <span class="label">Try it</span>
+        <button class="chip gust" type="button" data-cmd="gust">Send a gust</button>
+        <button class="chip" type="button" data-cmd="preset" data-name="Golden hour">Golden hour</button>
+        <button class="chip" type="button" data-cmd="preset" data-name="Rainy evening">Rain</button>
+        <button class="chip" type="button" data-cmd="preset" data-name="Autumn night">Night</button>
       </div>
     </div>
   </section>
@@ -420,8 +461,7 @@ footer .wrap { padding-block: 26px 34px; display: flex; flex-wrap: wrap; justify
 
 <script>
 (() => {
-  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
+  
   /* ---------- Sun times for downtown Toronto (standard sunrise equation) ---------- */
   function sunTimes(y, m, d, h0deg = -0.833, lat = 43.6532, lon = -79.3832) {
     const rad = Math.PI / 180;
@@ -474,131 +514,14 @@ footer .wrap { padding-block: 26px 34px; display: flex; flex-wrap: wrap; justify
     mark.hidden = false;
   }
 
-  /* ---------- Hero: dusk over the Don Valley with falling maple leaves ---------- */
-  const cv = document.getElementById('heroCanvas');
-  const ctx = cv.getContext('2d');
-  const COLORS = ['#c4301c', '#d9481f', '#e86a24', '#f08c2c', '#f4ad38', '#f6c84a', '#a8211a', '#8e1a16'];
-  let W = 0, H = 0, DPR = 1, leaves = [], skyline = [];
-  let seed = 7;
-  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-
-  const leafPath = new Path2D();
-  (() => {
-    for (let i = 0; i <= 120; i++) {
-      const rel = (i / 120) * Math.PI * 2 - Math.PI, a = rel - Math.PI / 2;
-      const L = Math.pow(Math.abs(Math.cos(2.5 * rel)), 2.2), amp = 0.6 + 0.4 * Math.cos(rel * 0.7);
-      const r = (0.3 + 0.7 * L * amp) * (1 + 0.07 * Math.pow(Math.abs(Math.sin(rel * 18)), 0.6) * L);
-      const x = Math.cos(a) * r, y = Math.sin(a) * r + 0.1;
-      i ? leafPath.lineTo(x, y) : leafPath.moveTo(x, y);
-    }
-    leafPath.closePath();
-  })();
-
-  function buildSkyline() {
-    seed = 11; skyline = [];
-    const base = H * 0.74;
-    let x = W * 0.36;
-    while (x < W * 1.02) {
-      const core = Math.exp(-(((x - W * 0.66) / (W * 0.12)) ** 2));
-      const w = (14 + rnd() * 26) * (W / 1400 + 0.4);
-      const h = (30 + rnd() * 50 + core * (120 + rnd() * 90)) * (H / 820);
-      skyline.push({ x, w, h, base });
-      x += w + rnd() * 6;
-    }
-  }
-  function resize() {
-    const r = cv.getBoundingClientRect();
-    DPR = Math.min(devicePixelRatio || 1, 2);
-    W = r.width; H = r.height;
-    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    buildSkyline();
-    const n = Math.round(Math.min(90, (W * H) / 14000));
-    seed = 3; leaves = [];
-    for (let i = 0; i < n; i++) leaves.push(newLeaf(true));
-    draw(0);
-  }
-  function newLeaf(anywhere) {
-    return {
-      x: rnd() * W, y: anywhere ? rnd() * H : -30 - rnd() * 80,
-      s: 7 + rnd() * 13, r: rnd() * 6.28, spin: (rnd() - 0.5) * 2.4,
-      vy: 26 + rnd() * 36, sway: rnd() * 6.28, c: COLORS[Math.floor(rnd() * COLORS.length)], vx: 0,
-    };
-  }
-  let wind = 18, lastX = null;
-  cv.parentElement.addEventListener('pointermove', (e) => {
-    const x = e.clientX;
-    if (lastX !== null) wind += (x - lastX) * 1.6;
-    lastX = x;
-  });
-  cv.parentElement.addEventListener('pointerleave', () => { lastX = null; });
-
-  function drawBackdrop() {
-    const sky = ctx.createLinearGradient(0, 0, 0, H * 0.78);
-    sky.addColorStop(0, '#2b3170'); sky.addColorStop(0.45, '#7a4d78'); sky.addColorStop(0.8, '#e0786a'); sky.addColorStop(1, '#ffa868');
-    ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
-    const sx = W * 0.79, sy = H * 0.66, sr = Math.max(22, W * 0.026);
-    const glow = ctx.createRadialGradient(sx, sy, sr * 0.4, sx, sy, sr * 7);
-    glow.addColorStop(0, 'rgba(255,214,150,0.75)'); glow.addColorStop(1, 'rgba(255,170,110,0)');
-    ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = '#ffe6c2'; ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2); ctx.fill();
-    // skyline
-    ctx.fillStyle = 'rgba(70, 40, 60, 0.82)';
-    for (const b of skyline) ctx.fillRect(b.x, b.base - b.h, b.w, b.h + 2);
-    // CN Tower and the stadium dome
-    const cx = W * 0.58, base = H * 0.74, th = H * 0.56;
-    ctx.beginPath();
-    ctx.moveTo(cx - 9, base); ctx.lineTo(cx - 3, base - th * 0.8); ctx.lineTo(cx + 3, base - th * 0.8); ctx.lineTo(cx + 9, base); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(cx, base - th * 0.63, 15, 7, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillRect(cx - 4, base - th * 0.82, 8, 6);
-    ctx.fillRect(cx - 1.5, base - th, 3, th * 0.2);
-    ctx.beginPath(); ctx.ellipse(cx - W * 0.06, base, W * 0.05, H * 0.035, 0, Math.PI, 0); ctx.fill();
-    // Don Valley tree line and the near hill
-    ctx.fillStyle = '#3a1f1a';
-    ctx.beginPath(); ctx.moveTo(0, H);
-    for (let x = 0; x <= W + 20; x += 18) ctx.lineTo(x, H * 0.76 + Math.sin(x * 0.045) * 7 + Math.sin(x * 0.13) * 5 - 6);
-    ctx.lineTo(W, H); ctx.fill();
-    ctx.fillStyle = '#1d1210';
-    ctx.beginPath(); ctx.moveTo(0, H);
-    for (let x = 0; x <= W + 20; x += 20) ctx.lineTo(x, H * 0.86 - Math.sin((x / W) * Math.PI) * H * 0.06);
-    ctx.lineTo(W, H); ctx.fill();
-    const fade = ctx.createLinearGradient(0, H * 0.35, 0, H);
-    fade.addColorStop(0, 'rgba(20,14,12,0)'); fade.addColorStop(1, 'rgba(20,14,12,0.7)');
-    ctx.fillStyle = fade; ctx.fillRect(0, 0, W, H);
-    const side = ctx.createLinearGradient(0, 0, W * 0.6, 0);
-    side.addColorStop(0, 'rgba(20,14,12,0.55)'); side.addColorStop(1, 'rgba(20,14,12,0)');
-    ctx.fillStyle = side; ctx.fillRect(0, 0, W, H);
-  }
-  function draw(dt) {
-    drawBackdrop();
-    wind += (18 - wind) * Math.min(1, dt * 0.8);
-    wind = Math.max(-260, Math.min(260, wind));
-    const time = performance.now() / 1000;
-    for (const l of leaves) {
-      if (dt > 0) {
-        l.vx += (wind * (0.6 + l.s / 30) - l.vx) * Math.min(1, dt * 1.5);
-        l.x += (l.vx + Math.sin(time * 1.3 + l.sway) * 22) * dt;
-        l.y += l.vy * dt;
-        l.r += (l.spin + l.vx * 0.004) * dt;
-        if (l.y > H + 30 || l.x < -60 || l.x > W + 60) Object.assign(l, newLeaf(false), { x: l.x < -60 ? W + 20 : l.x > W + 60 ? -20 : rnd() * W });
-      }
-      ctx.save();
-      ctx.translate(l.x, l.y); ctx.rotate(l.r);
-      ctx.scale(l.s, l.s * (0.55 + 0.45 * Math.abs(Math.cos(time * 1.7 + l.sway))));
-      ctx.fillStyle = l.c; ctx.fill(leafPath);
-      ctx.restore();
-    }
-  }
-  let last = performance.now(), running = true;
-  function loop(now) {
-    const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    if (running) draw(dt);
-    requestAnimationFrame(loop);
-  }
-  new IntersectionObserver(([e]) => { running = e.isIntersecting; }).observe(cv);
-  addEventListener('resize', resize);
-  resize();
-  if (!REDUCED) requestAnimationFrame(loop);
+  /* ---------- Hero: talk to the live scene ---------- */
+  const scene = document.getElementById('heroScene');
+  const send = (msg) => { try { scene.contentWindow.postMessage(msg, '*'); } catch (e) {} };
+  document.querySelectorAll('.scene-cmds [data-cmd]').forEach((b) => b.addEventListener('click', () => {
+    send(b.dataset.cmd === 'gust' ? { maple: 'gust' } : { maple: 'preset', name: b.dataset.name });
+  }));
+  // Stop the 3D scene rendering while the hero is scrolled out of view
+  new IntersectionObserver(([e]) => send({ maple: 'visible', on: e.isIntersecting })).observe(scene);
 })();
 </script>
 </body>

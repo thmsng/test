@@ -163,6 +163,10 @@ button:focus-visible, .dial:focus-visible, input[type="range"]:focus-visible { o
 
 @keyframes drift { 0%,100% { transform: translateY(-4px) rotate(-12deg); } 50% { transform: translateY(4px) rotate(14deg); } }
 
+/* Embed mode (scene.html#embed): just the living scene, for the landing page hero */
+html.embed body { background: transparent; }
+html.embed .hud, html.embed .hint, html.embed .panel, html.embed .toast, html.embed #loader { display: none; }
+
 @media (max-width: 760px) {
   .hud { padding: 9px 12px 10px; border-radius: 14px; }
   .hud h1 { font-size: 20px; }
@@ -182,6 +186,7 @@ button:focus-visible, .dial:focus-visible, input[type="range"]:focus-visible { o
 </style>
 </head>
 <body>
+<script>if (location.hash === '#embed') document.documentElement.classList.add('embed');</script>
 <div id="scene"></div>
 
 <header class="hud card">
@@ -257,6 +262,7 @@ const pick = (arr) => arr[Math.floor(rnd() * arr.length) % arr.length];
 const angDiff = (a, b) => Math.atan2(Math.sin(b - a), Math.cos(b - a));
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+const EMBED = location.hash === '#embed';
 const MOBILE = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
 const Q = MOBILE
   ? { canopy: 10000, parkTrees: 14, parkLeaves: 1100, distant: 240, distantLeaves: 60, grass: 8000, carpet: 6000, fall: 900, shadow: 1024, dpr: 1.5, refl: 0.35, rain: 1800, fireflies: 200 }
@@ -372,6 +378,21 @@ controls.dampingFactor = 0.07;
 controls.maxPolarAngle = Math.PI * 0.495;
 controls.minDistance = 3;
 controls.maxDistance = 85;
+if (EMBED) {
+  // Slow orbit around the big maple; scrolling the page must not zoom the scene
+  P.autoRotate = true; P.rotateSpeed = 0.35;
+  controls.enableZoom = false;
+  controls.target.set(0, 5.2, 0);
+  camera.position.set(...(MOBILE ? [21, 8, 26] : [19, 7.2, 23]));
+  controls.update();
+}
+// In embed mode, shift the frame so the tree sits beside the landing page's headline
+function applyViewOffset() {
+  if (!EMBED) return;
+  if (innerWidth > 760) camera.setViewOffset(innerWidth, innerHeight, -innerWidth * 0.15, 0, innerWidth, innerHeight);
+  else camera.clearViewOffset();
+}
+applyViewOffset();
 controls.update();
 
 // Shared uniforms (wind, time, sun) used by several patched materials
@@ -2475,6 +2496,7 @@ function updateFly(dt) {
 
 let toastTimer = 0;
 function toast(msg) {
+  if (EMBED) return;
   const t = $('#toast'); t.textContent = msg; t.classList.add('show');
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3600);
 }
@@ -2488,6 +2510,7 @@ addEventListener('keydown', (e) => {
 
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  applyViewOffset();
   renderer.setSize(innerWidth, innerHeight);
   ffFull = (innerHeight * renderer.getPixelRatio()) / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
 });
@@ -2524,7 +2547,9 @@ function stepWorld(dt) {
   updateFoods(dt); updateRain(dt); updateRipples(dt); updateFireflies(dt); updateTrails(dt);
 }
 
+let hostHidden = false;
 function tick(now) {
+  if (hostHidden) { last = now; return; }
   const real = Math.min(0.05, (now - last) / 1000); last = now;
   const dt = P.paused ? 0 : real * P.timeScale;
   if (P.timeFlow && !P.sunManual && dt > 0) {
@@ -2560,6 +2585,7 @@ function tick(now) {
   if (++frames === 2) {
     window.__mapleReady = true;
     $('#loader').classList.add('done');
+    if (EMBED) parent.postMessage({ maple: 'ready' }, '*');
     setTimeout(() => toast(MOBILE ? 'Tap the tree to shake it. Tap the grass or pond to feed the animals.' : 'Click the tree to shake it. Click the grass or pond to feed the animals.'), 900);
   }
 }
@@ -2572,6 +2598,15 @@ for (let i = 0; i < 90; i++) stepWorld(1 / 10);
 if (location.hash === '#debug') window.__maple = { advance: (sec) => { for (let t = 0; t < sec; t += 0.05) stepWorld(0.05); } };
 updateEnv();
 renderer.setAnimationLoop(tick);
+
+// Commands from a host page (the landing page hero)
+if (EMBED) addEventListener('message', (e) => {
+  const d = e.data;
+  if (!d || typeof d.maple !== 'string') return;
+  if (d.maple === 'gust') startFront();
+  else if (d.maple === 'preset') { const p = PRESETS.find((q) => q.name === d.name); if (p) applyPreset(p); }
+  else if (d.maple === 'visible') hostHidden = !d.on;
+});
 </script>
 </body>
 </html>
