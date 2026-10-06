@@ -2245,14 +2245,13 @@ const TABS = [
     { t: 'button', label: 'Rake the lawn', action: () => rake() },
   ] },
   { id: 'sky', label: 'Sky', controls: [
-    { t: 'range', k: 'hour', label: 'Time of day', min: 0, max: 23.95, step: 0.05, fmt: fmtHour },
+    { t: 'chips', k: 'sunManual', label: 'Position the sun by', options: [[false, 'Time of day'], [true, 'Sun angle']] },
+    { t: 'range', k: 'hour', label: 'Time of day', min: 0, max: 23.95, step: 0.05, fmt: fmtHour, show: 'clock' },
+    { t: 'toggle', k: 'timeFlow', label: 'Let time pass', show: 'clock' },
+    { t: 'range', k: 'dayMinutes', label: 'Length of a day', min: 1, max: 20, step: 1, fmt: (v) => `${v} min`, show: 'clock' },
+    { t: 'range', k: 'sunElev', label: 'Sun height', min: -20, max: 80, step: 1, fmt: (v) => v < 0 ? `${-v}° below horizon` : `${v}° above horizon`, show: 'hand' },
+    { t: 'range', k: 'sunAz', label: 'Sun direction', min: 0, max: 359, step: 1, fmt: (v) => `${v}° ${compass(v)}`, show: 'hand' },
     { t: 'readout', id: 'sunInfo' },
-    { t: 'toggle', k: 'sunManual', label: 'Set the sun by hand' },
-    { t: 'range', k: 'sunElev', label: 'Sun height', min: -20, max: 80, step: 1, fmt: (v) => v < 0 ? `${-v}° below horizon` : `${v}° above horizon` },
-    { t: 'range', k: 'sunAz', label: 'Sun direction', min: 0, max: 359, step: 1, fmt: (v) => `${v}° ${compass(v)}` },
-    { t: 'note', text: 'Moving the time slider puts the sun back on the clock. Moving the sun sliders takes it off.' },
-    { t: 'toggle', k: 'timeFlow', label: 'Let time pass' },
-    { t: 'range', k: 'dayMinutes', label: 'Length of a day', min: 1, max: 20, step: 1, fmt: (v) => `${v} min` },
     { t: 'range', k: 'fog', label: 'Haze over the valley', min: 0, max: 1, step: 0.01, fmt: pct },
     { t: 'toggle', k: 'shadows', label: 'Shadows' },
     { t: 'label', label: 'Downtown' },
@@ -2378,10 +2377,15 @@ function makeControl(c) {
     });
     (registry.windDir ||= []).push(set);
   }
+  if (c.show) wrap.dataset.show = c.show;
   return wrap;
 }
 function refreshControl(k) { (registry[k] || []).forEach((f) => f()); }
 function refreshAll() { Object.keys(registry).forEach(refreshControl); }
+// Only one way of placing the sun is shown at a time
+(registry.sunManual ||= []).push(() => {
+  document.querySelectorAll('[data-show]').forEach((el) => { el.hidden = el.dataset.show !== (P.sunManual ? 'hand' : 'clock'); });
+});
 
 function buildPanel() {
   const tabs = $('#tabs'), body = $('#panelBody');
@@ -2439,10 +2443,9 @@ function onParam(k, fromUser) {
     case 'raccoons': case 'squirrels': case 'geese': case 'birds': syncAnimals(); break;
     case 'sound': if (P.sound) Sound.start(); else Sound.stop(); break;
     case 'autoRotate': controls.autoRotate = P.autoRotate; break;
-    case 'hour': if (fromUser && P.sunManual) { P.sunManual = false; refreshControl('sunManual'); } break;
-    case 'sunElev': case 'sunAz': if (!P.sunManual) { P.sunManual = true; refreshControl('sunManual'); } break;
     case 'sunManual':
       if (P.sunManual) {
+        // start the angle sliders where the clock had the sun, so switching modes doesn't jump
         P.sunElev = Math.round(sunState.elevDeg); P.sunAz = Math.round(sunState.azDeg);
         refreshControl('sunElev'); refreshControl('sunAz');
       }
