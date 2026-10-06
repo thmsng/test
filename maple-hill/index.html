@@ -188,13 +188,13 @@ button:focus-visible, .dial:focus-visible, input[type="range"]:focus-visible { o
   <h1>Maple Hill</h1>
   <div class="place">Riverdale Park East · Toronto · 43.67°N</div>
   <div class="readouts">
-    <div class="readout"><b id="hudTime">18:06</b><span>Local time</span></div>
+    <div class="readout"><b id="hudTime">18:06</b><span id="hudTimeLabel">Local time</span></div>
     <div class="readout"><b id="hudWind">14 km/h WSW</b><span>Wind</span></div>
     <div class="readout"><b id="hudLeaves">0</b><span>Leaves aloft</span></div>
   </div>
 </header>
 
-<div class="hint card">Drag to look around · Click the tree to shake it · Click grass or pond to feed the animals · <kbd>H</kbd> hides the panel</div>
+<div class="hint card">Drag to look around · Click the tree to shake it · Click grass or pond to feed the animals · <kbd>G</kbd> sends a gust · <kbd>H</kbd> hides the panel</div>
 
 <aside class="panel card" id="panel" aria-label="Scene controls">
   <div class="panel-head">
@@ -271,6 +271,7 @@ const P = {
   hour: 18.1, timeFlow: false, dayMinutes: 6, fog: 0.3, shadows: true, cityLights: true, cnLights: 'cycle',
   rain: 0, clouds: 0.25,
   raccoons: 2, squirrels: 3, geese: 3, birds: 10, fireflies: 120,
+  sunManual: false, sunElev: 12, sunAz: 255,
   autoRotate: false, rotateSpeed: 0.5, timeScale: 1, paused: false,
   sound: false, volume: 0.6,
 };
@@ -376,6 +377,7 @@ controls.update();
 // Shared uniforms (wind, time, sun) used by several patched materials
 const U = {
   uTime: { value: 0 }, uWind: { value: new V3() }, uSway: { value: 1 }, uShake: { value: 0 },
+  uFront: { value: new THREE.Vector4(1, 0, -999, 0) },
   uSunView: { value: new V3(0, 1, 0) }, uSunCol: { value: new THREE.Color(1, 0.8, 0.6) }, uGlow: { value: 0.08 },
 };
 
@@ -383,10 +385,13 @@ const U = {
    Shader patches
    ================================================================ */
 const WIND_GLSL = /* glsl */`
-uniform float uTime; uniform vec3 uWind; uniform float uSway; uniform float uShake;
+uniform float uTime; uniform vec3 uWind; uniform float uSway; uniform float uShake; uniform vec4 uFront;
 vec3 windOffset(vec3 wp, float flex) {
   float s = length(uWind);
-  vec3 dir = s > 0.0001 ? uWind / s : vec3(1.0, 0.0, 0.0);
+  vec3 dir = s > 0.0001 ? uWind / s : vec3(uFront.x, 0.0, uFront.y);
+  // gust front: xy = travel direction, z = how far it has travelled, w = extra strength
+  float fd = uFront.z - dot(wp.xz, uFront.xy);
+  s += fd > 0.0 ? uFront.w * exp(-fd / 35.0) * smoothstep(0.0, 5.0, fd) : 0.0;
   float ph = uTime * (0.9 + s * 1.6) + wp.x * 0.13 + wp.z * 0.11;
   float wav = sin(ph) * 0.6 + sin(ph * 2.31 + 1.7) * 0.25 + sin(ph * 4.7 + wp.y) * 0.08;
   vec3 off = dir * (s * 0.9 + wav * (0.12 + s * 0.55));
@@ -1040,14 +1045,43 @@ function rake() {
 }
 
 const windV = new V3(), windPerp = new V3(), toward = new V3();
+// A gust front: a wall of strong wind that sweeps across the park and fades behind it
+const front = { active: false, pos: -999, kmh: 0, dir: new V3(1, 0, 0), speed: 20 };
+const FRONT_KMH = 95, FRONT_TAIL = 35;
+function frontAt(x, z) {
+  if (!front.active) return 0;
+  const d = front.pos - (x * front.dir.x + z * front.dir.z);
+  return d > 0 ? Math.exp(-d / FRONT_TAIL) * smooth(0, 5, d) : 0;
+}
+function startFront() {
+  front.dir.copy(toward.lengthSq() > 0 ? toward : bearingVec(P.windDir).negate());
+  front.active = true; front.pos = -75; front.kmh = FRONT_KMH;
+  toast(`A gust front is sweeping in from the ${compass(P.windDir)}. Watch the trees.`);
+}
+function updateFront(dt) {
+  if (!front.active) { U.uFront.value.set(front.dir.x, front.dir.z, -999, 0); return; }
+  front.pos += front.speed * dt;
+  if (front.pos > 170) { front.active = false; front.kmh = 0; }
+  U.uFront.value.set(front.dir.x, front.dir.z, front.pos, front.active ? FRONT_KMH / 60 : 0);
+}
 const gust = { n: 0, eff: 0 };
 let spawnAcc = 0;
 function updateLeaves(dt) {
   if (dt <= 0) return;
   if (canopy.count > 0) {
-    spawnAcc += dt * P.fallRate * 1.6 * (0.35 + 0.65 * P.canopy) * (0.7 + Math.min(gust.eff / 45, 1.4));
+    spawnAcc += dt * P.fallRate * 1.6 * (0.35 + 0.65 * P.canopy) * (0.7 + Math.min(gust.eff / 45, 1.4) + frontAt(0, 0) * 6);
     let guard = 0;
     while (spawnAcc >= 1 && guard++ < 50) { spawnAcc -= 1; spawnFromCanopy(0); }
+  }
+  if (front.active && carpet.count > 0) {
+    // the front scoops up leaves lying on the lawn
+    for (let k = 0; k < 40; k++) {
+      const j = Math.floor(rnd() * carpet.count), r = canopyData.crecs[j];
+      const d = front.pos - (r.x * front.dir.x + r.z * front.dir.z);
+      if (d <= 0 || d > 9 || rnd() > 0.45) continue;
+      carpet.getColorAt(j, _lc);
+      spawnLeafAt(r.x, r.y + 0.05, r.z, front.dir.x * rand(3, 6), rand(1.5, 3.6), front.dir.z * rand(3, 6), _lc, r.s * P.leafSize * 0.36);
+    }
   }
   let aloft = 0, ground = 0;
   const T = P.turbulence * (0.25 + gust.eff * 0.03);
@@ -1058,6 +1092,8 @@ function updateLeaves(dt) {
     let px = fPos[i3], py = fPos[i3 + 1], pz = fPos[i3 + 2];
     const sd = fSeed[i];
     let sc = fScale[i];
+    const fk = front.active ? front.kmh * frontAt(px, pz) : 0;
+    const wx = windV.x + front.dir.x * fk * 0.075, wz = windV.z + front.dir.z * fk * 0.075, effL = eff + fk;
     if (st === 1) {
       aloft++;
       const h = groundH(px, pz);
@@ -1066,15 +1102,15 @@ function updateLeaves(dt) {
       const tz = Math.cos(px * 0.7 - simTime * 1.1 + py * 0.6 + sd * 4.0);
       const ty = Math.sin(px * 0.5 + pz * 0.45 + simTime * 0.9 + sd * 9.0);
       const fl = Math.sin(simTime * (2.0 + sd * 1.8) + sd * 20.0);
-      const tvx = windV.x * hf + tx * T + fl * 0.45 * windPerp.x;
-      const tvz = windV.z * hf + tz * T + fl * 0.45 * windPerp.z;
-      const tvy = -(0.62 + 0.4 * Math.abs(fl)) + ty * T * 0.5;
+      const tvx = wx * hf + tx * (T + fk * 0.02) + fl * 0.45 * windPerp.x;
+      const tvz = wz * hf + tz * (T + fk * 0.02) + fl * 0.45 * windPerp.z;
+      const tvy = -(0.62 + 0.4 * Math.abs(fl)) + ty * T * 0.5 + fk * 0.018;
       const kx = Math.min(1, dt * 1.6), ky = Math.min(1, dt * 2.2);
       fVel[i3] += (tvx - fVel[i3]) * kx;
       fVel[i3 + 1] += (tvy - fVel[i3 + 1]) * ky;
       fVel[i3 + 2] += (tvz - fVel[i3 + 2]) * kx;
       px += fVel[i3] * dt; py += fVel[i3 + 1] * dt; pz += fVel[i3 + 2] * dt;
-      const spinK = 1 + eff / 25;
+      const spinK = 1 + effL / 25;
       fRot[i3] += fSpin[i3] * dt * spinK; fRot[i3 + 1] += fSpin[i3 + 1] * dt * spinK; fRot[i3 + 2] += fSpin[i3 + 2] * dt * spinK;
       const h2 = groundH(px, pz);
       if (h2 < WATER - 0.02 && py <= WATER + 0.01) {
@@ -1089,12 +1125,12 @@ function updateLeaves(dt) {
     } else if (st === 2) {
       ground++;
       fLife[i] += dt;
-      if (eff > 28 && rnd() < dt * (eff - 28) * 0.004) {
-        fState[i] = 1; fVel[i3 + 1] = rand(1.0, 2.4); fVel[i3] = windV.x * 0.5; fVel[i3 + 2] = windV.z * 0.5; py += 0.05;
-      } else if (eff > 16 && sd > 0.45) {
-        const k = dt * 0.06 * (eff - 16) / 20;
-        px += windV.x * k; pz += windV.z * k;
-        fRot[i3 + 2] += dt * (eff - 16) * 0.2 * (sd - 0.45);
+      if (effL > 28 && rnd() < dt * (effL - 28) * 0.004) {
+        fState[i] = 1; fVel[i3 + 1] = rand(1.0, 2.4); fVel[i3] = wx * 0.5; fVel[i3 + 2] = wz * 0.5; py += 0.05;
+      } else if (effL > 16 && sd > 0.45) {
+        const k = dt * 0.06 * (effL - 16) / 20;
+        px += wx * k; pz += wz * k;
+        fRot[i3 + 2] += dt * (effL - 16) * 0.2 * (sd - 0.45);
         const hh = groundH(px, pz);
         if (hh < WATER - 0.02) { fState[i] = 3; fLife[i] = 0; py = WATER + 0.006; } else py = hh + 0.012 + sd * 0.01;
       }
@@ -1105,8 +1141,8 @@ function updateLeaves(dt) {
       }
     } else {
       fLife[i] += dt;
-      px += (windV.x * 0.05 + Math.sin(simTime * 0.5 + sd * 10) * 0.03) * dt;
-      pz += (windV.z * 0.05 + Math.cos(simTime * 0.4 + sd * 7) * 0.03) * dt;
+      px += (wx * 0.05 + Math.sin(simTime * 0.5 + sd * 10) * 0.03) * dt;
+      pz += (wz * 0.05 + Math.cos(simTime * 0.4 + sd * 7) * 0.03) * dt;
       if (groundH(px, pz) > WATER - 0.05) {
         const dx = PX - px, dz = PZ - pz, d = Math.hypot(dx, dz) || 1;
         px += (dx / d) * dt * 0.3; pz += (dz / d) * dt * 0.3;
@@ -1894,6 +1930,85 @@ function updateRain(dt) {
 }
 
 /* ================================================================
+   Wind trails: pale ribbons that ride strong wind and the gust front
+   ================================================================ */
+const WT = MOBILE ? 90 : 180;
+const wtPos = new Float32Array(WT * 3), wtData = new Float32Array(WT * 3), wtLife = new Float32Array(WT), wtMax = new Float32Array(WT);
+const wtGeo = new THREE.InstancedBufferGeometry();
+{
+  const base = new THREE.PlaneGeometry(1, 1, 28, 1);
+  wtGeo.index = base.index;
+  wtGeo.setAttribute('position', base.attributes.position);
+  wtGeo.setAttribute('iPos', new THREE.InstancedBufferAttribute(wtPos, 3).setUsage(THREE.DynamicDrawUsage));
+  wtGeo.setAttribute('iData', new THREE.InstancedBufferAttribute(wtData, 3).setUsage(THREE.DynamicDrawUsage));
+  wtGeo.instanceCount = WT;
+}
+const wtU = { uTime: U.uTime, uAxis: { value: new V3(1, 0, 0) }, uBright: { value: 1 } };
+const windTrails = new THREE.Mesh(wtGeo, new THREE.ShaderMaterial({
+  uniforms: wtU, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+  vertexShader: /* glsl */`
+    attribute vec3 iPos; attribute vec3 iData; uniform vec3 uAxis; uniform float uTime; varying float vA;
+    void main() {
+      float u = position.x + 0.5, len = iData.x, seed = iData.y;
+      vec3 side = normalize(cross(uAxis, vec3(0.0, 1.0, 0.0)));
+      vec3 p = iPos + uAxis * (position.x * len);
+      float ph = u * 7.5 + uTime * 5.0 + seed * 20.0;
+      p += side * sin(ph) * 0.45 * (0.4 + seed) + vec3(0.0, 1.0, 0.0) * sin(ph * 0.7 + 1.3) * 0.3;
+      vec3 w = normalize(cross(uAxis, normalize(cameraPosition - p)));
+      p += w * position.y * 0.09 * sin(3.14159 * u);
+      vA = iData.z * pow(sin(3.14159 * u), 1.5);
+      gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
+    }`,
+  fragmentShader: /* glsl */`
+    uniform float uBright; varying float vA;
+    void main() { gl_FragColor = vec4(vec3(1.0, 0.97, 0.92) * uBright, vA * 0.55); }`,
+}));
+windTrails.frustumCulled = false;
+scene.add(windTrails);
+let wtAcc = 0;
+function spawnTrail(x, y, z, life) {
+  for (let i = 0; i < WT; i++) {
+    if (wtLife[i] > 0) continue;
+    wtPos.set([x, y, z], i * 3);
+    wtData[i * 3] = rand(5, 11); wtData[i * 3 + 1] = rnd(); wtData[i * 3 + 2] = 0;
+    wtLife[i] = wtMax[i] = life;
+    return;
+  }
+}
+function updateTrails(dt) {
+  wtU.uAxis.value.copy(front.active ? front.dir : toward);
+  wtU.uBright.value = 0.35 + 0.65 * env.day;
+  if (dt <= 0) return;
+  const axis = wtU.uAxis.value, side = new V3(-axis.z, 0, axis.x);
+  const ambient = Math.max(0, gust.eff - 38) * 0.35;
+  wtAcc += dt * (ambient + (front.active ? 70 : 0));
+  while (wtAcc >= 1) {
+    wtAcc -= 1;
+    let x, z;
+    if (front.active) {
+      const along = front.pos - rand(0, 26), across = rand(-38, 38);
+      x = axis.x * along + side.x * across; z = axis.z * along + side.z * across;
+    } else {
+      const along = rand(-35, 15), across = rand(-30, 30);
+      x = controls.target.x + axis.x * along + side.x * across; z = controls.target.z + axis.z * along + side.z * across;
+    }
+    spawnTrail(x, Math.max(groundH(x, z), WATER) + rand(0.4, 9), z, rand(1.4, 2.8));
+  }
+  for (let i = 0; i < WT; i++) {
+    if (wtLife[i] <= 0) { wtData[i * 3 + 2] = 0; continue; }
+    wtLife[i] -= dt;
+    const i3 = i * 3;
+    const fk = front.kmh * frontAt(wtPos[i3], wtPos[i3 + 2]);
+    const sp = Math.max(7, (gust.eff + fk) * 0.12);
+    wtPos[i3] += axis.x * sp * dt; wtPos[i3 + 2] += axis.z * sp * dt;
+    const k = 1 - wtLife[i] / wtMax[i];
+    wtData[i3 + 2] = Math.max(0, wtLife[i]) > 0 ? Math.min(1, k * 5) * Math.min(1, (1 - k) * 3) : 0;
+  }
+  wtGeo.attributes.iPos.needsUpdate = true;
+  wtGeo.attributes.iData.needsUpdate = true;
+}
+
+/* ================================================================
    Time of day and atmosphere
    ================================================================ */
 const KEYS = [
@@ -1922,17 +2037,38 @@ function sunDirection(hour, out, offset = 0, maxE = 0.72) {
   out.y = Math.sin(th) * Math.sin(maxE);
   return out.normalize();
 }
+const SUN_MAX = 0.72;   // highest Toronto sun in October, about 41°
+const sunState = { hour: 18, elevDeg: 0, azDeg: 0 };
+function bearingOf(v) { return (THREE.MathUtils.radToDeg(Math.atan2(v.dot(EAST), v.dot(NORTH))) + 360) % 360; }
+function sunFromAngles(elevDeg, azDeg, out) {
+  const e = THREE.MathUtils.degToRad(elevDeg);
+  bearingVec(azDeg, out).multiplyScalar(Math.cos(e));
+  out.y = Math.sin(e);
+  return out.normalize();
+}
 function updateEnv() {
-  sunDirection(P.hour, sunDir);
-  sunDirection(P.hour, moonDir, Math.PI + 0.35, 0.8);
+  if (P.sunManual) {
+    sunFromAngles(P.sunElev, P.sunAz, sunDir);
+    sunFromAngles(32, (P.sunAz + 180) % 360, moonDir);
+    // sky colours follow the sun's height, read as the matching evening hour
+    const th = Math.PI - Math.asin(clamp(sunDir.y / Math.sin(SUN_MAX), -1, 1));
+    sunState.hour = ((7 + (th / Math.PI) * 11.75) % 24 + 24) % 24;
+  } else {
+    sunDirection(P.hour, sunDir);
+    sunDirection(P.hour, moonDir, Math.PI + 0.35, 0.8);
+    sunState.hour = P.hour;
+  }
+  sunState.elevDeg = THREE.MathUtils.radToDeg(Math.asin(sunDir.y));
+  sunState.azDeg = bearingOf(sunDir);
+  const HR = sunState.hour;
   const elev = sunDir.y;
   const dayF = smooth(-0.06, 0.22, elev);
   const night = 1 - smooth(-0.16, 0.05, elev);
   env.day = dayF; env.night = night;
 
-  let k = 0; while (k < KEYS.length - 2 && P.hour >= KEYS[k + 1].h) k++;
+  let k = 0; while (k < KEYS.length - 2 && HR >= KEYS[k + 1].h) k++;
   const A = KEYS[k], B = KEYS[k + 1];
-  const t = smooth(0, 1, (P.hour - A.h) / (B.h - A.h));
+  const t = smooth(0, 1, (HR - A.h) / (B.h - A.h));
   envC.top.copy(A.top).lerp(B.top, t); envC.hor.copy(A.hor).lerp(B.hor, t); envC.bot.copy(A.bot).lerp(B.bot, t);
   const cl = Math.max(P.clouds, P.rain * 0.95);
   for (const key of ['top', 'hor']) {
@@ -1968,7 +2104,7 @@ function updateEnv() {
   U.uGlow.value = lerp(0.07, 0.1, dayF);
 
   pond.material.uniforms.uTint.value.copy(envC.hor).lerp(envC.bot, 0.5).multiplyScalar(0.55);
-  pond.material.uniforms.uRough.value = 0.6 + gust.eff / 25 + P.rain * 2.0;
+  pond.material.uniforms.uRough.value = 0.6 + (gust.local ?? gust.eff) / 25 + P.rain * 2.0;
 
   const lights = night * (P.cityLights ? 1 : 0);
   lantern.light.intensity = night * 4.5;
@@ -2027,7 +2163,7 @@ const Sound = {
   },
   update() {
     if (!this.ctx || !P.sound) return;
-    const t = this.ctx.currentTime, w = clamp(gust.eff / 70, 0, 1.6);
+    const t = this.ctx.currentTime, w = clamp((gust.local ?? gust.eff) / 70, 0, 1.9);
     this.master.gain.setTargetAtTime(P.paused ? 0 : P.volume, t, 0.3);
     this.windG.gain.setTargetAtTime(0.05 + w * 0.85, t, 0.15);
     this.windF.frequency.setTargetAtTime(240 + w * 900 + gust.n * 250, t, 0.2);
@@ -2090,6 +2226,8 @@ const view = (name) => () => flyTo(name);
 
 const TABS = [
   { id: 'wind', label: 'Wind', controls: [
+    { t: 'button', label: 'Send a gust front through', primary: true, action: () => startFront() },
+    { t: 'note', text: 'A wall of 95 km/h wind sweeps across the park from upwind. Press G any time.' },
     { t: 'dial', k: 'windDir' },
     { t: 'range', k: 'windSpeed', label: 'Wind speed', min: 0, max: 90, step: 1, fmt: (v) => `${v} km/h` },
     { t: 'range', k: 'gust', label: 'Gusts', min: 0, max: 1, step: 0.01, fmt: pct },
@@ -2108,6 +2246,11 @@ const TABS = [
   ] },
   { id: 'sky', label: 'Sky', controls: [
     { t: 'range', k: 'hour', label: 'Time of day', min: 0, max: 23.95, step: 0.05, fmt: fmtHour },
+    { t: 'readout', id: 'sunInfo' },
+    { t: 'toggle', k: 'sunManual', label: 'Set the sun by hand' },
+    { t: 'range', k: 'sunElev', label: 'Sun height', min: -20, max: 80, step: 1, fmt: (v) => v < 0 ? `${-v}° below horizon` : `${v}° above horizon` },
+    { t: 'range', k: 'sunAz', label: 'Sun direction', min: 0, max: 359, step: 1, fmt: (v) => `${v}° ${compass(v)}` },
+    { t: 'note', text: 'Moving the time slider puts the sun back on the clock. Moving the sun sliders takes it off.' },
     { t: 'toggle', k: 'timeFlow', label: 'Let time pass' },
     { t: 'range', k: 'dayMinutes', label: 'Length of a day', min: 1, max: 20, step: 1, fmt: (v) => `${v} min` },
     { t: 'range', k: 'fog', label: 'Haze over the valley', min: 0, max: 1, step: 0.01, fmt: pct },
@@ -2175,8 +2318,10 @@ function makeControl(c) {
     wrap.innerHTML = `<span class="ctl-label">${c.label}</span><div class="chips"></div>`;
     const row = wrap.querySelector('.chips');
     c.options.forEach(([text, fn]) => { const b = document.createElement('button'); b.className = 'chip'; b.type = 'button'; b.textContent = text; b.addEventListener('click', fn); row.append(b); });
+  } else if (c.t === 'readout') {
+    wrap.innerHTML = `<p class="note sun-readout" id="${c.id}"></p>`;
   } else if (c.t === 'button') {
-    wrap.innerHTML = `<button class="btn" type="button">${c.label}</button>`;
+    wrap.innerHTML = `<button class="btn${c.primary ? ' primary' : ''}" type="button">${c.label}</button>`;
     wrap.querySelector('button').addEventListener('click', c.action);
   } else if (c.t === 'note') {
     wrap.innerHTML = `<p class="note">${c.text}</p>`;
@@ -2278,14 +2423,14 @@ function markPreset(p) {
   $('#presetNote').textContent = p ? p.note : 'Custom conditions';
 }
 function applyPreset(p) {
-  Object.assign(P, p.v);
+  Object.assign(P, p.v, { sunManual: false });
   Object.keys(p.v).forEach((k) => onParam(k, false));
   refreshAll(); markPreset(p);
   if (p.v.rain > 0.5 && !P.sound) toast('Turn on ambient sound under the Sound tab to hear the rain.');
 }
 
 function onParam(k, fromUser) {
-  if (fromUser && !['sound', 'volume', 'paused', 'autoRotate', 'rotateSpeed', 'timeScale', 'shadows'].includes(k)) markPreset(null);
+  if (fromUser && !['sound', 'volume', 'paused', 'autoRotate', 'rotateSpeed', 'timeScale', 'shadows', 'sunManual'].includes(k)) markPreset(null);
   switch (k) {
     case 'canopy': case 'groundCover': applyCounts(); break;
     case 'leafSize': composeCanopy(); break;
@@ -2294,6 +2439,14 @@ function onParam(k, fromUser) {
     case 'raccoons': case 'squirrels': case 'geese': case 'birds': syncAnimals(); break;
     case 'sound': if (P.sound) Sound.start(); else Sound.stop(); break;
     case 'autoRotate': controls.autoRotate = P.autoRotate; break;
+    case 'hour': if (fromUser && P.sunManual) { P.sunManual = false; refreshControl('sunManual'); } break;
+    case 'sunElev': case 'sunAz': if (!P.sunManual) { P.sunManual = true; refreshControl('sunManual'); } break;
+    case 'sunManual':
+      if (P.sunManual) {
+        P.sunElev = Math.round(sunState.elevDeg); P.sunAz = Math.round(sunState.azDeg);
+        refreshControl('sunElev'); refreshControl('sunAz');
+      }
+      break;
   }
 }
 
@@ -2326,6 +2479,7 @@ function toast(msg) {
 addEventListener('keydown', (e) => {
   if (e.target.closest && e.target.closest('input, button, .dial')) return;
   if (e.key === 'h' || e.key === 'H') setCollapsed(!$('#panel').classList.contains('collapsed'));
+  if (e.key === 'g' || e.key === 'G') startFront();
   if (e.code === 'Space') { e.preventDefault(); P.paused = !P.paused; refreshControl('paused'); }
 });
 
@@ -2349,6 +2503,8 @@ function stepWorld(dt) {
   let s = gust.eff / 60; s = s / (1 + 0.25 * s);
   U.uWind.value.copy(toward).multiplyScalar(s);
   windV.copy(toward).multiplyScalar(gust.eff * 0.075);
+  updateFront(dt);
+  gust.local = gust.eff + front.kmh * frontAt(controls.target.x, controls.target.z);
   U.uTime.value = simTime;
   U.uShake.value *= Math.exp(-dt * 2.6);
   U.uSway.value = P.sway;
@@ -2362,13 +2518,13 @@ function stepWorld(dt) {
     for (const g of herd.geese) g.update(dt);
   }
   for (const b of herd.birds) b.update(dt, env.day * (1 - P.rain * 0.7));
-  updateFoods(dt); updateRain(dt); updateRipples(dt); updateFireflies(dt);
+  updateFoods(dt); updateRain(dt); updateRipples(dt); updateFireflies(dt); updateTrails(dt);
 }
 
 function tick(now) {
   const real = Math.min(0.05, (now - last) / 1000); last = now;
   const dt = P.paused ? 0 : real * P.timeScale;
-  if (P.timeFlow && dt > 0) {
+  if (P.timeFlow && !P.sunManual && dt > 0) {
     P.hour = (P.hour + (dt * 24) / (P.dayMinutes * 60)) % 24;
     uiHourT += real; if (uiHourT > 0.25) { uiHourT = 0; refreshControl('hour'); }
   }
@@ -2387,8 +2543,15 @@ function tick(now) {
 
   if (now - hudT > 200) {
     hudT = now;
-    $('#hudTime').textContent = fmtHour(P.hour);
-    $('#hudWind').textContent = `${Math.round(gust.eff)} km/h ${compass(P.windDir)}`;
+    $('#hudTime').textContent = P.sunManual ? `Sun ${Math.round(sunState.elevDeg)}°` : fmtHour(P.hour);
+    $('#hudTimeLabel').textContent = P.sunManual ? 'Set by hand' : 'Local time';
+    $('#hudWind').textContent = `${Math.round(gust.local ?? gust.eff)} km/h ${compass(P.windDir)}`;
+    const si = $('#sunInfo');
+    if (si) {
+      const e = Math.round(sunState.elevDeg), dir = compass(sunState.azDeg);
+      si.textContent = e >= 0 ? `Sun is ${e}° above the horizon, in the ${dir}. Light is ${e < 6 ? 'deep orange and low' : e < 18 ? 'warm and golden' : 'bright and white'}.`
+        : `Sun is ${-e}° below the horizon, in the ${dir}. ${e > -7 ? 'Twilight.' : 'Moonlight and city lights.'}`;
+    }
     $('#hudLeaves').textContent = stats.aloft.toLocaleString();
   }
   if (++frames === 2) {
@@ -2403,6 +2566,7 @@ if (MOBILE) setCollapsed(true);
 syncAnimals();
 // Warm up so leaves are already drifting and lying around on the first frame
 for (let i = 0; i < 90; i++) stepWorld(1 / 10);
+if (location.hash === '#debug') window.__maple = { advance: (sec) => { for (let t = 0; t < sec; t += 0.05) stepWorld(0.05); } };
 updateEnv();
 renderer.setAnimationLoop(tick);
 </script>
