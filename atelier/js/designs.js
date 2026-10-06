@@ -52,7 +52,7 @@ export const PRODUCTS = [
 /* ------------------------------------------------------------------ */
 
 const CW = 2048;
-const CH = 1408;
+const CH = 1230;
 const FRONT_CX = 1536; // front panel is the right half of the texture
 const BACK_CX = 512; // back panel is the left half
 

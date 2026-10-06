@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from '../vendor/RoomEnvironment.js';
 import { PRODUCTS, makeFabricBump } from './designs.js';
-import { createShirt, SHIRT_H, HANGER_DROP } from './shirt.js';
+import { createShirt, loadTees } from './shirt.js';
 
 /* ================================================================== */
 /*  Constants                                                          */
@@ -94,11 +94,13 @@ for (const sx of [-1, 1]) {
 const maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
 const fabricBump = makeFabricBump(maxAniso);
 
+const tees = await loadTees('assets/tees.glb');
+
 const hangers = PRODUCTS.map((product, i) => {
-  const shirt = createShirt(product, i, fabricBump, maxAniso);
+  const shirt = createShirt(product, i, fabricBump, maxAniso, tees[i % tees.length]);
   shirt.root.scale.setScalar(SCALE);
   scene.add(shirt.root);
-  const restYaw = Math.PI / 2 + ((i * 0.37) % 1 - 0.5) * 0.12;
+  const restYaw = Math.PI / 2 - 0.3 + ((i * 0.37) % 1 - 0.5) * 0.14;
   const home = (i - (N - 1) / 2) * SPACING;
   return {
     i, shirt, home, restYaw,
@@ -152,7 +154,7 @@ function poseHanger(h) {
 const grab = { h: null, local: new THREE.Vector3(), target: new THREE.Vector3(), plane: new THREE.Plane() };
 
 function extent(h) {
-  return SCALE * (0.125 * Math.abs(Math.sin(h.yaw)) + 0.30 * Math.abs(Math.cos(h.yaw)));
+  return SCALE * (0.04 * Math.abs(Math.sin(h.yaw)) + 0.30 * Math.abs(Math.cos(h.yaw)));
 }
 
 function physicsStep(dt, t) {
