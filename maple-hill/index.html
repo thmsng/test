@@ -259,8 +259,8 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const MOBILE = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
 const Q = MOBILE
-  ? { canopy: 4600, grass: 8000, carpet: 4800, fall: 900, shadow: 1024, dpr: 1.5, refl: 0.35, rain: 1800, fireflies: 200 }
-  : { canopy: 8200, grass: 22000, carpet: 9000, fall: 1600, shadow: 2048, dpr: 2, refl: 0.5, rain: 4000, fireflies: 300 };
+  ? { canopy: 7000, parkTrees: 14, parkLeaves: 640, distant: 300, grass: 8000, carpet: 6000, fall: 900, shadow: 1024, dpr: 1.5, refl: 0.35, rain: 1800, fireflies: 200 }
+  : { canopy: 13000, parkTrees: 24, parkLeaves: 1550, distant: 560, grass: 22000, carpet: 13000, fall: 1600, shadow: 2048, dpr: 2, refl: 0.5, rain: 4000, fireflies: 300 };
 
 /* ================================================================
    Parameters (what the panel edits)
@@ -315,7 +315,8 @@ function groundH(x, z) {
   const far = smooth(95, 158, r);
   return h * (1 - far) - 15 * far;
 }
-const isLand = (x, z) => groundH(x, z) > WATER + 0.1 && Math.hypot(x, z) < 34 && Math.hypot(x, z) > 1.1;
+const isLand = (x, z) => groundH(x, z) > WATER + 0.1 && Math.hypot(x, z) < 34 && Math.hypot(x, z) > 1.1
+  && !(canopyData.trunks || []).some((t) => Math.hypot(x - t.x, z - t.z) < t.r);
 function randomLandPoint(rMin, rMax) {
   for (let i = 0; i < 40; i++) {
     const a = rand(0, Math.PI * 2), r = rand(rMin, rMax);
@@ -376,7 +377,6 @@ controls.update();
 const U = {
   uTime: { value: 0 }, uWind: { value: new V3() }, uSway: { value: 1 }, uShake: { value: 0 },
   uSunView: { value: new V3(0, 1, 0) }, uSunCol: { value: new THREE.Color(1, 0.8, 0.6) }, uGlow: { value: 0.08 },
-  uCrown: { value: new V3(0, 8, 0) }, uCrownR: { value: 6 },
 };
 
 /* ================================================================
@@ -408,7 +408,7 @@ function patchMaterial(mat, mode, depth = false) {
     Object.assign(sh.uniforms, U);
     let vs = sh.vertexShader, fs = sh.fragmentShader;
     if (wind) {
-      const flex = mode === 'grass' ? 'position.y * position.y * 0.22' : 'pow(max(wpos.y - 3.0, 0.0), 2.0) * 0.007';
+      const flex = mode === 'grass' ? 'position.y * position.y * 0.22' : 'pow(max(wpos.y - 2.0, 0.0), 2.0) * 0.0062';
       let extra = '';
       if (mode === 'canopy') extra = `
         #ifdef USE_INSTANCING
@@ -431,11 +431,11 @@ function patchMaterial(mat, mode, depth = false) {
     if (depth) { sh.vertexShader = vs; return; }
 
     if (mode === 'canopy') {
-      vs = vs.replace('#include <common>', '#include <common>\nuniform vec3 uCrown; uniform float uCrownR; varying float vOcc;')
+      vs = vs.replace('#include <common>', '#include <common>\nattribute vec4 aCenter; varying float vOcc;')
         .replace('#include <defaultnormal_vertex>', `
         vec3 ip = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-        vec3 crownN = normalize(normalize(ip - uCrown) + vec3(0.0, 0.35, 0.0));
-        vOcc = clamp(length((ip - uCrown) * vec3(1.0, 1.25, 1.0)) / uCrownR, 0.35, 1.0);
+        vec3 crownN = normalize(normalize(ip - aCenter.xyz) + vec3(0.0, 0.35, 0.0));
+        vOcc = clamp(length((ip - aCenter.xyz) * vec3(1.0, 1.25, 1.0)) / aCenter.w, 0.35, 1.0);
         vec3 transformedNormal = normalize(mat3(viewMatrix) * crownN);`);
       fs = fs.replace('#include <common>', '#include <common>\nvarying float vOcc;')
         .replace('#include <color_fragment>', '#include <color_fragment>\n diffuseColor.rgb *= mix(0.45, 1.05, vOcc);');
@@ -560,12 +560,14 @@ const PAL = {
   sugar:  ['#c4301c', '#d9481f', '#e86a24', '#f08c2c', '#f4ad38', '#f6c84a'],
   red:    ['#8e1a16', '#a8211a', '#bf2c1d', '#d23b20', '#9a2b3a', '#c84a26'],
   norway: ['#d9a92e', '#e9c03e', '#f2d14f', '#c9922a', '#e0b23a', '#b8a23a'],
+  oak:    ['#8a3a1e', '#9c4f26', '#7a3220', '#a8622e', '#6e341c', '#b5532a'],
+  birch:  ['#e8c94a', '#f0d65c', '#dcb53a', '#f3e07a', '#c9a73a', '#e4c04e'],
 };
 const GREENS = ['#5d8a2c', '#6f9a33', '#87a43c', '#a3ad44'];
 const _ca = new THREE.Color(), _cb = new THREE.Color(), _cc = new THREE.Color();
 const BROWN = new THREE.Color('#6b3b1f');
-function leafColor(sa, sb, out, aged = 0) {
-  const pal = PAL[P.palette];
+function leafColor(sa, sb, out, aged = 0, palName = P.palette) {
+  const pal = PAL[palName];
   _ca.set(pal[Math.floor(sa * pal.length) % pal.length]);
   _cb.set(GREENS[Math.floor(sb * 7.3) % GREENS.length]);
   const turn = clamp(P.autumn * 1.6 - sb * 0.6, 0, 1);
@@ -723,13 +725,14 @@ const groundMesh = scene.getObjectByName('ground');
 /* ================================================================
    The maple
    ================================================================ */
-const tree = { segs: [], tips: [], centers: [], trunk: null };
+const tree = { segs: [], tips: [], centers: [], trunk: null };   // the big maple (squirrels climb it)
+const trees = [];                                                 // every leafy tree, big maple first
 const canopyData = {};
-let canopy, carpet, crownProxy, trunkProxy;
+const proxies = [];
+let canopy, carpet, puffs;
 {
   const saved = _seed;
   _seed = 4242;
-  const base = new V3(0, groundH(0, 0) - 0.4, 0);
   function bend(dir, az, tilt) {
     const up = Math.abs(dir.y) > 0.95 ? new V3(1, 0, 0) : new V3(0, 1, 0);
     const u = new V3().crossVectors(dir, up).normalize();
@@ -737,25 +740,26 @@ let canopy, carpet, crownProxy, trunkProxy;
     const perp = u.multiplyScalar(Math.cos(az)).addScaledVector(v, Math.sin(az));
     return dir.clone().multiplyScalar(Math.cos(tilt)).addScaledVector(perp, Math.sin(tilt));
   }
-  function grow(p, dir, len, rad, depth, level) {
-    const end = p.clone().addScaledVector(dir, len);
-    tree.segs.push({ a: p.clone(), b: end, r0: rad, r1: rad * 0.72, level });
-    if (level >= 3) tree.centers.push(end.clone());
-    if (depth === 0) { tree.tips.push(end); return; }
-    const n = level === 0 ? 4 : (rnd() < 0.4 ? 3 : 2);
-    const off = rnd() * Math.PI * 2;
-    for (let i = 0; i < n; i++) {
-      const az = off + (i / n) * Math.PI * 2 + rand(-0.45, 0.45);
-      const tilt = level === 0 ? rand(0.55, 0.85) : rand(0.35, 0.72);
-      const nd = bend(dir, az, tilt);
-      nd.y += level === 0 ? 0.1 : 0.12 - 0.05 * level;
-      nd.normalize();
-      grow(end, nd, len * rand(0.66, 0.8) * (level === 0 ? 1.05 : 1), rad * 0.68, depth - 1, level + 1);
-    }
+  function branchTree(base, dir0, len0, rad0, depth0, split0) {
+    const out = { segs: [], tips: [], centers: [] };
+    (function grow(p, dir, len, rad, depth, level) {
+      const end = p.clone().addScaledVector(dir, len);
+      out.segs.push({ a: p.clone(), b: end, r0: rad, r1: rad * 0.72, level });
+      if (level >= 2) out.centers.push(end.clone());
+      if (depth === 0) { out.tips.push(end); return; }
+      const n = level === 0 ? split0 : (rnd() < 0.42 ? 3 : 2);
+      const off = rnd() * Math.PI * 2;
+      for (let i = 0; i < n; i++) {
+        const az = off + (i / n) * Math.PI * 2 + rand(-0.45, 0.45);
+        const tilt = level === 0 ? rand(0.55, 0.85) : rand(0.35, 0.72);
+        const nd = bend(dir, az, tilt);
+        nd.y += level === 0 ? 0.1 : 0.12 - 0.05 * level;
+        nd.normalize();
+        grow(end, nd, len * rand(0.66, 0.8) * (level === 0 ? 1.05 : 1), rad * 0.68, depth - 1, level + 1);
+      }
+    })(base, dir0, len0, rad0, depth0, 0);
+    return out;
   }
-  grow(base, new V3(0.06, 1, 0.04).normalize(), 3.6, 0.62, 5, 0);
-  tree.trunk = tree.segs[0];
-
   const geos = [];
   const upV = new V3(0, 1, 0), qq = new THREE.Quaternion();
   const addCyl = (a, b, r0, r1, radial) => {
@@ -767,71 +771,170 @@ let canopy, carpet, crownProxy, trunkProxy;
     geo.translate(a.x, a.y, a.z);
     geos.push(geo);
   };
-  for (const s of tree.segs) {
-    addCyl(s.a, s.b, s.r0, s.r1, s.level < 2 ? 12 : 6);
-    if (s.level > 0) { const sp = new THREE.SphereGeometry(s.r0 * 1.02, 8, 6); sp.translate(s.a.x, s.a.y, s.a.z); geos.push(sp); }
+  function addTree(base, b, pal, scale, big) {
+    for (const s of b.segs) {
+      addCyl(s.a, s.b, s.r0, s.r1, s.level < 2 ? (big ? 12 : 8) : 6);
+      if (s.level > 0 && s.level < 4) { const sp = new THREE.SphereGeometry(s.r0 * 1.02, 8, 6); sp.translate(s.a.x, s.a.y, s.a.z); geos.push(sp); }
+    }
+    const roots = big ? 5 : 3;
+    for (let i = 0; i < roots; i++) {
+      const a = (i / roots) * Math.PI * 2 + 0.4, rr = 1.5 * scale;
+      const p0 = base.clone().add(new V3(0, 0.9 * scale, 0));
+      const x = base.x + Math.cos(a) * rr, z = base.z + Math.sin(a) * rr;
+      addCyl(p0, new V3(x, groundH(x, z) - 0.25, z), 0.36 * scale, 0.1 * scale, 6);
+    }
+    const crown = new V3();
+    b.tips.forEach((t) => crown.add(t));
+    crown.divideScalar(b.tips.length);
+    let crownR = 0, crownTop = 0;
+    b.tips.forEach((t) => { crownR = Math.max(crownR, Math.hypot(t.x - crown.x, t.z - crown.z)); crownTop = Math.max(crownTop, t.y); });
+    const t = { base, b, pal, scale, crown, crownR, crownTop, leaves: [], trunk: b.segs[0] };
+    trees.push(t);
+    return t;
   }
-  for (let i = 0; i < 5; i++) {
-    const a = (i / 5) * Math.PI * 2 + 0.4;
-    const p0 = base.clone().add(new V3(0, 0.9, 0));
-    const p1 = new V3(Math.cos(a) * 1.5, groundH(Math.cos(a) * 1.5, Math.sin(a) * 1.5) - 0.25, Math.sin(a) * 1.5);
-    addCyl(p0, p1, 0.36, 0.1, 6);
+
+  // The big maple
+  const base0 = new V3(0, groundH(0, 0) - 0.4, 0);
+  const mb = branchTree(base0, new V3(0.06, 1, 0.04).normalize(), 3.6, 0.62, 5, 4);
+  Object.assign(tree, mb, { trunk: mb.segs[0] });
+  const main = addTree(base0, mb, null, 1, true);
+  tree.crown = main.crown; tree.crownR = main.crownR;
+
+  // A grove around the park, kept out of the pond, the paths of the main views and the skyline
+  const segDist = (px, pz, ax, az, bx, bz) => {
+    const dx = bx - ax, dz = bz - az, t = clamp(((px - ax) * dx + (pz - az) * dz) / (dx * dx + dz * dz), 0, 1);
+    return Math.hypot(px - (ax + dx * t), pz - (az + dz * t));
+  };
+  const cnA = THREE.MathUtils.degToRad(-106), cnX = Math.cos(cnA) * 228, cnZ = Math.sin(cnA) * 228;
+  const keepClear = [
+    [18, 22, 0, 0, 6.5], [22, 27, 0, 0, 6.5], [18, 22, cnX * 0.25, cnZ * 0.25, 5], [7, 9, -40, -90, 6], [19.5, 17.5, 8, 4, 4.5], [3.6, 3.2, -0.6, -0.8, 1],
+  ];
+  const SPECIES = ['sugar', 'red', 'norway', 'oak', 'sugar', 'red', 'birch'];
+  const spots = [];
+  for (let tries = 0; tries < 8000 && spots.length < Q.parkTrees; tries++) {
+    const a = rnd() * Math.PI * 2, r = rand(12, 46);
+    const x = Math.cos(a) * r, z = Math.sin(a) * r;
+    if (groundH(x, z) < WATER + 0.45) continue;
+    if (Math.hypot(x - PX, z - PZ) < PR + 4) continue;
+    if (Math.hypot(x - 6, z - 14.6) < 4 || Math.hypot(x - 15.3, z - 0.52) < 3.5) continue;
+    if (PILES.some((p) => Math.hypot(x - p.x, z - p.z) < 3)) continue;
+    if (spots.some((s) => Math.hypot(x - s.x, z - s.z) < 7.2)) continue;
+    if (Math.hypot(x - 18, z - 22) < 12 || Math.hypot(x - 22, z - 27) < 12) continue;
+    if (keepClear.some(([ax, az, bx, bz, d]) => segDist(x, z, ax, az, bx, bz) < d)) continue;
+    spots.push({ x, z });
   }
+  const spruceSpots = [];
+  for (const s of spots) {
+    if (rnd() < 0.2) { spruceSpots.push(s); continue; }
+    const sc = rand(0.5, 0.82);
+    const bp = new V3(s.x, groundH(s.x, s.z) - 0.3, s.z);
+    const bt = branchTree(bp, new V3(rand(-0.08, 0.08), 1, rand(-0.08, 0.08)).normalize(), 3.4 * sc, 0.6 * sc, 4, 3);
+    addTree(bp, bt, pick(SPECIES), sc, false);
+  }
+
   const barkMat = patchMaterial(new THREE.MeshStandardMaterial({ map: barkTex, color: '#b8a898', roughness: 0.95 }), 'tree');
+  const barkDepth = patchMaterial(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }), 'tree', true);
   const trunkMesh = new THREE.Mesh(mergeGeometries(geos), barkMat);
   trunkMesh.castShadow = true; trunkMesh.receiveShadow = true;
-  trunkMesh.customDepthMaterial = patchMaterial(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking }), 'tree', true);
+  trunkMesh.customDepthMaterial = barkDepth;
   scene.add(trunkMesh);
 
-  // Canopy leaves
-  const centers = tree.centers.concat(tree.tips);
-  const crown = new V3();
-  tree.tips.forEach((t) => crown.add(t));
-  crown.divideScalar(tree.tips.length);
-  let crownR = 0;
-  tree.tips.forEach((t) => { crownR = Math.max(crownR, Math.hypot(t.x - crown.x, t.z - crown.z)); });
-  U.uCrown.value.copy(crown).add(new V3(0, -0.8, 0));
-  U.uCrownR.value = crownR + 1.2;
-  tree.crown = crown; tree.crownR = crownR;
-
-  const N = Q.canopy;
-  const recs = [];
-  for (let i = 0; i < N; i++) {
-    const c = centers[i % centers.length];
-    const out = new V3().subVectors(c, crown).normalize();
-    const u = rnd(), r = 1.25 * Math.cbrt(u);
-    const dir = new V3(rand(-1, 1), rand(-1, 1), rand(-1, 1)).normalize();
-    const p = c.clone().addScaledVector(dir, r).addScaledVector(out, 0.3);
-    recs.push({ p, rx: rand(-Math.PI, Math.PI), ry: rand(-Math.PI, Math.PI), rz: rand(-Math.PI, Math.PI), s: rand(0.75, 1.15), sa: rnd(), sb: rnd() });
+  // Spruces: dark evergreen contrast among the reds and golds
+  if (spruceSpots.length) {
+    const sg = [];
+    for (const s of spruceSpots) {
+      const sc = rand(0.8, 1.25), h0 = groundH(s.x, s.z);
+      const trunkG = new THREE.CylinderGeometry(0.12 * sc, 0.2 * sc, 1.4 * sc, 6); trunkG.translate(s.x, h0 + 0.6 * sc, s.z);
+      trunkG.deleteAttribute('uv'); sg.push(trunkG.toNonIndexed());
+      for (let k = 0; k < 5; k++) {
+        const r = (1.9 - k * 0.32) * sc, hh = 1.9 * sc;
+        const cg = new THREE.ConeGeometry(r, hh, 9); cg.rotateY(rnd() * 3);
+        cg.translate(s.x, h0 + (1.5 + k * 1.05) * sc, s.z);
+        cg.deleteAttribute('uv'); sg.push(cg.toNonIndexed());
+      }
+    }
+    const spruce = new THREE.Mesh(mergeGeometries(sg), patchMaterial(new THREE.MeshStandardMaterial({ color: '#2c4a2e', roughness: 0.95, flatShading: true }), 'tree'));
+    spruce.castShadow = true; spruce.receiveShadow = true;
+    spruce.customDepthMaterial = barkDepth;
+    scene.add(spruce);
+    canopyData.spruces = spruceSpots;
   }
+
+  // Leaves for every tree in one instanced mesh; aCenter tells the shader each leaf's crown for soft rounded shading
+  const recs = [];
+  trees.forEach((t, ti) => {
+    const big = ti === 0;
+    const n = big ? Q.canopy : Q.parkLeaves;
+    const centers = t.b.centers.concat(t.b.tips);
+    const cr = big ? 1.4 : 1.25 * Math.max(t.scale, 0.6) + 0.3;
+    for (let i = 0; i < n; i++) {
+      const c = centers[i % centers.length];
+      const out = new V3().subVectors(c, t.crown).normalize();
+      const r = cr * Math.cbrt(rnd());
+      const dir = new V3(rand(-1, 1), rand(-1, 1), rand(-1, 1)).normalize();
+      const p = c.clone().addScaledVector(dir, r).addScaledVector(out, 0.3 * t.scale);
+      recs.push({ p, t: ti, rx: rand(-Math.PI, Math.PI), ry: rand(-Math.PI, Math.PI), rz: rand(-Math.PI, Math.PI), s: rand(0.75, 1.15), sa: rnd(), sb: rnd() });
+    }
+  });
   for (let i = recs.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [recs[i], recs[j]] = [recs[j], recs[i]]; }
+  recs.forEach((r, i) => trees[r.t].leaves.push(i));
   canopyData.recs = recs;
 
   const leafGeo = new THREE.PlaneGeometry(1, 1);
+  const canopyGeo = new THREE.PlaneGeometry(1, 1);
+  const centerAttr = new Float32Array(recs.length * 4);
+  recs.forEach((r, i) => {
+    const t = trees[r.t];
+    centerAttr.set([t.crown.x, t.crown.y - 0.8 * t.scale, t.crown.z, t.crownR + 1.2 * t.scale], i * 4);
+  });
+  canopyGeo.setAttribute('aCenter', new THREE.InstancedBufferAttribute(centerAttr, 4));
   const canopyMat = patchMaterial(new THREE.MeshStandardMaterial({ map: leafTex, alphaTest: 0.45, side: THREE.DoubleSide, roughness: 0.75 }), 'canopy');
-  canopy = new THREE.InstancedMesh(leafGeo, canopyMat, N);
+  canopy = new THREE.InstancedMesh(canopyGeo, canopyMat, recs.length);
   canopy.castShadow = true; canopy.receiveShadow = true;
   canopy.customDepthMaterial = patchMaterial(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: leafTex, alphaTest: 0.45 }), 'canopy', true);
   canopy.frustumCulled = false;
   scene.add(canopy);
 
-  // Fallen-leaf carpet and leaf piles
+  // Inner foliage volume so no crown looks see-through
+  const precs = [];
+  trees.forEach((t, ti) => {
+    const big = ti === 0;
+    const centers = t.b.centers.concat(t.b.tips);
+    const n = big ? 90 : 30;
+    for (let i = 0; i < n; i++) {
+      const c = centers[Math.floor(rnd() * centers.length)];
+      const toward = new V3().subVectors(t.crown, c).multiplyScalar(0.32);
+      precs.push({ p: c.clone().add(toward), t: ti, s: (big ? rand(0.7, 1.0) : rand(0.65, 0.9)) * Math.max(t.scale, 0.65), sa: rnd(), sb: rnd(), ry: rnd() * 6.28 });
+    }
+  });
+  for (let i = precs.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [precs[i], precs[j]] = [precs[j], precs[i]]; }
+  canopyData.precs = precs;
+  puffs = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 2), patchMaterial(new THREE.MeshStandardMaterial({ roughness: 0.95 }), 'tree'), precs.length);
+  puffs.castShadow = true; puffs.receiveShadow = true;
+  puffs.customDepthMaterial = barkDepth;
+  puffs.frustumCulled = false;
+  scene.add(puffs);
+
+  // Fallen-leaf carpet and leaf piles, under every tree
   const CN = Q.carpet;
   const crecs = [];
   while (crecs.length < CN) {
-    let x, z, y, tilt = 0.25;
-    if (rnd() < 0.24) {
+    let x, z, y, tilt = 0.25, ti = 0;
+    const roll = rnd();
+    if (roll < 0.2) {
       const pile = pick(PILES), a = rnd() * Math.PI * 2, rr = 1.35 * Math.sqrt(rnd());
       x = pile.x + Math.cos(a) * rr; z = pile.z + Math.sin(a) * rr;
       y = groundH(x, z) + 0.012 + 0.5 * Math.max(0, 1 - (rr / 1.35) ** 2) * rand(0.8, 1);
       tilt = 0.9;
     } else {
-      const a = rnd() * Math.PI * 2, rr = (crownR + 2.5) * Math.pow(rnd(), 0.75);
-      x = crown.x + Math.cos(a) * rr; z = crown.z + Math.sin(a) * rr;
+      ti = roll < 0.62 || trees.length === 1 ? 0 : 1 + Math.floor(rnd() * (trees.length - 1));
+      const t = trees[ti];
+      const a = rnd() * Math.PI * 2, rr = (t.crownR + 2.5 * Math.max(t.scale, 0.6)) * Math.pow(rnd(), 0.75);
+      x = t.crown.x + Math.cos(a) * rr; z = t.crown.z + Math.sin(a) * rr;
       y = groundH(x, z) + 0.012 + rnd() * 0.012;
     }
     if (groundH(x, z) < WATER + 0.04) continue;
-    crecs.push({ x, y, z, rx: -Math.PI / 2 + rand(-tilt, tilt), ry: rand(-tilt * 0.6, tilt * 0.6), rz: rand(-Math.PI, Math.PI), s: rand(0.8, 1.15), sa: rnd(), sb: rnd() });
+    crecs.push({ x, y, z, t: ti, rx: -Math.PI / 2 + rand(-tilt, tilt), ry: rand(-tilt * 0.6, tilt * 0.6), rz: rand(-Math.PI, Math.PI), s: rand(0.8, 1.15), sa: rnd(), sb: rnd() });
   }
   for (let i = crecs.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [crecs[i], crecs[j]] = [crecs[j], crecs[i]]; }
   canopyData.crecs = crecs;
@@ -841,14 +944,21 @@ let canopy, carpet, crownProxy, trunkProxy;
   carpet.frustumCulled = false;
   scene.add(carpet);
 
-  // Invisible click targets
+  // Invisible click targets: crown and trunk for each tree
   const hidden = new THREE.MeshBasicMaterial({ visible: false });
-  crownProxy = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 10), hidden);
-  crownProxy.position.copy(crown).add(new V3(0, -0.4, 0));
-  crownProxy.scale.set(crownR + 1.1, 3.6, crownR + 1.1);
-  trunkProxy = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.9, 4.2, 8), hidden);
-  trunkProxy.position.set(base.x, base.y + 2.1, base.z);
-  scene.add(crownProxy, trunkProxy);
+  trees.forEach((t, ti) => {
+    const crownP = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 10), hidden);
+    crownP.position.copy(t.crown).add(new V3(0, -0.4 * t.scale, 0));
+    crownP.scale.set(t.crownR + 1.1 * t.scale, 3.6 * t.scale, t.crownR + 1.1 * t.scale);
+    const tr = t.trunk, len = tr.a.distanceTo(tr.b);
+    const trunkP = new THREE.Mesh(new THREE.CylinderGeometry(0.8 * t.scale + 0.15, 0.9 * t.scale + 0.15, len, 8), hidden);
+    trunkP.position.lerpVectors(tr.a, tr.b, 0.5);
+    crownP.userData.tree = trunkP.userData.tree = ti;
+    scene.add(crownP, trunkP);
+    proxies.push(crownP, trunkP);
+  });
+  canopyData.trunks = trees.slice(1).map((t) => ({ x: t.base.x, z: t.base.z, r: 0.9 * t.scale + 0.5 }))
+    .concat((canopyData.spruces || []).map((s) => ({ x: s.x, z: s.z, r: 1.2 })));
   _seed = saved;
 }
 
@@ -874,16 +984,30 @@ function composeCanopy() {
     carpet.setMatrixAt(i, dummy.matrix);
   }
   carpet.instanceMatrix.needsUpdate = true;
+  const precs = canopyData.precs;
+  for (let i = 0; i < precs.length; i++) {
+    const r = precs[i];
+    dummy.position.copy(r.p);
+    dummy.rotation.set(0, r.ry, 0);
+    dummy.scale.set(r.s, r.s * 0.8, r.s);
+    dummy.updateMatrix();
+    puffs.setMatrixAt(i, dummy.matrix);
+  }
+  puffs.instanceMatrix.needsUpdate = true;
 }
+const palOf = (r) => trees[r.t].pal || P.palette;
 function colorCanopy() {
   const c = new THREE.Color();
-  canopyData.recs.forEach((r, i) => canopy.setColorAt(i, leafColor(r.sa, r.sb, c)));
+  canopyData.recs.forEach((r, i) => canopy.setColorAt(i, leafColor(r.sa, r.sb, c, 0, palOf(r))));
   canopy.instanceColor.needsUpdate = true;
-  canopyData.crecs.forEach((r, i) => carpet.setColorAt(i, leafColor(r.sa, r.sb, c, 0.18 + r.sb * 0.22)));
+  canopyData.crecs.forEach((r, i) => carpet.setColorAt(i, leafColor(r.sa, r.sb, c, 0.18 + r.sb * 0.22, palOf(r))));
   carpet.instanceColor.needsUpdate = true;
+  canopyData.precs.forEach((r, i) => puffs.setColorAt(i, leafColor(r.sa, r.sb, c, 0, palOf(r)).multiplyScalar(0.72)));
+  puffs.instanceColor.needsUpdate = true;
 }
 function applyCounts() {
   canopy.count = Math.round(canopyData.recs.length * P.canopy);
+  puffs.count = Math.round(canopyData.precs.length * clamp(P.canopy * 1.25 - 0.2, 0, 1));
   carpet.count = Math.round(canopyData.crecs.length * P.groundCover);
 }
 composeCanopy(); colorCanopy(); applyCounts();
@@ -923,12 +1047,13 @@ function spawnLeafAt(x, y, z, vx, vy, vz, color, scale) {
   fallMesh.instanceColor.needsUpdate = true;
 }
 const _lc = new THREE.Color();
-function spawnFromCanopy(burst = 0) {
+function spawnFromCanopy(burst = 0, ti = -1) {
   if (canopy.count === 0) return;
-  const j = Math.floor(rnd() * canopy.count);
+  let j = Math.floor(rnd() * canopy.count);
+  if (ti >= 0) { const list = trees[ti].leaves; for (let k = 0; k < 8; k++) { j = list[Math.floor(rnd() * list.length)]; if (j < canopy.count) break; } if (j >= canopy.count) return; }
   const r = canopyData.recs[j];
   canopy.getColorAt(j, _lc);
-  const out = burst ? new V3().subVectors(r.p, tree.crown).normalize().multiplyScalar(burst) : new V3();
+  const out = burst ? new V3().subVectors(r.p, trees[r.t].crown).normalize().multiplyScalar(burst) : new V3();
   spawnLeafAt(r.p.x, r.p.y, r.p.z, out.x + rand(-0.3, 0.3), out.y * 0.5 + rand(-0.2, 0.4), out.z + rand(-0.3, 0.3), _lc, r.s * P.leafSize * 0.36);
 }
 function killLeaf(i) { fState[i] = 0; fallMesh.setMatrixAt(i, ZERO); }
@@ -945,7 +1070,7 @@ let spawnAcc = 0;
 function updateLeaves(dt) {
   if (dt <= 0) return;
   if (canopy.count > 0) {
-    spawnAcc += dt * P.fallRate * (0.35 + 0.65 * P.canopy) * (0.7 + Math.min(gust.eff / 45, 1.4));
+    spawnAcc += dt * P.fallRate * 1.6 * (0.35 + 0.65 * P.canopy) * (0.7 + Math.min(gust.eff / 45, 1.4));
     let guard = 0;
     while (spawnAcc >= 1 && guard++ < 50) { spawnAcc -= 1; spawnFromCanopy(0); }
   }
@@ -1262,13 +1387,13 @@ const city = { mats: [], cnShaft: null, cnRing: null, beacon: null };
    Distant trees in the Don Valley
    ================================================================ */
 {
-  const N = 280;
-  const mesh = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), new THREE.MeshStandardMaterial({ roughness: 1, flatShading: true }), N);
+  const N = Q.distant;
+  const mesh = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), new THREE.MeshStandardMaterial({ roughness: 1, flatShading: true }), N * 2);
   const c = new THREE.Color();
   const tones = ['#b5401f', '#d4662a', '#e09a33', '#c98a2e', '#8f2e1c', '#a8a03a', '#2f4a2c', '#3c5a32', '#6d7a34'];
   let n = 0;
   while (n < N) {
-    const a = rnd() * Math.PI * 2, r = rand(52, 150);
+    const a = rnd() * Math.PI * 2, r = rand(48, 150);
     const x = Math.cos(a) * r, z = Math.sin(a) * r;
     const h = groundH(x, z);
     if (Math.hypot(x - PX, z - PZ) < 14) continue;
@@ -1277,8 +1402,14 @@ const city = { mats: [], cnShaft: null, cnRing: null, beacon: null };
     dummy.rotation.set(0, rnd() * 6.28, 0);
     dummy.scale.set(s, sy, s * rand(0.85, 1.15));
     dummy.updateMatrix();
-    mesh.setMatrixAt(n, dummy.matrix);
-    mesh.setColorAt(n, c.set(pick(tones)).multiplyScalar(rand(0.8, 1.05)));
+    mesh.setMatrixAt(n * 2, dummy.matrix);
+    c.set(pick(tones)).multiplyScalar(rand(0.8, 1.05));
+    mesh.setColorAt(n * 2, c);
+    dummy.position.set(x + rand(-1, 1) * s * 0.5, h + sy * 1.05, z + rand(-1, 1) * s * 0.5);
+    dummy.scale.set(s * 0.7, sy * 0.6, s * 0.7);
+    dummy.updateMatrix();
+    mesh.setMatrixAt(n * 2 + 1, dummy.matrix);
+    mesh.setColorAt(n * 2 + 1, c.multiplyScalar(1.12));
     n++;
   }
   scene.add(mesh);
@@ -1932,10 +2063,10 @@ renderer.domElement.addEventListener('pointerup', (e) => {
   const r = renderer.domElement.getBoundingClientRect();
   ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ndc, camera);
-  const hits = ray.intersectObjects([crownProxy, trunkProxy, pond, groundMesh], false);
+  const hits = ray.intersectObjects([...proxies, pond, groundMesh], false);
   if (!hits.length) return;
   const h = hits[0];
-  if (h.object === crownProxy || h.object === trunkProxy) shakeTree();
+  if (h.object.userData.tree !== undefined) shakeTree(h.object.userData.tree);
   else if (h.object === pond && groundH(h.point.x, h.point.z) < WATER - 0.1) {
     dropFood(h.point.x, h.point.z, 'water');
     toast(P.geese ? 'Bread on the water. The geese are paddling over.' : 'Bread on the water. Add geese under Wildlife to have them come eat.');
@@ -1945,11 +2076,11 @@ renderer.domElement.addEventListener('pointerup', (e) => {
     toast(P.raccoons + P.squirrels ? 'Acorns dropped. Raccoons and squirrels nearby are on their way.' : 'Acorns dropped. Add raccoons or squirrels under Wildlife to have them come eat.');
   }
 });
-function shakeTree() {
+function shakeTree(ti = 0) {
   U.uShake.value = Math.min(0.45, U.uShake.value + 0.32);
-  const n = Math.round(60 + 110 * P.canopy);
-  for (let i = 0; i < n; i++) spawnFromCanopy(rand(0.6, 2.2));
-  for (const s of herd.squirrels) if (s.state === 'perch' || s.state === 'climbUp') s.state = 'climbDown';
+  const n = Math.round((60 + 110 * P.canopy) * (ti === 0 ? 1 : 0.55));
+  for (let i = 0; i < n; i++) spawnFromCanopy(rand(0.6, 2.2) * trees[ti].scale, ti);
+  if (ti === 0) for (const s of herd.squirrels) if (s.state === 'perch' || s.state === 'climbUp') s.state = 'climbDown';
 }
 
 /* ================================================================
@@ -1970,9 +2101,9 @@ const TABS = [
   ] },
   { id: 'leaves', label: 'Leaves', controls: [
     { t: 'range', k: 'fallRate', label: 'Falling leaves', min: 0, max: 40, step: 1, fmt: (v) => `${v} per second` },
-    { t: 'range', k: 'canopy', label: 'Leaves on the tree', min: 0, max: 1, step: 0.01, fmt: pct },
+    { t: 'range', k: 'canopy', label: 'Leaves on the trees', min: 0, max: 1, step: 0.01, fmt: pct },
     { t: 'range', k: 'leafSize', label: 'Leaf size', min: 0.6, max: 1.8, step: 0.05, fmt: (v) => `${Math.round(v * 11)} cm` },
-    { t: 'chips', k: 'palette', label: 'Maple species', options: [['sugar', 'Sugar maple'], ['red', 'Red maple'], ['norway', 'Norway maple']] },
+    { t: 'chips', k: 'palette', label: 'Species of the big maple', options: [['sugar', 'Sugar maple'], ['red', 'Red maple'], ['norway', 'Norway maple']] },
     { t: 'range', k: 'autumn', label: 'Season', min: 0, max: 1, step: 0.01, fmt: season },
     { t: 'range', k: 'groundCover', label: 'Leaves on the ground', min: 0, max: 1, step: 0.01, fmt: pct },
     { t: 'toggle', k: 'pileUp', label: 'Let fallen leaves pile up' },
