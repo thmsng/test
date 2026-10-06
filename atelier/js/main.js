@@ -8,7 +8,8 @@ import { createShirt, SHIRT_H, HANGER_DROP } from './shirt.js';
 /* ================================================================== */
 
 const N = PRODUCTS.length;
-const SPACING = 0.52; // distance between hangers on the rail
+const SCALE = 1.5; // visual size of the garments
+const SPACING = 0.58; // distance between hangers on the rail
 const RAIL_Y = 1.36;
 const RAIL_HALF = SPACING * (N - 1) / 2 + 0.5;
 const WALL_Z = -1.5;
@@ -18,10 +19,10 @@ const FOV = 32;
 const STEP = 1 / 240;
 const G_W2 = 18.9; // pendulum ω² of a shirt on a hanger (≈ 0.69 Hz)
 const PH_W2 = 40; // tilt along the rail is held by the width of the hook
-const I_PIVOT = 0.2027; // moment of inertia about the rail
-const D_COM = 0.39; // rail → centre of mass
+const I_PIVOT = 0.2027 * SCALE * SCALE; // moment of inertia about the rail
+const D_COM = 0.39 * SCALE; // rail → centre of mass
 const I_YAW = 0.05;
-const HEM_L = 0.74; // rail → hem
+const HEM_L = 0.74 * SCALE; // rail → hem
 
 const TAU = Math.PI * 2;
 
@@ -44,7 +45,7 @@ scene.fog = new THREE.Fog(BG, 9, 22);
 
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-scene.environmentIntensity = 0.62;
+scene.environmentIntensity = 0.8;
 
 const camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 60);
 
@@ -95,6 +96,7 @@ const fabricBump = makeFabricBump(maxAniso);
 
 const hangers = PRODUCTS.map((product, i) => {
   const shirt = createShirt(product, i, fabricBump, maxAniso);
+  shirt.root.scale.setScalar(SCALE);
   scene.add(shirt.root);
   const restYaw = Math.PI / 2 + ((i * 0.37) % 1 - 0.5) * 0.12;
   const home = (i - (N - 1) / 2) * SPACING;
@@ -138,7 +140,7 @@ function setHomes() {
 const tmpV = new THREE.Vector3();
 const tmpR = new THREE.Vector3();
 const tmpT = new THREE.Vector3();
-const COLL_H = [0.12, 0.4, 0.68];
+const COLL_H = [0.12, 0.4, 0.68].map((h) => h * SCALE);
 
 function poseHanger(h) {
   const s = h.shirt;
@@ -150,7 +152,7 @@ function poseHanger(h) {
 const grab = { h: null, local: new THREE.Vector3(), target: new THREE.Vector3(), plane: new THREE.Plane() };
 
 function extent(h) {
-  return 0.125 * Math.abs(Math.sin(h.yaw)) + 0.30 * Math.abs(Math.cos(h.yaw));
+  return SCALE * (0.125 * Math.abs(Math.sin(h.yaw)) + 0.30 * Math.abs(Math.cos(h.yaw)));
 }
 
 function physicsStep(dt, t) {
@@ -242,10 +244,10 @@ function updateCloth(dt, t) {
     // velocity of the hem in world space (x along the rail, z toward the viewer)
     const vx = h.vx + HEM_L * Math.cos(h.ph) * h.phv;
     const vz = -HEM_L * Math.cos(h.th) * h.thv;
-    const tx = THREE.MathUtils.clamp(-vx * 0.075, -0.13, 0.13);
-    const tz = THREE.MathUtils.clamp(-vz * 0.075, -0.13, 0.13);
+    const tx = THREE.MathUtils.clamp(-vx * 0.06, -0.16, 0.16);
+    const tz = THREE.MathUtils.clamp(-vz * 0.06, -0.16, 0.16);
     // second-order follow so the fabric overshoots and wobbles
-    const W = 11, Z = 0.2;
+    const W = 9, Z = 0.28;
     h.lagv.x += (W * W * (tx - h.lag.x) - 2 * Z * W * h.lagv.x) * dt;
     h.lagv.y += (W * W * (tz - h.lag.y) - 2 * Z * W * h.lagv.y) * dt;
     h.lag.x += h.lagv.x * dt; h.lag.y += h.lagv.y * dt;
@@ -276,12 +278,12 @@ function layoutMetrics() {
   const aspect = window.innerWidth / window.innerHeight;
   const portrait = aspect < 0.85;
   // browse: fit the rail, but never get absurdly far on phones
-  const fitDist = (SPACING * (N - 1) / 2 + 0.5) / (tanHalf * aspect);
+  const fitDist = (SPACING * (N - 1) / 2 + 0.62 * SCALE) / (tanHalf * aspect);
   const distB = Math.min(portrait ? 5.2 : 8, Math.max(3.1, fitDist));
   const visHalfW = distB * tanHalf * aspect;
   const panRange = Math.max(0, SPACING * (N - 1) / 2 + 0.3 - visHalfW);
   // detail
-  const distD = Math.max(2.1, 1.02 / (2 * tanHalf * aspect));
+  const distD = SCALE * Math.max(2.1, 1.02 / (2 * tanHalf * aspect));
   return { aspect, portrait, distB, visHalfW, panRange, distD };
 }
 
@@ -299,16 +301,16 @@ function updateCamera(dt) {
   const pitE = state.orbitPitch - pointer.ny * 0.03;
   const bp = new THREE.Vector3(
     state.panX + Math.sin(yawE) * Math.cos(pitE) * m.distB,
-    0.98 + Math.sin(pitE) * m.distB,
+    0.84 + Math.sin(pitE) * m.distB,
     Math.cos(yawE) * Math.cos(pitE) * m.distB
   );
-  const bt = new THREE.Vector3(state.panX, 0.98, 0);
+  const bt = new THREE.Vector3(state.panX, 0.84, 0);
 
   const visH = 2 * m.distD * tanHalf;
   const dpos = new THREE.Vector3(0 + (m.portrait ? 0 : -0.0), 0.92, m.distD);
   const dtg = new THREE.Vector3(
     m.portrait ? 0 : -visH * m.aspect * 0.07,
-    0.955 - visH * (m.portrait ? 0.12 : 0.0),
+    0.78 - visH * (m.portrait ? 0.12 : 0.0),
     0
   );
   dpos.x = dtg.x; dpos.y = dtg.y;

@@ -72,7 +72,7 @@ function buildBody(seed) {
         Math.sin(5 * a + ph[0] + v * 1.5) * 0.5 +
         Math.sin(9 * a + ph[1] + v * 5.0) * 0.32 +
         Math.sin(14 * a + ph[2] - v * 7.0) * 0.18;
-      const off = 0.0065 * f * lowW * (0.5 + 0.5 * Math.abs(s));
+      const off = 0.009 * f * lowW * (0.5 + 0.5 * Math.abs(s));
       const nx = x / (w * w), nz = z / (d * d), nl = Math.hypot(nx, nz) || 1;
       x += (nx / nl) * off; z += (nz / nl) * off;
 
@@ -282,11 +282,14 @@ export function createShirt(product, index, fabricBump, maxAniso) {
 
   const col = new THREE.Color(product.color);
   const sheen = col.clone().lerp(new THREE.Color('#ffffff'), 0.55);
-  const common = { roughness: 0.92, metalness: 0, sheen: 0.8, sheenRoughness: 0.45, sheenColor: sheen, side: THREE.DoubleSide };
+  const common = {
+    roughness: 0.4, metalness: 0, sheen: 1, sheenRoughness: 0.28, sheenColor: sheen,
+    clearcoat: 0.25, clearcoatRoughness: 0.35, specularIntensity: 0.9, side: THREE.DoubleSide,
+  };
 
-  const bodyMat = new THREE.MeshPhysicalMaterial({ ...common, map: printTex, bumpMap: bump, bumpScale: 1.4 });
-  const sleeveMat = new THREE.MeshPhysicalMaterial({ ...common, color: col, bumpMap: bumpSleeve, bumpScale: 1.4 });
-  const ribMat = new THREE.MeshPhysicalMaterial({ ...common, sheen: 0.15, color: col.clone().multiplyScalar(0.92), bumpMap: bumpRib, bumpScale: 2.2 });
+  const bodyMat = new THREE.MeshPhysicalMaterial({ ...common, map: printTex, bumpMap: bump, bumpScale: 0.35 });
+  const sleeveMat = new THREE.MeshPhysicalMaterial({ ...common, color: col, bumpMap: bumpSleeve, bumpScale: 0.35 });
+  const ribMat = new THREE.MeshPhysicalMaterial({ ...common, sheen: 0.3, color: col.clone().multiplyScalar(0.92), bumpMap: bumpRib, bumpScale: 0.6 });
   [bodyMat, sleeveMat, ribMat].forEach((m) => patchDisplace(m, uniforms, true));
 
   const depthMat = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side: THREE.DoubleSide });
