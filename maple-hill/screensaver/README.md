@@ -3,11 +3,10 @@
 `MapleHill-screensaver.html` is the whole Maple Hill scene in one file. It needs no internet connection.
 When it runs as a screen saver, it:
 
+- shows the hillside at golden hour, with the sun low behind the CN Tower
+- circles the big maple slowly while leaves drift down in a light westerly breeze
+- keeps the time, weather and wind fixed, so the view stays the same
 - hides every panel, readout and the mouse pointer
-- tours the viewpoints, from the hillside to the pond, the skyline and under the big maple, one about every minute
-- starts at your computer's current time, then lets a full day pass every 20 minutes, from sunsets through city lights at night to sunrise
-- changes the weather every few minutes: calm, breezy, misty or a rain shower
-- sends an occasional gust front through the park
 - draws about 30 frames a second, to keep fans quiet
 
 Windows can't show a web page as a screen saver by itself. You need

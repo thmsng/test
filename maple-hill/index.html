@@ -2556,41 +2556,17 @@ function stepWorld(dt) {
 }
 
 /* ================================================================
-   Screen saver director: tours the viewpoints, lets days pass, changes the weather
+   Screen saver: golden hour on the hillside, the camera slowly circling the big maple
    ================================================================ */
-const saver = { shot: 0, shotT: 0, weatherT: 60, gustT: 75, tween: null, lastDraw: 0 };
-const SHOTS = ['hill', 'pond', 'skyline', 'under'];
+const saver = { lastDraw: 0 };
 function saverStart() {
-  const now = new Date();
-  Object.assign(P, { hour: now.getHours() + now.getMinutes() / 60, timeFlow: true, dayMinutes: 20, autoRotate: true, rotateSpeed: 0.22, sunManual: false });
+  Object.assign(P, PRESETS.find((p) => p.name === 'Golden hour').v, { sunManual: false, timeFlow: false, autoRotate: true, rotateSpeed: 0.22 });
   controls.enableZoom = false;
+  controls.enableRotate = false;
+  controls.enablePan = false;
   controls.target.set(...VIEWS.hill.target);
   camera.position.set(...VIEWS.hill.pos);
-}
-function tweenTo(values, dur) {
-  saver.tween = { t: 0, dur, from: Object.fromEntries(Object.keys(values).map((k) => [k, P[k]])), to: values };
-}
-function saverUpdate(dt) {
-  saver.shotT += dt;
-  if (saver.shotT > 55) { saver.shotT = 0; saver.shot = (saver.shot + 1) % SHOTS.length; flyTo(SHOTS[saver.shot], 7); }
-  saver.weatherT -= dt;
-  if (saver.weatherT <= 0) {
-    saver.weatherT = rand(150, 320);
-    const rainy = rnd() < 0.22;
-    tweenTo({
-      windSpeed: rainy ? rand(16, 30) : rand(4, 32), windDir: rand(200, 300), gust: rand(0.2, 0.7), turbulence: rand(0.3, 0.7),
-      rain: rainy ? rand(0.4, 0.9) : 0, clouds: rainy ? rand(0.75, 1) : rand(0, 0.5), fog: rand(0.15, 0.5), fallRate: rand(4, 14),
-    }, 30);
-  }
-  saver.gustT -= dt;
-  if (saver.gustT <= 0) { saver.gustT = rand(140, 320); if (P.rain < 0.5) startFront(); }
-  const tw = saver.tween;
-  if (tw) {
-    tw.t = Math.min(1, tw.t + dt / tw.dur);
-    const e = smooth(0, 1, tw.t);
-    for (const k of Object.keys(tw.to)) P[k] = lerp(tw.from[k], tw.to[k], e);
-    if (tw.t >= 1) saver.tween = null;
-  }
+  controls.update();
 }
 
 let hostHidden = false;
@@ -2608,7 +2584,6 @@ function tick(now) {
     uiHourT += real; if (uiHourT > 0.25) { uiHourT = 0; refreshControl('hour'); }
   }
   stepWorld(dt);
-  if (SAVER) saverUpdate(real);
   updateFly(real);
   controls.autoRotate = P.autoRotate && !P.paused;
   controls.autoRotateSpeed = P.rotateSpeed;
@@ -2648,7 +2623,7 @@ if (SAVER) saverStart();
 syncAnimals();
 // Warm up so leaves are already drifting and lying around on the first frame
 for (let i = 0; i < 90; i++) stepWorld(1 / 10);
-if (location.hash === '#debug') window.__maple = { advance: (sec) => { for (let t = 0; t < sec; t += 0.05) { stepWorld(0.05); if (SAVER) { saverUpdate(0.05); updateFly(0.05); } } } };
+if (location.hash === '#debug') window.__maple = { advance: (sec) => { for (let t = 0; t < sec; t += 0.05) { stepWorld(0.05); } } };
 updateEnv();
 renderer.setAnimationLoop(tick);
 
