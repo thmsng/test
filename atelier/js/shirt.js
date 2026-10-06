@@ -32,7 +32,7 @@ export async function loadTees(url) {
   }
   const gltf = await new Promise((res, rej) => new GLTFLoader().parse(buf, '', res, rej));
   const hg = gltf.parser.json.asset?.extras?.hanger; // the hanger the cloth was simulated on
-  if (hg) { SHIRT_H = hg.neckY; ARM_R = hg.armR; ARM_HALF = hg.armHalf; ARM_SLOPE = hg.slope; ARM_TOP_Y = hg.armTopY0; }
+  if (hg) { SHIRT_H = hg.neckY; ARM_R = hg.armR; ARM_HALF = hg.armHalf - 0.02; ARM_SLOPE = hg.slope; ARM_TOP_Y = hg.armTopY0; }
   return gltf.scene.children.map((node) => {
     const meshes = [];
     node.traverse((o) => { if (o.isMesh) meshes.push(o); });
