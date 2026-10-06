@@ -8,9 +8,9 @@ import { createShirt, SHIRT_H, HANGER_DROP } from './shirt.js';
 /* ================================================================== */
 
 const N = PRODUCTS.length;
-const SCALE = 1.5; // visual size of the garments
-const SPACING = 0.58; // distance between hangers on the rail
-const RAIL_Y = 1.36;
+const SCALE = 2.0; // visual size of the garments
+const SPACING = 0.64; // distance between hangers on the rail
+const RAIL_Y = 1.72;
 const RAIL_HALF = SPACING * (N - 1) / 2 + 0.5;
 const WALL_Z = -1.5;
 const FOV = 32;
@@ -278,7 +278,7 @@ function layoutMetrics() {
   const aspect = window.innerWidth / window.innerHeight;
   const portrait = aspect < 0.85;
   // browse: fit the rail, but never get absurdly far on phones
-  const fitDist = (SPACING * (N - 1) / 2 + 0.62 * SCALE) / (tanHalf * aspect);
+  const fitDist = (SPACING * (N - 1) / 2 + 0.44 * SCALE) / (tanHalf * aspect);
   const distB = Math.min(portrait ? 5.2 : 8, Math.max(3.1, fitDist));
   const visHalfW = distB * tanHalf * aspect;
   const panRange = Math.max(0, SPACING * (N - 1) / 2 + 0.3 - visHalfW);
@@ -301,16 +301,16 @@ function updateCamera(dt) {
   const pitE = state.orbitPitch - pointer.ny * 0.03;
   const bp = new THREE.Vector3(
     state.panX + Math.sin(yawE) * Math.cos(pitE) * m.distB,
-    0.84 + Math.sin(pitE) * m.distB,
+    RAIL_Y - 0.347 * SCALE + Math.sin(pitE) * m.distB,
     Math.cos(yawE) * Math.cos(pitE) * m.distB
   );
-  const bt = new THREE.Vector3(state.panX, 0.84, 0);
+  const bt = new THREE.Vector3(state.panX, RAIL_Y - 0.347 * SCALE, 0);
 
   const visH = 2 * m.distD * tanHalf;
   const dpos = new THREE.Vector3(0 + (m.portrait ? 0 : -0.0), 0.92, m.distD);
   const dtg = new THREE.Vector3(
     m.portrait ? 0 : -visH * m.aspect * 0.07,
-    0.78 - visH * (m.portrait ? 0.12 : 0.0),
+    RAIL_Y - 0.387 * SCALE - visH * (m.portrait ? 0.12 : 0.0),
     0
   );
   dpos.x = dtg.x; dpos.y = dtg.y;

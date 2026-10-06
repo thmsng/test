@@ -120,8 +120,8 @@ function buildBody(seed) {
 
 /* ---------- sleeves ---------- */
 
-const NRS = 44; // around
-const NL = 20; // along
+const NRS = 72; // around
+const NL = 36; // along
 
 function buildSleeve(side, seed) {
   const rand = mulberry32(seed * 57 + (side > 0 ? 3 : 11));
@@ -130,7 +130,7 @@ function buildSleeve(side, seed) {
   const D = new THREE.Vector2(side * Math.cos(ang), -Math.sin(ang));
   const N = side > 0 ? new THREE.Vector2(-D.y, D.x) : new THREE.Vector2(D.y, -D.x); // "up-outward"
   const S0 = new THREE.Vector3(side * 0.155, 0.598, 0.0);
-  const L = 0.30;
+  const L = 0.285;
 
   const pos = [], uv = [], aH = [];
   const endRing = [];
@@ -139,13 +139,16 @@ function buildSleeve(side, seed) {
     const cx = S0.x + D.x * L * t;
     const cy = S0.y + D.y * L * t - 0.032 * t * t;
     const rz = (0.072 + (0.108 - 0.072) * smoothstep(0, 0.45, t)) * (1 - 0.08 * t);
-    const rn = rz * (0.9 - 0.06 * t);
+    // sleeves hang flattened: the cross-section thins toward the cuff
+    const rn = rz * (0.86 - 0.34 * smoothstep(0.1, 1, t));
     for (let k = 0; k <= NRS; k++) {
       const p = (k / NRS) * Math.PI * 2;
       const cp = Math.cos(p), sp = Math.sin(p);
       let a = rn * cp, b = rz * sp;
-      const f = Math.sin(4 * p + ph[0] + t * 3) * 0.55 + Math.sin(7 * p + ph[1] - t * 4) * 0.45;
-      const amp = 0.0055 * f * (0.4 + t);
+      // long, soft drape folds that run down the sleeve (low frequency => silky, not crinkly)
+      const f = Math.sin(3 * p + ph[0] + t * 1.6) * 0.6 + Math.sin(5 * p + ph[1] - t * 2.2) * 0.4;
+      const cuff = Math.sin(3 * p + ph[2]) * 0.5 + Math.sin(5 * p + ph[3]) * 0.5; // gently wavy cuff edge
+      const amp = 0.0034 * f * smoothstep(0.05, 0.6, t) + 0.0045 * cuff * smoothstep(0.7, 1, t);
       a += cp * amp; b += sp * amp;
       const x = cx + N.x * a, y = cy + N.y * a, z = b;
       pos.push(x, y, z);
@@ -283,12 +286,12 @@ export function createShirt(product, index, fabricBump, maxAniso) {
   const col = new THREE.Color(product.color);
   const sheen = col.clone().lerp(new THREE.Color('#ffffff'), 0.55);
   const common = {
-    roughness: 0.4, metalness: 0, sheen: 1, sheenRoughness: 0.28, sheenColor: sheen,
-    clearcoat: 0.25, clearcoatRoughness: 0.35, specularIntensity: 0.9, side: THREE.DoubleSide,
+    roughness: 0.4, metalness: 0, sheen: 1, sheenRoughness: 0.25, sheenColor: sheen,
+    clearcoat: 0.12, clearcoatRoughness: 0.4, specularIntensity: 0.9, side: THREE.DoubleSide,
   };
 
-  const bodyMat = new THREE.MeshPhysicalMaterial({ ...common, map: printTex, bumpMap: bump, bumpScale: 0.35 });
-  const sleeveMat = new THREE.MeshPhysicalMaterial({ ...common, color: col, bumpMap: bumpSleeve, bumpScale: 0.35 });
+  const bodyMat = new THREE.MeshPhysicalMaterial({ ...common, map: printTex, bumpMap: bump, bumpScale: 0.2 });
+  const sleeveMat = new THREE.MeshPhysicalMaterial({ ...common, color: col, bumpMap: bumpSleeve, bumpScale: 0.12, clearcoat: 0.2, clearcoatRoughness: 0.35 });
   const ribMat = new THREE.MeshPhysicalMaterial({ ...common, sheen: 0.3, color: col.clone().multiplyScalar(0.92), bumpMap: bumpRib, bumpScale: 0.6 });
   [bodyMat, sleeveMat, ribMat].forEach((m) => patchDisplace(m, uniforms, true));
 
@@ -313,8 +316,8 @@ export function createShirt(product, index, fabricBump, maxAniso) {
   add(slvL.geometry, sleeveMat);
   add(edgeTube(body.ringHem, 0.0055, 160), ribMat);
   add(edgeTube(body.ringTop, 0.0095, 120), ribMat);
-  add(edgeTube(slvR.endRing, 0.0055, 80), ribMat);
-  add(edgeTube(slvL.endRing, 0.0055, 80), ribMat);
+  add(edgeTube(slvR.endRing, 0.0062, 160), ribMat);
+  add(edgeTube(slvL.endRing, 0.0062, 160), ribMat);
   shirt.position.y = -SHIRT_H - 0.0085;
 
   const hanger = buildHanger();
