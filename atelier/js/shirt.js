@@ -19,7 +19,17 @@ const ARM_TOP_Y = 0.7271; // arm top at the neck, in shirt space
 /* ---------- load the baked garments ---------- */
 
 export async function loadTees(url) {
-  const buf = await (await fetch(url)).arrayBuffer();
+  let buf;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(res.status);
+    buf = await res.arrayBuffer();
+  } catch {
+    // hosts that only serve text files: the same asset as base64 (see README)
+    const b64 = (await (await fetch(url + '.b64.txt')).text()).trim();
+    const bin = atob(b64);
+    buf = Uint8Array.from(bin, (c) => c.charCodeAt(0)).buffer;
+  }
   const gltf = await new Promise((res, rej) => new GLTFLoader().parse(buf, '', res, rej));
   return gltf.scene.children.map((node) => {
     const meshes = [];
