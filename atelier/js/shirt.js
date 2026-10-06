@@ -121,10 +121,10 @@ export function createShirt(product, index, fabricBump, maxAniso, tee) {
   const bump = fabricBump.clone(); bump.needsUpdate = true; bump.repeat.set(260, 155);
 
   const col = new THREE.Color(product.color);
-  const sheen = col.clone().lerp(new THREE.Color('#ffffff'), 0.55);
+  const sheen = col.clone().lerp(new THREE.Color('#ffffff'), 0.22);
   const common = {
-    roughness: 0.42, metalness: 0, sheen: 1, sheenRoughness: 0.28, sheenColor: sheen,
-    clearcoat: 0.1, clearcoatRoughness: 0.4, side: THREE.DoubleSide,
+    roughness: 0.55, metalness: 0, sheen: 0.55, sheenRoughness: 0.45, sheenColor: sheen,
+    side: THREE.DoubleSide,
   };
   const clothMat = new THREE.MeshPhysicalMaterial({ ...common, map: printTex, bumpMap: bump, bumpScale: 0.25 });
   const ribMat = new THREE.MeshPhysicalMaterial({ ...common, sheen: 0.3, color: col.clone().multiplyScalar(0.93) });

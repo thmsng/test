@@ -285,7 +285,7 @@ function layoutMetrics() {
   const visHalfW = distB * tanHalf * aspect;
   const panRange = Math.max(0, SPACING * (N - 1) / 2 + 0.3 - visHalfW);
   // detail
-  const distD = SCALE * Math.max(2.1, 1.02 / (2 * tanHalf * aspect));
+  const distD = SCALE * Math.max(2.4, 1.1 / (2 * tanHalf * aspect));
   return { aspect, portrait, distB, visHalfW, panRange, distD };
 }
 
@@ -312,7 +312,7 @@ function updateCamera(dt) {
   const dpos = new THREE.Vector3(0 + (m.portrait ? 0 : -0.0), 0.92, m.distD);
   const dtg = new THREE.Vector3(
     m.portrait ? 0 : -visH * m.aspect * 0.07,
-    RAIL_Y - 0.387 * SCALE - visH * (m.portrait ? 0.12 : 0.0),
+    RAIL_Y - 0.42 * SCALE - visH * (m.portrait ? 0.12 : 0.0),
     0
   );
   dpos.x = dtg.x; dpos.y = dtg.y;

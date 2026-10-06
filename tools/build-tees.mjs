@@ -492,9 +492,33 @@ function simulate(model, vp) {
 /*  mesh finishing: normals, UVs, hem / collar / cuff tubes            */
 /* ------------------------------------------------------------------ */
 
+/** Taubin smoothing (no shrinkage) to remove triangle-scale noise left by the solver; shoulder pins stay put */
+function smoothMesh(model, x) {
+  const { V, tris } = model;
+  const n = V.length;
+  const nb = Array.from({ length: n }, () => new Set());
+  for (const t of tris) { nb[t.a].add(t.b).add(t.c); nb[t.b].add(t.a).add(t.c); nb[t.c].add(t.a).add(t.b); }
+  const tmp = new Float64Array(n * 3);
+  const pass = (lambda) => {
+    for (let i = 0; i < n; i++) {
+      const k = i * 3;
+      if (V[i].pin || nb[i].size === 0) { tmp[k] = x[k]; tmp[k + 1] = x[k + 1]; tmp[k + 2] = x[k + 2]; continue; }
+      let sx = 0, sy = 0, sz = 0;
+      for (const j of nb[i]) { sx += x[j * 3]; sy += x[j * 3 + 1]; sz += x[j * 3 + 2]; }
+      const m = nb[i].size;
+      tmp[k] = x[k] + lambda * (sx / m - x[k]);
+      tmp[k + 1] = x[k + 1] + lambda * (sy / m - x[k + 1]);
+      tmp[k + 2] = x[k + 2] + lambda * (sz / m - x[k + 2]);
+    }
+    x.set(tmp);
+  };
+  for (let it = 0; it < 8; it++) { pass(0.5); pass(-0.53); }
+}
+
 function finish(model, x) {
   const { V, tris, reg } = model;
   const n = V.length;
+  smoothMesh(model, x);
   // smooth normals on the welded mesh
   const nrm = new Float64Array(n * 3);
   for (const t of tris) {
