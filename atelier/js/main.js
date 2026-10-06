@@ -130,8 +130,8 @@ function setHomes() {
   hangers.forEach((h) => {
     if (state.mode === 'browse') h.home = (h.i - (N - 1) / 2) * SPACING;
     else if (h.i === state.sel) h.home = 0;
-    else if (h.i < state.sel) h.home = -(2.7 + (state.sel - 1 - h.i) * 0.5);
-    else h.home = 2.7 + (h.i - state.sel - 1) * 0.5;
+    else if (h.i < state.sel) h.home = -(4.2 + (state.sel - 1 - h.i) * 0.9);
+    else h.home = 4.2 + (h.i - state.sel - 1) * 0.9;
   });
 }
 
