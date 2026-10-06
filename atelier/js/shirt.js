@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from '../vendor/loaders/GLTFLoader.js';
 import { makePrintTexture } from './designs.js';
 
-export const SHIRT_H = 0.70; // hem -> neck, metres
+export let SHIRT_H = 0.64; // hem -> neck, metres (read from the asset)
 export const HOOK_R = 0.0165; // radius of the hook loop that wraps the rail
 export const HANGER_DROP = 0.075; // rail centre -> hanger arms (neck)
 
@@ -11,10 +11,10 @@ export const HANGER_DROP = 0.075; // rail centre -> hanger arms (neck)
  * It is a t-shirt cut from pattern pieces (front, back, two sleeves) sewn along welded seams
  * and draped on this hanger by a cloth simulation. Shirt space: metres, y up, hem at y = 0.
  */
-const ARM_R = 0.0085; // hanger arm half thickness
-const ARM_HALF = 0.205; // hanger arm length from the neck
-const ARM_SLOPE = 0.045 / (0.225 - 0.092); // arms follow the shoulder seam
-const ARM_TOP_Y = 0.7271; // arm top at the neck, in shirt space
+let ARM_R = 0.0085; // hanger arm half thickness
+let ARM_HALF = 0.205; // hanger arm length from the neck
+let ARM_SLOPE = 0.045 / (0.225 - 0.092); // arms follow the shoulder seam
+let ARM_TOP_Y = 0.7271; // arm top at the neck, in shirt space
 
 /* ---------- load the baked garments ---------- */
 
@@ -31,6 +31,8 @@ export async function loadTees(url) {
     buf = Uint8Array.from(bin, (c) => c.charCodeAt(0)).buffer;
   }
   const gltf = await new Promise((res, rej) => new GLTFLoader().parse(buf, '', res, rej));
+  const hg = gltf.parser.json.asset?.extras?.hanger; // the hanger the cloth was simulated on
+  if (hg) { SHIRT_H = hg.neckY; ARM_R = hg.armR; ARM_HALF = hg.armHalf; ARM_SLOPE = hg.slope; ARM_TOP_Y = hg.armTopY0; }
   return gltf.scene.children.map((node) => {
     const meshes = [];
     node.traverse((o) => { if (o.isMesh) meshes.push(o); });
@@ -128,15 +130,15 @@ export function createShirt(product, index, fabricBump, maxAniso, tee) {
   const uniforms = { uLag: { value: new THREE.Vector2() }, uFlutter: { value: 0 }, uTime: { value: 0 } };
 
   const printTex = makePrintTexture(product, maxAniso);
-  const bump = fabricBump.clone(); bump.needsUpdate = true; bump.repeat.set(260, 155);
+  const bump = fabricBump.clone(); bump.needsUpdate = true; bump.repeat.set(210, 125);
 
   const col = new THREE.Color(product.color);
-  const sheen = col.clone().lerp(new THREE.Color('#ffffff'), 0.22);
+  const sheen = col.clone().lerp(new THREE.Color('#ffffff'), 0.15);
   const common = {
-    roughness: 0.55, metalness: 0, sheen: 0.55, sheenRoughness: 0.45, sheenColor: sheen,
+    roughness: 0.72, metalness: 0, sheen: 0.35, sheenRoughness: 0.55, sheenColor: sheen,
     side: THREE.DoubleSide,
   };
-  const clothMat = new THREE.MeshPhysicalMaterial({ ...common, map: printTex, bumpMap: bump, bumpScale: 0.25 });
+  const clothMat = new THREE.MeshPhysicalMaterial({ ...common, map: printTex, bumpMap: bump, bumpScale: 0.9 });
   const ribMat = new THREE.MeshPhysicalMaterial({ ...common, sheen: 0.3, color: col.clone().multiplyScalar(0.93) });
   [clothMat, ribMat].forEach((m) => patchDisplace(m, uniforms, true));
 

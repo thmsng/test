@@ -66,8 +66,8 @@ function distToPoly(x, y, poly) {
 /* ------------------------------------------------------------------ */
 
 // hanger the shirt hangs on (shirt coordinates; y up, hem at y = 0)
-const NECK_Y = 0.70, NECK_X = 0.092;
-const SH_TIP_X = 0.225, SH_TIP_Y = 0.655;
+const NECK_Y = 0.64, NECK_X = 0.092;
+const SH_TIP_X = 0.228, SH_TIP_Y = 0.598;
 const ARM_R = 0.0085;
 const ARM_HALF = 0.205;
 const shoulderY = (x, s) => NECK_Y - ((NECK_Y - SH_TIP_Y) / (SH_TIP_X * s - NECK_X)) * (Math.abs(x) - NECK_X);
@@ -81,7 +81,7 @@ function variantParams(i) {
     scale: 0.97 + r() * 0.06,
     wind: 0.5 + r() * 0.9,
     windPhase: r() * 6.28,
-    inflate: 0.25 + r() * 0.45,
+    inflate: 1.0 + r() * 0.8,
     sleeveAngle: 0.50 + r() * 0.18,
     shift: (r() - 0.5) * 0.006,
   };
@@ -89,7 +89,7 @@ function variantParams(i) {
 
 function build(vp) {
   const s = vp.scale;
-  const wh = 0.268 * s, wu = 0.26 * s, yu = 0.42, xs = SH_TIP_X * s;
+  const wh = 0.275 * s, wu = 0.262 * s, yu = 0.375, xs = SH_TIP_X * s;
   const neckDrop = { F: 0.078, B: 0.022 };
   const scoop = { F: 0.022, B: 0.012 };
 
@@ -238,7 +238,7 @@ function build(vp) {
   for (const loop of [slR, slL]) for (const e of loop) if (/^cuff/.test(keyOf(e.id))) V[e.id].layer = sleeveLayer(e.p[0]);
 
   /* ---- initial 3D placement ---- */
-  const DELTA = 0.004;
+  const DELTA = 0.007;
   // seam vertices on the body: positions from the pattern
   const seamPos = new Map();
   const setP = (id, x, y, z) => { V[id].x = x; V[id].y = y; V[id].z = z; seamPos.set(id, true); };
@@ -381,12 +381,12 @@ function simulate(model, vp) {
   }));
 
   // spatial hash for front/back layer collisions
-  const CELL = 0.012, RC = 0.0068;
+  const CELL = 0.016, RC = 0.0125;
   const frontIds = [], backIds = [];
   for (let i = 0; i < n; i++) { if (layer[i] === 1) frontIds.push(i); else if (layer[i] === -1) backIds.push(i); }
 
-  const DT = 1 / 90, STEPS = +(process.env.STEPS || 800), ITERS = 12;
-  const KS = 1.0, KB = +(process.env.KB || 0.8);
+  const DT = 1 / 90, STEPS = +(process.env.STEPS || 800), ITERS = 16;
+  const KS = 1.0, KB = +(process.env.KB || 1.0);
   const rand = rng(vp.seed * 31 + 5);
   const phase = vp.windPhase;
   let lastSpeed = 0;
@@ -403,7 +403,7 @@ function simulate(model, vp) {
       // gravity, a decaying breeze, and slight inflation of the two layers (air trapped inside the garment)
       const ax = windAmp * Math.sin(time * 3.1 + phase + h * 7) * 0.8;
       const az = windAmp * Math.sin(time * 2.3 + phase * 1.7 + x[k] * 9);
-      const infl = layer[i] * vp.inflate * smooth(0.0, 0.5, 0.7 - h) * 0.5;
+      const infl = layer[i] * vp.inflate * (0.35 + 0.65 * smooth(0.0, 0.5, 0.64 - h)) * 0.5;
       x[k] += vx + ax * DT * DT;
       x[k + 1] += vy - 9.81 * DT * DT;
       x[k + 2] += vz + (az + infl) * DT * DT;
@@ -512,7 +512,7 @@ function smoothMesh(model, x) {
     }
     x.set(tmp);
   };
-  for (let it = 0; it < 8; it++) { pass(0.5); pass(-0.53); }
+  for (let it = 0; it < 4; it++) { pass(0.5); pass(-0.53); }
 }
 
 function finish(model, x) {
@@ -578,7 +578,7 @@ function finish(model, x) {
   const tubes = [];
   for (const L of info) {
     let radius = 0.0052;
-    if (L.my > 0.6) radius = 0.0088; // collar
+    if (L.my > 0.5) radius = 0.0088; // collar
     else if (L.my < 0.3 && Math.abs(L.mx) < 0.1) radius = 0.0048; // hem
     tubes.push({ pts: L.l.map((i) => [x[i * 3], x[i * 3 + 1], x[i * 3 + 2]]), radius });
   }

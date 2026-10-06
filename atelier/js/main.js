@@ -246,8 +246,8 @@ function updateCloth(dt, t) {
     // velocity of the hem in world space (x along the rail, z toward the viewer)
     const vx = h.vx + HEM_L * Math.cos(h.ph) * h.phv;
     const vz = -HEM_L * Math.cos(h.th) * h.thv;
-    const tx = THREE.MathUtils.clamp(-vx * 0.06, -0.16, 0.16);
-    const tz = THREE.MathUtils.clamp(-vz * 0.06, -0.16, 0.16);
+    const tx = THREE.MathUtils.clamp(-vx * 0.035, -0.1, 0.1);
+    const tz = THREE.MathUtils.clamp(-vz * 0.035, -0.1, 0.1);
     // second-order follow so the fabric overshoots and wobbles
     const W = 9, Z = 0.28;
     h.lagv.x += (W * W * (tx - h.lag.x) - 2 * Z * W * h.lagv.x) * dt;
