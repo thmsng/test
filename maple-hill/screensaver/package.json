@@ -1,0 +1,8 @@
+{
+  "name": "maple-hill-screensaver",
+  "private": true,
+  "description": "Builds an offline, single-file screen saver version of the Maple Hill scene",
+  "type": "module",
+  "scripts": { "build": "node build.mjs" },
+  "devDependencies": { "esbuild": "0.24.0", "three": "0.160.0" }
+}

@@ -166,6 +166,7 @@ button:focus-visible, .dial:focus-visible, input[type="range"]:focus-visible { o
 /* Embed mode (scene.html#embed): just the living scene, for the landing page hero */
 html.embed body { background: transparent; }
 html.embed .hud, html.embed .hint, html.embed .panel, html.embed .toast, html.embed #loader { display: none; }
+html.saver, html.saver * { cursor: none !important; }
 
 @media (max-width: 760px) {
   .hud { padding: 9px 12px 10px; border-radius: 14px; }
@@ -186,7 +187,10 @@ html.embed .hud, html.embed .hint, html.embed .panel, html.embed .toast, html.em
 </style>
 </head>
 <body>
-<script>if (location.hash === '#embed') document.documentElement.classList.add('embed');</script>
+<script>
+  if (location.hash === '#embed') document.documentElement.classList.add('embed');
+  if (location.hash === '#saver' || window.MAPLE_SAVER) document.documentElement.classList.add('embed', 'saver');
+</script>
 <div id="scene"></div>
 
 <header class="hud card">
@@ -262,11 +266,15 @@ const pick = (arr) => arr[Math.floor(rnd() * arr.length) % arr.length];
 const angDiff = (a, b) => Math.atan2(Math.sin(b - a), Math.cos(b - a));
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const EMBED = location.hash === '#embed';
+// #saver (or the offline screen saver build) runs the scene unattended; it shares embed mode's bare look
+const SAVER = location.hash === '#saver' || window.MAPLE_SAVER === true;
+const EMBED = location.hash === '#embed' || SAVER;
 const MOBILE = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
 const Q = MOBILE
   ? { canopy: 10000, parkTrees: 14, parkLeaves: 1100, distant: 240, distantLeaves: 60, grass: 8000, carpet: 6000, fall: 900, shadow: 1024, dpr: 1.5, refl: 0.35, rain: 1800, fireflies: 200 }
   : { canopy: 21000, parkTrees: 24, parkLeaves: 2600, distant: 420, distantLeaves: 110, grass: 22000, carpet: 13000, fall: 1600, shadow: 2048, dpr: 2, refl: 0.5, rain: 4000, fireflies: 300 };
+// A screen saver runs for hours on big monitors, so render at a gentler resolution
+if (SAVER) Q.dpr = 1.25;
 
 /* ================================================================
    Parameters (what the panel edits)
@@ -388,7 +396,7 @@ if (EMBED) {
 }
 // In embed mode, shift the frame so the tree sits beside the landing page's headline
 function applyViewOffset() {
-  if (!EMBED) return;
+  if (!EMBED || SAVER) return;
   if (innerWidth > 760) camera.setViewOffset(innerWidth, innerHeight, -innerWidth * 0.15, 0, innerWidth, innerHeight);
   else camera.clearViewOffset();
 }
@@ -2478,16 +2486,16 @@ function onParam(k, fromUser) {
    Camera moves, HUD, toast, keyboard
    ================================================================ */
 let fly = null;
-function flyTo(name) {
+function flyTo(name, dur = 1.6) {
   const v = VIEWS[name];
   const to = { pos: new V3(...v.pos), target: new V3(...v.target) };
   if (REDUCED) { camera.position.copy(to.pos); controls.target.copy(to.target); return; }
-  fly = { t: 0, fromPos: camera.position.clone(), fromT: controls.target.clone(), ...to };
+  fly = { t: 0, dur, fromPos: camera.position.clone(), fromT: controls.target.clone(), ...to };
 }
 controls.addEventListener('start', () => { fly = null; });
 function updateFly(dt) {
   if (!fly) return;
-  fly.t = Math.min(1, fly.t + dt / 1.6);
+  fly.t = Math.min(1, fly.t + dt / fly.dur);
   const e = fly.t < 0.5 ? 4 * fly.t ** 3 : 1 - (-2 * fly.t + 2) ** 3 / 2;
   camera.position.lerpVectors(fly.fromPos, fly.pos, e);
   controls.target.lerpVectors(fly.fromT, fly.target, e);
@@ -2547,9 +2555,52 @@ function stepWorld(dt) {
   updateFoods(dt); updateRain(dt); updateRipples(dt); updateFireflies(dt); updateTrails(dt);
 }
 
+/* ================================================================
+   Screen saver director: tours the viewpoints, lets days pass, changes the weather
+   ================================================================ */
+const saver = { shot: 0, shotT: 0, weatherT: 60, gustT: 75, tween: null, lastDraw: 0 };
+const SHOTS = ['hill', 'pond', 'skyline', 'under'];
+function saverStart() {
+  const now = new Date();
+  Object.assign(P, { hour: now.getHours() + now.getMinutes() / 60, timeFlow: true, dayMinutes: 20, autoRotate: true, rotateSpeed: 0.22, sunManual: false });
+  controls.enableZoom = false;
+  controls.target.set(...VIEWS.hill.target);
+  camera.position.set(...VIEWS.hill.pos);
+}
+function tweenTo(values, dur) {
+  saver.tween = { t: 0, dur, from: Object.fromEntries(Object.keys(values).map((k) => [k, P[k]])), to: values };
+}
+function saverUpdate(dt) {
+  saver.shotT += dt;
+  if (saver.shotT > 55) { saver.shotT = 0; saver.shot = (saver.shot + 1) % SHOTS.length; flyTo(SHOTS[saver.shot], 7); }
+  saver.weatherT -= dt;
+  if (saver.weatherT <= 0) {
+    saver.weatherT = rand(150, 320);
+    const rainy = rnd() < 0.22;
+    tweenTo({
+      windSpeed: rainy ? rand(16, 30) : rand(4, 32), windDir: rand(200, 300), gust: rand(0.2, 0.7), turbulence: rand(0.3, 0.7),
+      rain: rainy ? rand(0.4, 0.9) : 0, clouds: rainy ? rand(0.75, 1) : rand(0, 0.5), fog: rand(0.15, 0.5), fallRate: rand(4, 14),
+    }, 30);
+  }
+  saver.gustT -= dt;
+  if (saver.gustT <= 0) { saver.gustT = rand(140, 320); if (P.rain < 0.5) startFront(); }
+  const tw = saver.tween;
+  if (tw) {
+    tw.t = Math.min(1, tw.t + dt / tw.dur);
+    const e = smooth(0, 1, tw.t);
+    for (const k of Object.keys(tw.to)) P[k] = lerp(tw.from[k], tw.to[k], e);
+    if (tw.t >= 1) saver.tween = null;
+  }
+}
+
 let hostHidden = false;
 function tick(now) {
   if (hostHidden) { last = now; return; }
+  if (SAVER) {
+    // about 30 frames a second is plenty for drifting leaves and keeps fans quiet
+    if (now - saver.lastDraw < 31) return;
+    saver.lastDraw = now;
+  }
   const real = Math.min(0.05, (now - last) / 1000); last = now;
   const dt = P.paused ? 0 : real * P.timeScale;
   if (P.timeFlow && !P.sunManual && dt > 0) {
@@ -2557,6 +2608,7 @@ function tick(now) {
     uiHourT += real; if (uiHourT > 0.25) { uiHourT = 0; refreshControl('hour'); }
   }
   stepWorld(dt);
+  if (SAVER) saverUpdate(real);
   updateFly(real);
   controls.autoRotate = P.autoRotate && !P.paused;
   controls.autoRotateSpeed = P.rotateSpeed;
@@ -2592,10 +2644,11 @@ function tick(now) {
 
 buildPanel();
 if (MOBILE) setCollapsed(true);
+if (SAVER) saverStart();
 syncAnimals();
 // Warm up so leaves are already drifting and lying around on the first frame
 for (let i = 0; i < 90; i++) stepWorld(1 / 10);
-if (location.hash === '#debug') window.__maple = { advance: (sec) => { for (let t = 0; t < sec; t += 0.05) stepWorld(0.05); } };
+if (location.hash === '#debug') window.__maple = { advance: (sec) => { for (let t = 0; t < sec; t += 0.05) { stepWorld(0.05); if (SAVER) { saverUpdate(0.05); updateFly(0.05); } } } };
 updateEnv();
 renderer.setAnimationLoop(tick);
 
