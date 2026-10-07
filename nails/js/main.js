@@ -214,7 +214,7 @@ function buildHandNails(shape, lengthKey) {
     const f = makeFlower();
     f.position.set(c[0], c[1], c[2]).addScaledVector(n, 0.0009).multiplyScalar(HAND_SCALE);
     f.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
-    f.scale.setScalar(HAND_SCALE);
+    f.scale.setScalar(HAND_SCALE * 1.5);
     handNails.add(f);
   }
 }
@@ -501,7 +501,7 @@ function updateTryOn(dt) {
   // hand: slow sway + user spin
   if (!state.spin) { const k = Math.exp(-dt * 1.1); state.yawUser *= k; state.pitchUser *= k; } // eases back to the front
   const sway = Math.sin(state.time * 0.55) * 0.07;
-  handRig.rotation.set(0.1 + state.pitchUser, -0.32 + sway + state.yawUser, 0, 'YXZ');
+  handRig.rotation.set(-0.3 + state.pitchUser, -0.3 + sway + state.yawUser, 0, 'YXZ');
   backdropMat.color.lerp(backdropTarget, 1 - Math.exp(-dt * 3));
   halo.material.opacity = 0.8;
 }
