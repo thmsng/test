@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from '../vendor/utils/BufferGeometryUtils.js';
-import { makeBoxLabel, makeNailMaterial } from './designs.js';
+import { makeBoxLabel, makeNailMaterial, loadImageTexture } from './designs.js';
 import { trayNailGeometry } from './nail.js';
 
 /*
@@ -81,6 +81,24 @@ export function createBox(product, maxAniso = 8) {
   nails.position.set(0, 0, Z.floorTop + 0.0002);
   nails.castShadow = true; nails.receiveShadow = true;
   body.add(nails);
+
+  // optional real photo of the set: shown on the floor of the case instead of the generated nails
+  if (product.photo) {
+    const iw = W - WALL * 2 - 0.0016, ih = H - WALL * 2 - 0.0016;
+    const geo = new THREE.ShapeGeometry(rr(iw, ih, R - WALL - 0.0006), 24);
+    const pos = geo.attributes.position, uv = new Float32Array(pos.count * 2);
+    for (let i = 0; i < pos.count; i++) { uv[i * 2] = pos.getX(i) / iw + 0.5; uv[i * 2 + 1] = pos.getY(i) / ih + 0.5; }
+    geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    const card = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.55 }));
+    card.position.z = Z.floorTop + 0.0004; card.visible = false; card.receiveShadow = true;
+    body.add(card);
+    loadImageTexture(product.photo, maxAniso).then((t) => {
+      if (!t) return; // keep the generated nails if the photo can't be loaded
+      const ta = t.image.width / t.image.height, pa = iw / ih; // "cover" fit: fill the card, crop the overflow
+      if (ta > pa) { t.repeat.x = pa / ta; t.offset.x = (1 - t.repeat.x) / 2; } else { t.repeat.y = ta / pa; t.offset.y = (1 - t.repeat.y) / 2; }
+      card.material.map = t; card.material.needsUpdate = true; card.visible = true; nails.visible = false;
+    });
+  }
 
   // lid, hinged on the left
   const lidPivot = new THREE.Group();

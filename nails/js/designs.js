@@ -4,6 +4,12 @@ import * as THREE from 'three';
 /*  Catalogue                                                          */
 /* ------------------------------------------------------------------ */
 
+/*
+ * Each product can optionally use real photos (paths are relative to index.html):
+ *   photo:     a photo of the whole set. It is shown inside the clear case on the wall instead of the generated nails.
+ *   nailImage: a photo of ONE nail, shot top-down with the cuticle at the bottom. It is wrapped onto the 3D nails in the try-on.
+ * Leave them out and the shop draws the set itself. See images/README.md.
+ */
 export const PRODUCTS = [
   {
     id: '01', name: 'Milk Bath', price: 18, tone: '#efcdcf', ink: '#4a3436', accent: '#e8b8b6', shape: 'almond', length: 1,
@@ -288,7 +294,19 @@ export function makeNailMaterial(product, maxAniso = 8, envIntensity = 1) {
     params.roughnessMap = orm; params.metalnessMap = orm;
     params.roughness = 1; params.metalness = 1;
   }
-  return new THREE.MeshPhysicalMaterial(params);
+  const mat = new THREE.MeshPhysicalMaterial(params);
+  // optional: a real photo of one nail (top-down, cuticle at the bottom) replaces the painted art
+  if (product.nailImage) {
+    loadImageTexture(product.nailImage, maxAniso).then((t) => { if (t) { mat.map = t; mat.needsUpdate = true; } });
+  }
+  return mat;
+}
+
+/** loads an image file as a colour texture; resolves to null (and logs once) if it can't be loaded */
+export function loadImageTexture(url, maxAniso = 8) {
+  return new Promise((resolve) => {
+    new THREE.TextureLoader().load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = maxAniso; resolve(t); }, undefined, () => { console.warn(`Could not load image: ${url}`); resolve(null); });
+  });
 }
 
 /** a sheer, natural nail for the cursor's finger */

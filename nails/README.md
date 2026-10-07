@@ -33,3 +33,9 @@ cd nails && python3 -m http.server 8000
   the nail set, a clear window film and a printed lid hinged on the left that really opens.
 - `js/main.js` is the scene: each box is a pendulum on its peg (swing, tilt toward the wall, yaw) with
   soft collisions between neighbours; the fingertip applies contact and drag forces at the touch point.
+
+## Using real product photos
+
+Put images in `images/` and reference them from `js/designs.js` with two optional fields per product:
+`photo` (the whole set, shown inside the clear case) and `nailImage` (one nail, wrapped onto the hand in
+the try-on). Anything you leave out is generated. Full details and image specs in `images/README.md`.
