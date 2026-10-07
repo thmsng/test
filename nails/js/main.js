@@ -51,7 +51,8 @@ key.castShadow = true;
 key.shadow.mapSize.set(2048, 2048);
 Object.assign(key.shadow.camera, { left: -3.2, right: 3.2, top: 2.6, bottom: -2.6, near: 1, far: 18 });
 key.shadow.bias = -0.0004; key.shadow.normalBias = 0.01; key.shadow.radius = 4;
-scene.add(key, key.target);
+const rim = new THREE.DirectionalLight('#ffd7c8', 1.0); // warm rim light from behind: lifts the edges of the hand
+scene.add(key, key.target, rim, rim.target);
 scene.add(new THREE.HemisphereLight('#ffffff', '#e8cfc8', 0.22));
 
 // rack wall
@@ -328,6 +329,7 @@ function updateCamera(dt) {
 
   key.position.set(camTgt.x + 3.0, camTgt.y + 3.4, camTgt.z + 5.4);
   key.target.position.copy(camTgt);
+  rim.position.set(camTgt.x - 3.2, camTgt.y + 2.2, camTgt.z - 4.0); rim.target.position.copy(camTgt);
   return m;
 }
 

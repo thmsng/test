@@ -59,36 +59,57 @@ function roundBox(px, py, pz, c, b, r) {
 
 const rad = (d) => (d * Math.PI) / 180;
 const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const scale = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const norm = (a) => { const l = Math.hypot(...a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
 
 // fingers: knuckle position, bone lengths [proximal, middle, distal], radii at [MCP, PIP, DIP, tip]
 const FINGERS = {
-  index: { mcp: [0.030, 0.0, -0.002], len: [0.040, 0.023, 0.020], r: [0.0099, 0.0088, 0.0078, 0.0068], yaw: 5 },
-  middle: { mcp: [0.010, 0.0, 0.000], len: [0.044, 0.027, 0.022], r: [0.0102, 0.0090, 0.0080, 0.0070], yaw: 1 },
-  ring: { mcp: [-0.011, 0.0, -0.004], len: [0.041, 0.025, 0.021], r: [0.0094, 0.0084, 0.0075, 0.0066], yaw: -3 },
-  pinky: { mcp: [-0.031, 0.0, -0.012], len: [0.032, 0.018, 0.018], r: [0.0086, 0.0075, 0.0066, 0.0058], yaw: -9 },
+  index: { mcp: [0.0295, 0.0, -0.002], len: [0.039, 0.022, 0.0195], r: [0.0092, 0.0080, 0.0072, 0.0064], yaw: 5 },
+  middle: { mcp: [0.0100, 0.0, 0.000], len: [0.043, 0.026, 0.0215], r: [0.0095, 0.0083, 0.0074, 0.0066], yaw: 1 },
+  ring: { mcp: [-0.0105, 0.0, -0.004], len: [0.040, 0.0245, 0.0205], r: [0.0088, 0.0077, 0.0069, 0.0061], yaw: -3 },
+  pinky: { mcp: [-0.0305, 0.0, -0.012], len: [0.031, 0.0175, 0.0175], r: [0.0080, 0.0069, 0.0061, 0.0054], yaw: -9 },
 };
 
 const POSES = {
   // back of hand up, fingers half curled (viewed from the fingertip side the nails face you)
   try: {
     flex: { index: [24, 40, 18], middle: [27, 44, 20], ring: [31, 46, 20], pinky: [36, 50, 22] },
-    thumb: { cmc: [0.034, -0.012, -0.050], dirs: [[0.50, -0.06, 0.86], [0.62, -0.20, 0.76], [0.55, -0.30, 0.78]] },
-    forearm: 0.26,
+    thumb: { cmc: [0.030, -0.012, -0.050], dirs: [[0.50, -0.06, 0.86], [0.62, -0.20, 0.76], [0.55, -0.30, 0.78]] },
+    forearm: 0.16, res: 0.0014,
   },
   point: {
     flex: { index: [4, 6, 4], middle: [88, 100, 50], ring: [92, 100, 50], pinky: [94, 98, 48] },
-    thumb: { cmc: [0.034, -0.012, -0.050], dirs: [[0.50, -0.10, 0.86], [0.30, -0.55, 0.78], [-0.10, -0.60, 0.80]] },
-    forearm: 0.5,
+    thumb: { cmc: [0.030, -0.012, -0.050], dirs: [[0.50, -0.10, 0.86], [0.30, -0.55, 0.78], [-0.10, -0.60, 0.80]] },
+    forearm: 0.30, res: 0.0021,
   },
 };
 
+/** capsule with an elliptical cross-section (flatter front-to-back than side-to-side) */
+function ellCone(px, py, pz, c) {
+  const rx = px - c.a[0], ry = py - c.a[1], rz = pz - c.a[2];
+  const t = rx * c.d[0] + ry * c.d[1] + rz * c.d[2];
+  const v = rx * c.u[0] + ry * c.u[1] + rz * c.u[2];
+  const w = rx * c.s[0] + ry * c.s[1] + rz * c.s[2];
+  const vy = v / c.ky;
+  const qx = c.a[0] + c.d[0] * t + c.u[0] * vy + c.s[0] * w;
+  const qy = c.a[1] + c.d[1] * t + c.u[1] * vy + c.s[1] * w;
+  const qz = c.a[2] + c.d[2] * t + c.u[2] * vy + c.s[2] * w;
+  return roundCone(qx, qy, qz, c.a, c.b, c.r1, c.r2) * c.ky;
+}
+function bone(a, b, r1, r2, up, ky = 0.88, soft = 0.006) {
+  const d = norm(sub(b, a));
+  let u = sub(up, scale(d, dot(up, d))); u = norm(u);
+  return { a, b, r1, r2, d, u, s: cross(d, u), ky, soft };
+}
+
 function buildHandDef(pose) {
   const P = POSES[pose];
-  const caps = []; // {a,b,r1,r2}
+  const bones = [];
   const spheres = [];
-  const info = { fingers: {}, tips: [] };
+  const info = { fingers: {}, tips: [], joints: [], mcps: [] };
 
   for (const [name, F] of Object.entries(FINGERS)) {
     const fl = P.flex[name];
@@ -96,65 +117,79 @@ function buildHandDef(pose) {
     let pos = [...F.mcp];
     const joints = [pos];
     const yaw = rad(F.yaw);
-    const dirs = [];
+    const dirs = [], ups = [];
     F.len.forEach((L, i) => {
       A += rad(fl[i]);
       const d = norm([Math.sin(yaw) * Math.cos(A), -Math.sin(A), Math.cos(yaw) * Math.cos(A)]);
       dirs.push(d);
+      ups.push(norm([Math.sin(yaw) * Math.sin(A), Math.cos(A), Math.cos(yaw) * Math.sin(A)]));
       pos = add(pos, scale(d, L));
       joints.push(pos);
     });
-    for (let i = 0; i < 3; i++) caps.push({ a: joints[i], b: joints[i + 1], r1: F.r[i], r2: F.r[i + 1] });
-    // knuckle + joint bumps
-    spheres.push({ c: add(F.mcp, [0, 0.0025, 0.002]), r: F.r[0] + 0.0005 });
-    spheres.push({ c: joints[1], r: F.r[1] + 0.0003 });
-    // metacarpal ridge (a slightly raised tendon line on the back of the hand)
-    caps.push({ a: [F.mcp[0] * 0.65, 0.006, -0.082], b: [F.mcp[0], 0.003, F.mcp[2] - 0.004], r1: 0.0068, r2: 0.0082, soft: true });
+    for (let i = 0; i < 3; i++) bones.push(bone(joints[i], joints[i + 1], F.r[i], F.r[i + 1], ups[i], i === 0 ? 0.92 : 0.86));
+    // dorsal knuckle (MCP) and middle-joint (PIP) bumps
+    spheres.push({ c: add(F.mcp, add(scale(ups[0], F.r[0] * 0.2), [0, 0, 0.002])), r: F.r[0] * 0.98 });
+    spheres.push({ c: add(joints[1], scale(ups[1], F.r[1] * 0.16)), r: F.r[1] * 0.96 });
+    // metacarpal ridge (the raised tendon line on the back of the hand)
+    bones.push(bone([F.mcp[0] * 0.7, 0.0045, -0.084], [F.mcp[0], 0.0025, F.mcp[2] - 0.004], 0.0058, 0.0072, [0, 1, 0], 1, 0.012));
     const Adip = rad(fl[0] + fl[1] + fl[2]);
     info.fingers[name] = {
-      dip: joints[2], tip: joints[3], dir: dirs[2], rDip: F.r[2], rTip: F.r[3],
-      up: norm([0, Math.cos(Adip), Math.sin(Adip)]),
+      dip: joints[2], tip: joints[3], dir: dirs[2], rDip: F.r[2], rTip: F.r[3], up: ups[2],
     };
+    info.joints.push({ p: joints[1], d: dirs[0], u: ups[1] }, { p: joints[2], d: dirs[1], u: ups[2] });
+    info.mcps.push({ p: F.mcp, d: dirs[0], u: ups[0] });
+    void Adip;
+  }
+
+  // webs of skin between the fingers, just in front of the knuckles
+  const names = ['index', 'middle', 'ring', 'pinky'];
+  for (let i = 0; i < 3; i++) {
+    const A = FINGERS[names[i]].mcp, B = FINGERS[names[i + 1]].mcp;
+    const m = [(A[0] + B[0]) / 2, -0.0015, (A[2] + B[2]) / 2 + 0.0165];
+    spheres.push({ c: m, r: 0.0058, soft: 0.01 });
   }
 
   // thumb
   const T = P.thumb;
-  const tl = [0.046, 0.032, 0.027];
-  const tr = [0.0128, 0.0116, 0.0106, 0.0098];
+  const tl = [0.044, 0.031, 0.026];
+  const tr = [0.0122, 0.0108, 0.0098, 0.0090];
   let tp = [...T.cmc];
   const tj = [tp];
   T.dirs.forEach((d, i) => { tp = add(tp, scale(norm(d), tl[i])); tj.push(tp); });
-  for (let i = 0; i < 3; i++) caps.push({ a: tj[i], b: tj[i + 1], r1: tr[i], r2: tr[i + 1] });
-  spheres.push({ c: tj[1], r: tr[1] + 0.001 });
   const td = norm(T.dirs[2]);
-  // thumb nail faces up and out, rolled about the bone axis
   let tup = norm([0.12, 0.62, 0.60]);
-  const dd = tup[0] * td[0] + tup[1] * td[1] + tup[2] * td[2];
-  tup = norm([tup[0] - td[0] * dd, tup[1] - td[1] * dd, tup[2] - td[2] * dd]);
+  tup = norm(sub(tup, scale(td, dot(tup, td))));
+  for (let i = 0; i < 3; i++) bones.push(bone(tj[i], tj[i + 1], tr[i], tr[i + 1], i === 0 ? [0, 1, 0] : tup, 0.9));
+  spheres.push({ c: add(tj[1], scale(tup, 0.001)), r: tr[1] * 0.98 });
   info.fingers.thumb = { dip: tj[2], tip: tj[3], dir: td, rDip: tr[2], rTip: tr[3], up: tup };
+  info.joints.push({ p: tj[2], d: norm(T.dirs[1]), u: tup });
+  // thumb-index web
+  bones.push(bone([0.043, -0.010, -0.014], [0.030, -0.004, -0.001], 0.0068, 0.0066, [0, 1, 0], 1, 0.012));
 
   const fa = P.forearm;
   const ell = [
-    { c: [0.0, 0.004, -0.050], r: [0.045, 0.022, 0.058] }, // back of the hand
-    { c: [0.0, -0.010, -0.052], r: [0.043, 0.020, 0.056] }, // palm
-    { c: [0.040, -0.016, -0.040], r: [0.021, 0.017, 0.034] }, // thenar pad
-    { c: [-0.037, -0.012, -0.050], r: [0.013, 0.014, 0.037] }, // hypothenar
+    { c: [0.0, 0.0035, -0.052], r: [0.0435, 0.0160, 0.055] }, // back of the hand
+    { c: [0.0, -0.0075, -0.050], r: [0.0415, 0.0135, 0.052] }, // palm
+    { c: [0.0, 0.0, -0.012], r: [0.0430, 0.0120, 0.0190] }, // knuckle row
+    { c: [0.033, -0.0135, -0.040], r: [0.0190, 0.0140, 0.0330] }, // thenar pad (thumb muscle)
+    { c: [-0.035, -0.0100, -0.050], r: [0.0125, 0.0125, 0.0370] }, // hypothenar
   ];
-  const wrist = { a: [0, -0.002, -0.095], b: [0, -0.002, -0.150], r1: 0.028, r2: 0.0275 };
-  const arm = { a: [0, -0.002, -0.150], b: [0, -0.002, -0.10 - fa], r1: 0.0275, r2: 0.034 };
+  const wrist = { a: [0, -0.0015, -0.092], b: [0, -0.0015, -0.150], r1: 0.0255, r2: 0.0245, ky: 0.74 };
+  const arm = { a: [0, -0.0015, -0.150], b: [0, -0.0015, -0.098 - fa], r1: 0.0245, r2: 0.031, ky: 0.8 };
   info.tips = ['index', 'middle', 'ring', 'pinky', 'thumb'].map((n) => info.fingers[n].tip);
-  return { caps, spheres, ell, wrist, arm, info, P };
+  return { bones, spheres, ell, wrist, arm, info, P };
 }
 
 function makeSDF(def) {
-  const { caps, spheres, ell, wrist, arm } = def;
+  const { bones, spheres, ell, wrist, arm } = def;
+  const scaled = (x, y, z, c) => roundCone(x, (y - c.a[1]) / c.ky + c.a[1], z, c.a, c.b, c.r1, c.r2) * c.ky;
   return (x, y, z) => {
     let d = 1e9;
-    for (const e of ell) d = smin(d, ellipsoid(x, y, z, e.c, e.r), 0.014);
-    d = smin(d, roundCone(x, y, z, wrist.a, wrist.b, wrist.r1, wrist.r2), 0.02);
-    d = smin(d, roundCone(x, y, z, arm.a, arm.b, arm.r1, arm.r2), 0.02);
-    for (const c of caps) d = smin(d, roundCone(x, y, z, c.a, c.b, c.r1, c.r2), c.soft ? 0.012 : 0.0075);
-    for (const s of spheres) d = smin(d, Math.hypot(x - s.c[0], y - s.c[1], z - s.c[2]) - s.r, 0.006);
+    for (const e of ell) d = smin(d, ellipsoid(x, y, z, e.c, e.r), 0.016);
+    d = smin(d, scaled(x, y, z, wrist), 0.02);
+    d = smin(d, scaled(x, y, z, arm), 0.02);
+    for (const b of bones) d = smin(d, ellCone(x, y, z, b), b.soft);
+    for (const s of spheres) d = smin(d, Math.hypot(x - s.c[0], y - s.c[1], z - s.c[2]) - s.r, s.soft || 0.0055);
     return d;
   };
 }
@@ -163,7 +198,7 @@ function makeSDF(def) {
 /*  surface nets                                                       */
 /* ------------------------------------------------------------------ */
 
-function polygonise(sdf, min, max) {
+function polygonise(sdf, min, max, H) {
   const nx = Math.ceil((max[0] - min[0]) / H) + 1, ny = Math.ceil((max[1] - min[1]) / H) + 1, nz = Math.ceil((max[2] - min[2]) / H) + 1;
   const val = new Float32Array(nx * ny * nz);
   const id = (i, j, k) => (k * ny + j) * nx + i;
@@ -240,25 +275,50 @@ function bake(poseName) {
   const def = buildHandDef(poseName);
   const sdf = makeSDF(def);
   const fa = def.P.forearm;
-  const min = [-0.062, -0.075, -0.115 - fa], max = [0.095, 0.045, 0.095];
+  const res = process.env.RES ? +process.env.RES : def.P.res;
+  const min = [-0.062, -0.075, -0.108 - fa], max = [0.095, 0.045, 0.095];
   const t0 = Date.now();
-  const mesh = polygonise(sdf, min, max);
+  const mesh = polygonise(sdf, min, max, res);
   const { verts, nrm } = mesh;
 
-  // vertex colours: crease occlusion + blush on fingertips / knuckles
-  const col = new Float32Array(verts.length * 3);
+  // vertex colours: crease occlusion, blush on knuckles / fingertips, joint wrinkles; alpha = how thin the flesh is
+  const col = new Uint8Array(verts.length * 4);
   const tips = def.info.tips;
+  const clamp01 = (v) => Math.min(1, Math.max(0, v));
   for (let i = 0; i < verts.length; i++) {
     const p = verts[i], n = nrm[i];
     let occ = 0, w = 1;
     for (const d of [0.003, 0.007, 0.013]) { occ += w * Math.max(0, d - sdf(p[0] + n[0] * d, p[1] + n[1] * d, p[2] + n[2] * d)); w *= 0.5; }
-    const ao = Math.min(1, Math.max(0, 1 - occ * 70));
+    const ao = clamp01(1 - occ * 65);
+
+    // thickness: how far inward until the flesh ends (thin at fingertips, edges, webs)
+    let thick = 0.02;
+    for (let d = 0.002; d <= 0.02; d += 0.002) { if (sdf(p[0] - n[0] * d, p[1] - n[1] * d, p[2] - n[2] * d) > -0.0005 * 0 && d > 0.002) { thick = d; break; } }
+    const thin = clamp01(1 - (thick - 0.004) / 0.014);
+
     let blush = 0;
-    for (const t of tips) blush = Math.max(blush, 1 - Math.hypot(p[0] - t[0], p[1] - t[1], p[2] - t[2]) / 0.014);
-    for (const F of Object.values(FINGERS)) blush = Math.max(blush, 0.6 * (1 - Math.hypot(p[0] - F.mcp[0], p[1] - 0.004, p[2] - F.mcp[2]) / 0.011));
-    blush = Math.min(1, Math.max(0, blush)) * 0.5;
-    const r = (0.62 + 0.38 * ao) , g = (0.46 + 0.54 * ao) * (1 - 0.1 * blush), b = (0.44 + 0.56 * ao) * (1 - 0.12 * blush);
-    col[i * 3] = Math.min(1, r + 0.05 * blush); col[i * 3 + 1] = g; col[i * 3 + 2] = b;
+    for (const t of tips) blush = Math.max(blush, 1 - Math.hypot(p[0] - t[0], p[1] - t[1], p[2] - t[2]) / 0.013);
+    for (const m of def.info.mcps) blush = Math.max(blush, 0.7 * (1 - Math.hypot(p[0] - m.p[0], p[1] - 0.004, p[2] - m.p[2]) / 0.012));
+    for (const j of def.info.joints) blush = Math.max(blush, 0.55 * (1 - Math.hypot(p[0] - j.p[0], p[1] - j.p[1], p[2] - j.p[2]) / 0.011));
+    blush = clamp01(blush);
+
+    // transverse wrinkles over the knuckles on the back of each finger
+    let wr = 0;
+    for (const j of def.info.joints) {
+      const rel = sub(p, j.p);
+      const t = dot(rel, j.d);
+      const radial = Math.hypot(...sub(rel, scale(j.d, t)));
+      if (radial > 0.016 || Math.abs(t) > 0.009) continue;
+      if (dot(n, j.u) < 0.2) continue;
+      wr = Math.max(wr, 0.5 * (1 + Math.cos((t * Math.PI * 2) / 0.0042)) * Math.exp(-((t / 0.0052) ** 2)));
+    }
+
+    let r = 0.66 + 0.34 * ao, g = 0.50 + 0.50 * ao, b = 0.47 + 0.53 * ao;
+    g *= 1 - 0.14 * blush; b *= 1 - 0.18 * blush; r = Math.min(1, r + 0.04 * blush);
+    const k = 1 - 0.13 * wr;
+    r *= 1 - 0.05 * wr; g *= k; b *= k;
+    col[i * 4] = Math.round(clamp01(r) * 255); col[i * 4 + 1] = Math.round(clamp01(g) * 255); col[i * 4 + 2] = Math.round(clamp01(b) * 255);
+    col[i * 4 + 3] = Math.round(clamp01(thin * 0.8 + blush * 0.2) * 255);
   }
 
   // nail frames: a curve of surface points along the dorsal side of the distal phalanx
@@ -272,7 +332,7 @@ function bake(poseName) {
       const s = 0.22 + (i / N) * (1.0 + (f.rTip * 0.9) / len - 0.22);
       const r = f.rDip + (f.rTip - f.rDip) * Math.min(1, s);
       let p = [
-        f.dip[0] + (f.tip[0] - f.dip[0]) * s + f.up[0] * r * 1.2 + (s > 1 ? f.dir[0] * 0 : 0),
+        f.dip[0] + (f.tip[0] - f.dip[0]) * s + f.up[0] * r * 1.2,
         f.dip[1] + (f.tip[1] - f.dip[1]) * s + f.up[1] * r * 1.2,
         f.dip[2] + (f.tip[2] - f.dip[2]) * s + f.up[2] * r * 1.2,
       ];
@@ -322,7 +382,7 @@ function writeGLB(hands, file, extras) {
     const attributes = {
       POSITION: acc(pos, 'VEC3', 5126, pos.length / 3, 34962, { min: mn, max: mx }),
       NORMAL: acc(nor, 'VEC3', 5126, nor.length / 3, 34962),
-      COLOR_0: acc(h.col, 'VEC3', 5126, h.col.length / 3, 34962),
+      COLOR_0: acc(h.col, 'VEC4', 5121, h.col.length / 4, 34962, { normalized: true }),
     };
     const big = pos.length / 3 > 65535;
     const indices = acc(big ? new Uint32Array(h.idx) : new Uint16Array(h.idx), 'SCALAR', big ? 5125 : 5123, h.idx.length, 34963);
