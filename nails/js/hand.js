@@ -30,9 +30,9 @@ export async function loadHands(url) {
  */
 export function makeSkinMaterial(color) {
   const m = new THREE.MeshPhysicalMaterial({
-    color, vertexColors: true, roughness: 0.6, specularIntensity: 0.65,
+    color, vertexColors: true, roughness: 0.46, specularIntensity: 0.85,
     sheen: 0.55, sheenColor: new THREE.Color('#ffa592'), sheenRoughness: 0.5,
-    clearcoat: 0.04, clearcoatRoughness: 0.6,
+    clearcoat: 0.22, clearcoatRoughness: 0.38,
   });
   m.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
@@ -65,7 +65,7 @@ export function makeSkinMaterial(color) {
           totalEmissiveRadiance += vec3(0.62, 0.15, 0.09) * thinSkin * (0.22 + 0.85 * fres) * 0.2;
         }`);
   };
-  m.customProgramCacheKey = () => 'skin-v2';
+  m.customProgramCacheKey = () => 'skin-v3';
   return m;
 }
 

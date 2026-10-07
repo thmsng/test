@@ -54,7 +54,7 @@ function resample(frames, count) {
 }
 
 /** frames following the finger from the cuticle to the tip, then continuing past it for a free edge */
-export function fingerFrames(info, extend, startIdx = 1) {
+export function fingerFrames(info, extend, startIdx = 0) {
   const curve = info.curve.slice(startIdx);
   const pts = curve.map((c, i) => ({
     p: new V3(c[0], c[1], c[2]), n: new V3(c[3], c[4], c[5]),
@@ -130,11 +130,11 @@ export function nailGeometry(frames, { shape = 'almond', hw0 = 0.006, rows = 36,
 
 /** extra length beyond the fingertip for a shape / length setting (metres) */
 export function extension(shape, lengthKey) {
-  const base = [0.0008, 0.0045, 0.0085][lengthKey] ?? 0.0045;
+  const base = [0.0015, 0.0060, 0.0105][lengthKey] ?? 0.006;
   return base + (shape === 'stiletto' ? 0.004 : shape === 'coffin' ? 0.002 : 0);
 }
 
-const NAIL_HW = { thumb: 0.8, index: 0.92, middle: 0.92, ring: 0.92, pinky: 0.92 };
+const NAIL_HW = { thumb: 0.82, index: 0.98, middle: 0.98, ring: 0.98, pinky: 0.98 };
 
 /** one geometry per finger, fitted to the hand surface */
 export function fingerNailGeometries(nailInfo, shape, lengthKey) {

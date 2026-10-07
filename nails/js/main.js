@@ -26,6 +26,7 @@ const I_PIV = 0.0363 * (SCALE / 2.3) ** 2;
 const I_YAW = 0.02;
 const D_COM = BOX.HOLE_Y * SCALE;
 const TAU = Math.PI * 2;
+const YAW_LIMIT = 0.42, PITCH_LIMIT = 0.22; // the hand can only be turned a little: you always see the front
 
 /* ================================================================== */
 /*  Renderer / scene                                                   */
@@ -83,7 +84,7 @@ stage.add(halo);
 
 const maxAniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
 const hands = await loadHands('assets/hands.glb');
-const skinMat = makeSkinMaterial(SKIN_TONES[0].color);
+const skinMat = makeSkinMaterial(SKIN_TONES[1].color);
 
 /* ---- boxes ---- */
 const boxes = PRODUCTS.map((p, i) => {
@@ -104,7 +105,7 @@ const state = {
   mode: 'browse', sel: -1, cols: 4, mix: 0, time: 0,
   panY: 0, panYT: 0, hover: -1,
   yawUser: 0, pitchUser: 0, yawV: 0, spin: false,
-  shape: null, skin: 0, press: 0,
+  shape: null, skin: 1, press: 0,
 };
 const steel = new THREE.MeshStandardMaterial({ color: '#d9dadd', roughness: 0.3, metalness: 1 });
 const slatMat = new THREE.MeshStandardMaterial({ color: '#f7f1ee', roughness: 0.5 });
@@ -170,6 +171,34 @@ handModel.add(handNails);
 let tryNailMat = null;
 handRig.position.set(0.85, 0.66, 0.3);
 
+function makeFlower() {
+  const g = new THREE.Group();
+  const geo = new THREE.SphereGeometry(1, 20, 14);
+  const col = [];
+  const c0 = new THREE.Color('#fffaf0'), c1 = new THREE.Color('#f7df7c'), tmp = new THREE.Color();
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) { tmp.copy(c0).lerp(c1, Math.pow(Math.max(0, (pos.getY(i) + 1) / 2), 2.2)); col.push(tmp.r, tmp.g, tmp.b); }
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  const petalMat = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2, sheen: 0.4 });
+  const dotMat = new THREE.MeshStandardMaterial({ color: '#8a5a1c', roughness: 0.6 });
+  const dotGeo = new THREE.SphereGeometry(0.00024, 8, 6);
+  for (let k = 0; k < 6; k++) {
+    const pivot = new THREE.Group(); pivot.rotation.z = (k / 6) * Math.PI * 2;
+    const petal = new THREE.Mesh(geo, petalMat);
+    petal.scale.set(0.0024, 0.0050, 0.0011); petal.position.set(0, 0.0047, 0.0006); petal.rotation.x = -0.22;
+    petal.castShadow = true; pivot.add(petal);
+    for (let d = 0; d < 6; d++) {
+      const dot = new THREE.Mesh(dotGeo, dotMat);
+      dot.position.set((Math.sin(d * 12.9 + k) * 0.5) * 0.0016, 0.0024 + (d / 6) * 0.0038, 0.0014 + (d / 6) * 0.0004);
+      pivot.add(dot);
+    }
+    g.add(pivot);
+  }
+  const center = new THREE.Mesh(new THREE.SphereGeometry(0.0013, 12, 10), new THREE.MeshStandardMaterial({ color: '#e0a21a', roughness: 0.5 }));
+  center.position.z = 0.001; g.add(center);
+  return g;
+}
+
 function buildHandNails(shape, lengthKey) {
   Object.values(nailMeshes).forEach((m) => m.geometry.dispose());
   handNails.clear();
@@ -177,6 +206,16 @@ function buildHandNails(shape, lengthKey) {
   for (const [name, g] of Object.entries(geos)) {
     const m = new THREE.Mesh(g, tryNailMat); m.scale.setScalar(HAND_SCALE); m.castShadow = true;
     handNails.add(m); nailMeshes[name] = m;
+  }
+  if (state.sel >= 0 && PRODUCTS[state.sel].flower) {
+    // a sculpted 3D flower on the ring-finger nail
+    const c = hands.try.nails.ring.curve[9];
+    const n = new THREE.Vector3(c[3], c[4], c[5]);
+    const f = makeFlower();
+    f.position.set(c[0], c[1], c[2]).addScaledVector(n, 0.0009).multiplyScalar(HAND_SCALE);
+    f.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
+    f.scale.setScalar(HAND_SCALE);
+    handNails.add(f);
   }
 }
 
@@ -263,7 +302,7 @@ canvas.addEventListener('pointermove', (e) => {
   const dx = e.clientX - down.lx, dy = e.clientY - down.ly;
   if (!down.drag && Math.hypot(e.clientX - down.sx, e.clientY - down.sy) > 6) down.drag = true;
   if (down.drag) {
-    if (state.mode === 'tryon') { state.spin = true; state.yawUser += dx * 0.011; state.yawV = THREE.MathUtils.clamp(dx * 0.011 * 18, -4, 4); state.pitchUser = THREE.MathUtils.clamp(state.pitchUser + dy * 0.004, -0.6, 0.6); }
+    if (state.mode === 'tryon') { state.spin = true; state.yawUser = THREE.MathUtils.clamp(state.yawUser + dx * 0.006, -YAW_LIMIT, YAW_LIMIT); state.pitchUser = THREE.MathUtils.clamp(state.pitchUser + dy * 0.003, -PITCH_LIMIT, PITCH_LIMIT); }
     else if (state.cols === 2) state.panYT -= dy * 0.006;
   }
   down.lx = e.clientX; down.ly = e.clientY;
@@ -347,7 +386,7 @@ let bag = 0;
 
 SKIN_TONES.forEach((s, i) => {
   const b = document.createElement('button');
-  b.className = 'skin' + (i === 0 ? ' on' : ''); b.style.background = s.color; b.title = s.name; b.setAttribute('aria-label', s.name);
+  b.className = 'skin' + (i === 1 ? ' on' : ''); b.style.background = s.color; b.title = s.name; b.setAttribute('aria-label', s.name);
   b.addEventListener('click', () => { state.skin = i; skinMat.color.set(s.color); [...ui.skins.children].forEach((c, k) => c.classList.toggle('on', k === i)); });
   ui.skins.appendChild(b);
 });
@@ -460,8 +499,8 @@ function updateTryOn(dt) {
     // the box is drawn hanging from the origin of root: shift so the body, not the hole, lands on the stage
   }
   // hand: slow sway + user spin
-  if (!state.spin) { state.yawUser += state.yawV * dt; state.yawV *= Math.exp(-dt * 4.5); }
-  const sway = Math.sin(state.time * 0.55) * 0.18;
+  if (!state.spin) { const k = Math.exp(-dt * 1.1); state.yawUser *= k; state.pitchUser *= k; } // eases back to the front
+  const sway = Math.sin(state.time * 0.55) * 0.07;
   handRig.rotation.set(0.1 + state.pitchUser, -0.32 + sway + state.yawUser, 0, 'YXZ');
   backdropMat.color.lerp(backdropTarget, 1 - Math.exp(-dt * 3));
   halo.material.opacity = 0.8;

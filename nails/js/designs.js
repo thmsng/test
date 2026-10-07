@@ -11,9 +11,9 @@ export const PRODUCTS = [
     desc: 'A soft, milky pink with a drift of pearl. The kind of clean, "your nails but better" manicure that goes with everything.',
   },
   {
-    id: '02', name: 'Classic French', price: 18, tone: '#ebd8c3', ink: '#3d332d', accent: '#e9c5b8', shape: 'oval', length: 1,
-    finish: 'Gloss · Nude', paint: 'french', mat: { roughness: 0.14, metalness: 0, clearcoat: 1 },
-    desc: 'A sheer nude base with a crisp white smile line. Timeless, a little bit formal, and endlessly wearable.',
+    id: '02', name: 'Lemon Lily', price: 24, tone: '#f2e3a6', ink: '#4d4210', accent: '#f1cc22', shape: 'almond', length: 2,
+    finish: 'Gloss · French', paint: 'french', tip: '#f4cf12', flower: true, mat: { roughness: 0.05, metalness: 0, clearcoat: 1 },
+    desc: 'A glossy nude base with sunny yellow French tips, and a hand-sculpted 3D lily on the ring finger.',
   },
   {
     id: '03', name: 'Cherry Gloss', price: 20, tone: '#e6b5b0', ink: '#5b0f19', accent: '#a3121f', shape: 'coffin', length: 1,
@@ -89,15 +89,15 @@ const PAINT = {
     s.addColorStop(0, 'rgba(255,255,255,0)'); s.addColorStop(0.5, 'rgba(255,255,255,0.35)'); s.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = s; ctx.fillRect(40, 60, 90, 400);
   },
-  french(ctx, r) {
+  french(ctx, r, p) {
     const g = ctx.createLinearGradient(0, NH, 0, 0);
-    g.addColorStop(0, '#e3a999'); g.addColorStop(1, '#ecbcae');
+    g.addColorStop(0, '#d2a28c'); g.addColorStop(1, '#dab09a');
     ctx.fillStyle = g; ctx.fillRect(0, 0, NW, NH);
-    ctx.fillStyle = '#fbf8f4';
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(NW, 0); ctx.lineTo(NW, 150);
-    ctx.quadraticCurveTo(NW / 2, 215, 0, 150); ctx.closePath(); ctx.fill();
-    ctx.globalAlpha = 0.25;
-    for (let i = 0; i < 400; i++) { ctx.fillStyle = '#fff'; ctx.fillRect(r() * NW, r() * NH, 1.2, 1.2); }
+    ctx.fillStyle = (p && p.tip) || '#fbf8f4';
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(NW, 0); ctx.lineTo(NW, 112);
+    ctx.quadraticCurveTo(NW / 2, 205, 0, 112); ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = 0.18;
+    for (let i = 0; i < 300; i++) { ctx.fillStyle = '#fff'; ctx.fillRect(r() * NW, r() * NH, 1.2, 1.2); }
     ctx.globalAlpha = 1;
   },
   cherry(ctx) {
@@ -189,10 +189,10 @@ const ORM = {
 
 export function makeNailMaterial(product, maxAniso = 8, envIntensity = 1) {
   const c = canvas(NW, NH);
-  PAINT[product.paint](c.getContext('2d'), rng(parseInt(product.id, 10) * 131));
+  PAINT[product.paint](c.getContext('2d'), rng(parseInt(product.id, 10) * 131), product);
   const map = new THREE.CanvasTexture(c);
   map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = maxAniso;
-  const params = { map, side: THREE.DoubleSide, ...product.mat, clearcoatRoughness: 0.03, envMapIntensity: envIntensity };
+  const params = { map, side: THREE.DoubleSide, specularIntensity: 1, ...product.mat, clearcoatRoughness: 0.02, envMapIntensity: envIntensity * 1.35 };
   if (ORM[product.paint]) {
     const o = canvas(NW, NH);
     ORM[product.paint](o.getContext('2d'), rng(parseInt(product.id, 10) * 17));
