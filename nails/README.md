@@ -1,6 +1,6 @@
 # Lacquer — press-on nail shop
 
-A variation on the 3D rack idea: eight press-on nail boxes hang from pegs on a wall. Your cursor is a
+A variation on the 3D rack idea: eight crystal-clear press-on nail cases hang from pegs on a wall. Your cursor is a
 real pointing finger. Click a box and it flies to a try-on room, opens, and the nails appear on a
 half-folded hand.
 
@@ -28,7 +28,7 @@ cd nails && python3 -m http.server 8000
   "nail frames" (a curve of surface points over each fingernail).
 - `js/nail.js` cuts a nail shell (almond / coffin / square / stiletto, any length) that follows those
   frames and curls past the fingertip as a free edge.
-- `js/box.js` models the hang-sell box: back plate with a euro-slot tab, wall ring, velvet insert with
+- `js/box.js` models the clear acrylic case: round-cornered base tray, a clear lid hinged on the left that really opens, snap latches, a clear hang tab and a paper sticker. Clear plastic is a faint cool tint plus an additive reflection layer, so highlights stay bright while the nails remain visible from outside.
   the nail set, a clear window film and a printed lid hinged on the left that really opens.
 - `js/main.js` is the scene: each box is a pendulum on its peg (swing, tilt toward the wall, yaw) with
   soft collisions between neighbours; the fingertip applies contact and drag forces at the touch point.

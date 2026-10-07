@@ -149,17 +149,19 @@ export function fingerNailGeometries(nailInfo, shape, lengthKey) {
 
 /** a set of press-on nails lying on the tray (merged into one geometry) */
 export function trayNailGeometry(shape, lengthKey, mergeGeometries) {
-  const S = 0.62; // the display set is shown at a reduced scale so ten nails fit the window
+  const S = 0.86; // nearly life size: ten nails fill the clear case in two rows
   const widths = [0.0155, 0.0125, 0.013, 0.0115, 0.0095].map((w) => w * S);
   const lens = [0.0175, 0.0155, 0.0165, 0.0145, 0.0125].map((l) => l * S);
   const geos = [];
-  const ext = extension(shape, lengthKey) * 0.5 * S;
+  const ext = extension(shape, lengthKey) * 0.7 * S;
   for (let row = 0; row < 2; row++) {
     for (let k = 0; k < 5; k++) {
       const L = lens[k] + ext;
-      const frames = trayFrames(L).map((f) => ({ ...f, r: 0.0065 }));
-      const g = nailGeometry(frames, { shape, hw0: widths[k] / 2, rows: 18, cols: 9 });
-      g.translate((k - 2) * 0.0098, -L * 0.5 + (row === 0 ? 0.0185 : -0.0185), 0);
+      const frames = trayFrames(L).map((f) => ({ ...f, r: 0.0068 }));
+      const g = nailGeometry(frames, { shape, hw0: widths[k] / 2, rows: 20, cols: 9 });
+      // the second row is rotated half a turn so the tips point toward each other
+      if (row === 1) { g.rotateZ(Math.PI); g.translate(0, L, 0); }
+      g.translate((row === 1 ? -1 : 1) * (k - 2) * 0.0152, -L * 0.5 + (row === 0 ? 0.0235 : -0.0235), 0);
       geos.push(g);
     }
   }

@@ -270,3 +270,17 @@ export function shade(hex, amt) {
   const hsl = {}; c.getHSL(hsl); c.setHSL(hsl.h, hsl.s, Math.min(1, Math.max(0, hsl.l + amt)));
   return `#${c.getHexString()}`;
 }
+
+/** the small paper sticker on the clear case: 512 x 160 px for 34 x 10.6 mm */
+export function makeBoxLabel(p) {
+  const w = 512, h = 160;
+  const c = canvas(w, h); const ctx = c.getContext('2d');
+  ctx.fillStyle = shade(p.tone, 0.07); ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = p.ink; ctx.globalAlpha = 0.25; ctx.lineWidth = 3; ctx.strokeRect(8, 8, w - 16, h - 16); ctx.globalAlpha = 1;
+  ctx.fillStyle = p.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.font = `600 22px ${FONT}`; ls(ctx, 7); ctx.fillText('LACQUER', 30, 50);
+  ctx.font = `italic 400 50px ${SERIF}`; ls(ctx, 0); ctx.fillText(p.name, 30, 108);
+  ctx.font = `500 17px ${FONT}`; ls(ctx, 4); ctx.globalAlpha = 0.7; ctx.fillText(p.finish.toUpperCase(), 30, 140); ctx.globalAlpha = 1;
+  ctx.fillStyle = p.accent; ctx.beginPath(); ctx.arc(w - 44, h / 2, 16, 0, 7); ctx.fill();
+  return tex(c);
+}

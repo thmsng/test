@@ -10,21 +10,21 @@ import { fingerNailGeometries } from './nail.js';
 /* ================================================================== */
 
 const N = PRODUCTS.length;
-const SCALE = 4.0; // visual size of the boxes
+const SCALE = 5.0; // visual size of the boxes
 const FOV = 30;
 const TAN = Math.tan(THREE.MathUtils.degToRad(FOV / 2));
-const COL_SP = 0.72, ROW_SP = 1.06, RAIL_TOP = 1.7;
+const COL_SP = 0.9, ROW_SP = 1.02, RAIL_TOP = 1.6;
 const WALL_Z = -0.16, PEG_Z = -0.045;
 const STAGE_X = 9;
-const FRONT_Z = PEG_Z + (BOX.HOLE_Z * -1 + 0.011) * SCALE; // world z of a hanging box's front face
+const FRONT_Z = PEG_Z + (-BOX.HOLE_Z + BOX.FRONT) * SCALE; // world z of a hanging box's front face
 const HOVER_Z = FRONT_Z + 0.004; // the fingertip glides just in front of the boxes
 
 // physics (unit mass, world units)
 const STEP = 1 / 240;
-const G_W2 = 46; // pendulum ω² of a hanging box
-const I_PIV = 0.0363 * (SCALE / 2.3) ** 2;
+const D_COM = BOX.HOLE_Y * SCALE; // hang hole -> centre of mass
+const I_PIV = (BOX.H * SCALE) ** 2 / 12 + D_COM * D_COM; // plate hanging from a point
+const G_W2 = (9.81 * D_COM) / I_PIV; // pendulum ω²
 const I_YAW = 0.02;
-const D_COM = BOX.HOLE_Y * SCALE;
 const TAU = Math.PI * 2;
 const YAW_LIMIT = 0.42, PITCH_LIMIT = 0.22; // the hand can only be turned a little: you always see the front
 
@@ -138,7 +138,7 @@ const cursor = new THREE.Group();
 scene.add(cursor);
 const cursorModel = new THREE.Group();
 cursor.add(cursorModel);
-const CURSOR_SCALE = 1.75;
+const CURSOR_SCALE = 2.1;
 const cursorSkin = new THREE.Mesh(hands.point.geometry, skinMat);
 cursorSkin.castShadow = true; cursorSkin.scale.setScalar(CURSOR_SCALE);
 cursorModel.add(cursorSkin);
@@ -247,10 +247,10 @@ function physicsStep(dt, t) {
   for (const a of boxes) {
     const b = boxes[a.i + 1];
     if (!b || b.row !== a.row || a.i === state.sel || b.i === state.sel) continue;
-    for (const h of [0.08, 0.2, 0.32]) {
-      const hh = h * SCALE / 1.0 * 0.5 * 2; // metres below the hole in world units
-      const xa = a.pivot.x + hh * Math.sin(a.th) + SCALE * 0.036 * Math.cos(a.th);
-      const xb = b.pivot.x + hh * Math.sin(b.th) - SCALE * 0.036 * Math.cos(b.th);
+    for (const f of [0.25, 0.55, 0.9]) {
+      const hh = f * BOX.H * SCALE + D_COM * 0.5; // below the hang hole, world units
+      const xa = a.pivot.x + hh * Math.sin(a.th) + SCALE * (BOX.W / 2) * Math.cos(a.th);
+      const xb = b.pivot.x + hh * Math.sin(b.th) - SCALE * (BOX.W / 2) * Math.cos(b.th);
       const pen = xa - xb;
       if (pen > 0) {
         const F = (240 * pen) / 3;
@@ -545,7 +545,7 @@ function updateContacts() {
     const local = x.b.body.worldToLocal(tmpA.copy(tip));
     const inX = Math.abs(local.x) < BOX.W / 2 + tipR / SCALE, inY = Math.abs(local.y) < BOX.H / 2 + tipR / SCALE;
     if (!inX || !inY) continue;
-    const pen = (0.0110 + 0.004 / SCALE * 1.5) - local.z; // metres into the front face
+    const pen = (BOX.FRONT + 0.004 / SCALE * 1.5) - local.z; // metres into the front face
     if (local.z < -0.004) continue;
     if (pen > -0.02) { state.hover = x.i; }
     if (pen > 0) {

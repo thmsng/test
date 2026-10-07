@@ -1,16 +1,20 @@
 import * as THREE from 'three';
 import { mergeGeometries } from '../vendor/utils/BufferGeometryUtils.js';
-import { makeBoxFront, makeBoxBack, makeNailMaterial, shade } from './designs.js';
+import { makeBoxLabel, makeNailMaterial } from './designs.js';
 import { trayNailGeometry } from './nail.js';
 
 /*
- * A hang-sell press-on nail box (real size: 70 x 130 x 22 mm).
- * Parts: back plate with a euro-slot hang tab, a wall ring, a velvet insert holding the nails,
- * and a printed lid with a window that is hinged on the left and really opens.
+ * A crystal-clear acrylic nail case (86 x 92 x 20 mm): a base tray with very round corners, a clear lid
+ * hinged on the left that really opens, snap latches top and bottom, a clear hang tab and a small paper
+ * sticker. The nails lie on the clear floor and are visible from outside.
+ *
+ * Clear plastic is drawn as two layers on every part: a barely-there cool tint, plus an additive
+ * "gloss" layer that carries only the reflections, so highlights stay bright however transparent it is.
  */
-export const BOX = { W: 0.070, H: 0.130, HOLE_Y: 0.074, HOLE_Z: -0.0099 };
-const Z = { back: -0.0110, floor: -0.0088, lid: 0.0088, front: 0.0110 };
-const WIN = { w: 0.050, h: 0.075, cy: 0.010 };
+export const BOX = { W: 0.086, H: 0.092, HOLE_Y: 0.0565, HOLE_Z: -0.0097, FRONT: 0.0093 };
+const Z = { back: -0.0105, floorTop: -0.0089, baseTop: 0.0028, lidTop: 0.0093 };
+const R = 0.011; // corner radius
+const WALL = 0.0019;
 
 function rr(w, h, r, cx = 0, cy = 0, Klass = THREE.Shape) {
   const s = new Klass(); const x = cx - w / 2, y = cy - h / 2;
@@ -22,94 +26,85 @@ function rr(w, h, r, cx = 0, cy = 0, Klass = THREE.Shape) {
 }
 
 function extrude(shape, depth, z0, bevel = 0.0004) {
-  const g = new THREE.ExtrudeGeometry(shape, { depth: depth - bevel * 2, bevelEnabled: bevel > 0, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 2, curveSegments: 14 });
+  const g = new THREE.ExtrudeGeometry(shape, { depth: Math.max(0.0001, depth - bevel * 2), bevelEnabled: bevel > 0, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 3, curveSegments: 18 });
   g.translate(0, 0, z0 + bevel);
   return g;
 }
 
-/** front caps get one material, back caps another, everything else a third */
-function splitCaps(g) {
-  const pos = g.attributes.position;
-  const front = [], back = [], side = [];
-  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
-  for (let i = 0; i < pos.count; i += 3) {
-    a.fromBufferAttribute(pos, i); b.fromBufferAttribute(pos, i + 1); c.fromBufferAttribute(pos, i + 2);
-    const nz = b.clone().sub(a).cross(c.clone().sub(a)).normalize().z;
-    (nz > 0.9 ? front : nz < -0.9 ? back : side).push(i, i + 1, i + 2);
+let clearTint, clearGloss;
+function clearMaterials() {
+  if (!clearTint) {
+    clearTint = new THREE.MeshPhysicalMaterial({ color: '#d9e9f2', transparent: true, opacity: 0.07, roughness: 0.05, depthWrite: false, side: THREE.DoubleSide });
+    clearGloss = new THREE.MeshPhysicalMaterial({
+      color: '#000000', roughness: 0.035, metalness: 0, specularIntensity: 1, envMapIntensity: 1.6, clearcoat: 1, clearcoatRoughness: 0.02,
+      transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.FrontSide,
+    });
+    // a flat clear face can mirror a very bright patch of the studio: cap the reflection so it never blows out
+    clearGloss.onBeforeCompile = (sh) => {
+      sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', 'outgoingLight = min(outgoingLight * 0.45, vec3(0.04));\n#include <opaque_fragment>');
+    };
+    clearGloss.customProgramCacheKey = () => 'clear-gloss';
   }
-  g.setIndex([...front, ...back, ...side]);
-  g.clearGroups();
-  g.addGroup(0, front.length, 0); g.addGroup(front.length, back.length, 1); g.addGroup(front.length + back.length, side.length, 2);
-}
-
-function planarUV(g) {
-  const pos = g.attributes.position, uv = new Float32Array(pos.count * 2);
-  for (let i = 0; i < pos.count; i++) { uv[i * 2] = (pos.getX(i) + BOX.W / 2) / BOX.W; uv[i * 2 + 1] = (pos.getY(i) + BOX.H / 2) / BOX.H; }
-  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  return { tint: clearTint, gloss: clearGloss };
 }
 
 export function createBox(product, maxAniso = 8) {
   const { W, H } = BOX;
-  const plastic = new THREE.MeshPhysicalMaterial({ color: shade(product.tone, -0.025), roughness: 0.45, clearcoat: 0.4, clearcoatRoughness: 0.3 });
-  const velvet = new THREE.MeshPhysicalMaterial({ color: shade(product.tone, 0.035), roughness: 0.92, sheen: 1, sheenRoughness: 0.4, sheenColor: new THREE.Color(product.accent) });
-  const printed = new THREE.MeshPhysicalMaterial({ map: makeBoxFront(product), roughness: 0.38, clearcoat: 0.55, clearcoatRoughness: 0.22 });
-  const inner = new THREE.MeshPhysicalMaterial({ map: makeBoxBack(product), roughness: 0.6 });
-  [printed.map, inner.map].forEach((t) => { t.anisotropy = maxAniso; });
-
+  const { tint, gloss } = clearMaterials();
   const body = new THREE.Group();
   const meshes = [];
-  const add = (parent, geo, mat, shadow = true) => {
-    const m = new THREE.Mesh(geo, mat); m.castShadow = shadow; m.receiveShadow = true; parent.add(m); meshes.push(m); return m;
+  /** a clear part: tint layer (also the pickable) + additive reflection layer */
+  const clear = (parent, geo) => {
+    const a = new THREE.Mesh(geo, tint); a.renderOrder = 2; parent.add(a); meshes.push(a);
+    const b = new THREE.Mesh(geo, gloss); b.renderOrder = 3; parent.add(b);
+    return a;
   };
 
-  // back plate + hang tab (one piece)
-  const plate = rr(W, H, 0.006);
-  const tab = rr(0.034, 0.030, 0.009, 0, H / 2 + 0.0095 - 0.0, THREE.Path);
-  const plateGeo = extrude(plate, Z.floor - Z.back, Z.back, 0.0003);
-  add(body, plateGeo, plastic);
-  const tabShape = rr(0.034, 0.030, 0.009, 0, BOX.HOLE_Y + 0.001);
+  // base: floor, wall ring, hang tab
+  clear(body, extrude(rr(W, H, R), 0.0018, Z.back));
+  const ring = rr(W, H, R);
+  ring.holes.push(rr(W - WALL * 2, H - WALL * 2, R - WALL, 0, 0, THREE.Path));
+  clear(body, extrude(ring, Z.baseTop - Z.back, Z.back));
+  const tab = rr(0.034, 0.030, 0.0095, 0, BOX.HOLE_Y - 0.0035);
   const hole = new THREE.Path(); hole.absarc(0, BOX.HOLE_Y, 0.0044, 0, Math.PI * 2, true);
-  tabShape.holes.push(hole);
-  add(body, extrude(tabShape, Z.floor - Z.back, Z.back, 0.0003), plastic);
-  void tab;
+  tab.holes.push(hole);
+  clear(body, extrude(tab, 0.0018, Z.back));
+  // base latch catches (top and bottom)
+  for (const sy of [1, -1]) {
+    const cat = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.0032, 0.0034), gloss);
+    cat.position.set(0, sy * (H / 2 + 0.0008), Z.baseTop - 0.0018); body.add(cat);
+  }
 
-  // wall ring
-  const ring = rr(W, H, 0.006);
-  ring.holes.push(rr(W - 0.0046, H - 0.0046, 0.0042, 0, 0, THREE.Path));
-  add(body, extrude(ring, Z.lid - Z.back, Z.back, 0.0003), plastic);
-
-  // insert that the nails sit on
-  const insert = rr(W - 0.0052, H - 0.0052, 0.004);
-  add(body, extrude(insert, 0.0118, Z.floor, 0), velvet, false);
-
-  // nails
+  // the nails lie on the clear floor
   const nailMat = makeNailMaterial(product, maxAniso, 1.1);
-  const trayGeo = trayNailGeometry(product.shape, product.length, mergeGeometries);
-  const nails = new THREE.Mesh(trayGeo, nailMat);
-  nails.position.set(0, WIN.cy, Z.floor + 0.0118 + 0.0004);
-  nails.castShadow = false; nails.receiveShadow = true;
+  const nails = new THREE.Mesh(trayNailGeometry(product.shape, product.length, mergeGeometries), nailMat);
+  nails.position.set(0, 0, Z.floorTop + 0.0002);
+  nails.castShadow = true; nails.receiveShadow = true;
   body.add(nails);
 
   // lid, hinged on the left
   const lidPivot = new THREE.Group();
   lidPivot.position.set(-W / 2, 0, 0);
   body.add(lidPivot);
-  const lid = rr(W, H, 0.006);
-  lid.holes.push(rr(WIN.w, WIN.h, 0.004, 0, WIN.cy, THREE.Path));
-  const lidGeo = extrude(lid, Z.front - Z.lid, Z.lid, 0.0003);
-  planarUV(lidGeo);
-  splitCaps(lidGeo);
-  const lidMesh = new THREE.Mesh(lidGeo, [printed, inner, plastic]);
-  lidMesh.position.x = W / 2;
-  lidMesh.castShadow = true; lidMesh.receiveShadow = true;
-  lidPivot.add(lidMesh); meshes.push(lidMesh);
-
-  const glass = new THREE.Mesh(
-    new THREE.PlaneGeometry(WIN.w + 0.002, WIN.h + 0.002),
-    new THREE.MeshPhysicalMaterial({ color: '#ffffff', transparent: true, opacity: 0.1, roughness: 0.02, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 1.6, depthWrite: false, side: THREE.DoubleSide })
+  const lid = new THREE.Group();
+  lid.position.x = W / 2;
+  lidPivot.add(lid);
+  clear(lid, extrude(rr(W, H, R), 0.0018, Z.lidTop - 0.0018));
+  const lidRing = rr(W, H, R);
+  lidRing.holes.push(rr(W - WALL * 2, H - WALL * 2, R - WALL, 0, 0, THREE.Path));
+  clear(lid, extrude(lidRing, Z.lidTop - Z.baseTop - 0.0010, Z.baseTop));
+  for (const sy of [1, -1]) { // snap tabs on the lid
+    const sn = new THREE.Mesh(new THREE.BoxGeometry(0.020, 0.0042, 0.0030), gloss);
+    sn.position.set(0, sy * (H / 2 + 0.0004), Z.baseTop + 0.0024); lid.add(sn);
+  }
+  // paper sticker
+  const label = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.034, 0.0106),
+    new THREE.MeshStandardMaterial({ map: makeBoxLabel(product), roughness: 0.55 })
   );
-  glass.position.set(W / 2, WIN.cy, Z.lid - 0.0002);
-  lidPivot.add(glass);
+  label.material.map.anisotropy = maxAniso;
+  label.position.set(-W / 2 + 0.0255, -H / 2 + 0.0135, Z.lidTop + 0.0002);
+  lid.add(label);
 
   // peg-relative frame: the origin of `root` is the centre of the hang hole
   const root = new THREE.Group();
@@ -118,8 +113,6 @@ export function createBox(product, maxAniso = 8) {
   const yaw = new THREE.Group();
   root.add(swing); swing.add(tilt); tilt.add(yaw); yaw.add(body);
   body.position.set(0, -BOX.HOLE_Y, -BOX.HOLE_Z);
-
-  meshes.forEach((m) => { m.userData.boxIndex = -1; });
 
   return {
     root, swing, tilt, yaw, body, lidPivot, nails, meshes, product, nailMat,
