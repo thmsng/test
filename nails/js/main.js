@@ -103,7 +103,7 @@ const pickables = boxes.flatMap((x) => x.b.meshes);
 /* ---- rack layout (4 x 2 on wide screens, 2 x 4 on tall ones) ---- */
 const state = {
   mode: 'browse', sel: -1, cols: 4, mix: 0, time: 0,
-  panY: 0, panYT: 0, hover: -1,
+  scroll: 0, scrollT: 0, pxWorld: 0.003, hover: -1,
   yawUser: 0, pitchUser: 0, yawV: 0, spin: false,
   shape: null, skin: 1, press: 0,
 };
@@ -112,6 +112,12 @@ const slatMat = new THREE.MeshStandardMaterial({ color: '#f7f1ee', roughness: 0.
 
 function layout(cols) {
   state.cols = cols;
+  {
+    const m = metrics();
+    wall.geometry.dispose();
+    wall.geometry = new THREE.PlaneGeometry(14, m.top - m.bot + 10);
+    wall.position.set(0, (m.top + m.bot) / 2, WALL_Z);
+  }
   while (rack.children.length) { const c = rack.children.pop(); c.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); }
   const rows = Math.ceil(N / cols);
   for (let r = 0; r < rows; r++) {
@@ -286,6 +292,8 @@ const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -HOVER_Z);
 const down = { active: false, sx: 0, sy: 0, lx: 0, ly: 0, drag: false, hit: -1 };
 const tag = document.getElementById('tag');
+const scrollEl = document.getElementById('scroll');
+const scrollThumb = scrollEl && scrollEl.firstElementChild;
 const hintEl = document.getElementById('hint');
 
 function pickBox(px, py) {
@@ -303,14 +311,14 @@ canvas.addEventListener('pointermove', (e) => {
   if (!down.drag && Math.hypot(e.clientX - down.sx, e.clientY - down.sy) > 6) down.drag = true;
   if (down.drag) {
     if (state.mode === 'tryon') { state.spin = true; state.yawUser = THREE.MathUtils.clamp(state.yawUser + dx * 0.006, -YAW_LIMIT, YAW_LIMIT); state.pitchUser = THREE.MathUtils.clamp(state.pitchUser + dy * 0.003, -PITCH_LIMIT, PITCH_LIMIT); }
-    else if (state.cols === 2) state.panYT -= dy * 0.006;
+    else if (down.touch || down.hit < 0) state.scrollT -= dy * state.pxWorld;
   }
   down.lx = e.clientX; down.ly = e.clientY;
 });
 canvas.addEventListener('pointerdown', (e) => {
   canvas.setPointerCapture(e.pointerId);
   pointer.x = e.clientX; pointer.y = e.clientY; pointer.down = true; pointer.inside = true;
-  down.active = true; down.sx = down.lx = e.clientX; down.sy = down.ly = e.clientY; down.drag = false;
+  down.active = true; down.sx = down.lx = e.clientX; down.sy = down.ly = e.clientY; down.drag = false; down.touch = e.pointerType === 'touch';
   down.hit = state.mode === 'browse' ? pickBox(e.clientX, e.clientY) : -1;
   hintEl.classList.add('gone');
 });
@@ -323,7 +331,7 @@ function release(e) {
 canvas.addEventListener('pointerup', release);
 canvas.addEventListener('pointercancel', release);
 canvas.addEventListener('pointerleave', () => { pointer.inside = false; });
-canvas.addEventListener('wheel', (e) => { if (state.mode === 'browse' && state.cols === 2) state.panYT += e.deltaY * 0.002; }, { passive: true });
+canvas.addEventListener('wheel', (e) => { if (state.mode === 'browse') { state.scrollT += e.deltaY * state.pxWorld; hintEl.classList.add('gone'); } }, { passive: true });
 
 /* ================================================================== */
 /*  Camera                                                             */
@@ -333,26 +341,37 @@ const camPos = new THREE.Vector3(), camTgt = new THREE.Vector3();
 
 function metrics() {
   const aspect = window.innerWidth / window.innerHeight;
-  const cols = aspect < 0.85 ? 2 : 4;
+  const portrait = aspect < 0.85;
+  const cols = portrait ? 2 : 4;
   const rows = Math.ceil(N / cols);
-  const w = (cols - 1) * COL_SP + 0.8, top = RAIL_TOP + 0.06, bot = RAIL_TOP - (rows - 1) * ROW_SP - (BOX.H * SCALE + 0.12);
-  const hSpan = (top - bot) * 1.16;
-  const dFit = Math.max(hSpan / (2 * TAN), (w * 1.12) / (2 * TAN * aspect));
-  const dist = Math.min(dFit, cols === 2 ? 4.6 : 12);
+  const visRows = portrait ? 2.4 : 2; // rows on screen at once; scroll for the rest
+  const top = RAIL_TOP + 0.35;
+  const bot = RAIL_TOP - (rows - 1) * ROW_SP - BOX.H * SCALE - 0.25;
+  const w = (cols - 1) * COL_SP + 0.8;
+  const dFit = Math.max((visRows * ROW_SP + 0.3) / (2 * TAN), (w * 1.1) / (2 * TAN * aspect));
+  const dist = Math.min(dFit, portrait ? 5.5 : 12);
   const visH = 2 * dist * TAN;
-  const panRange = Math.max(0, (top - bot) * 1.05 - visH) / 2;
-  return { aspect, cols, dist, cy: (top + bot) / 2, panRange, portrait: aspect < 0.85 };
+  return { aspect, cols, rows, portrait, dist, visH, top, bot, range: Math.max(0, top - bot - visH) };
 }
 
 function updateCamera(dt) {
   const m = metrics();
   if (m.cols !== state.cols) layout(m.cols);
-  state.panYT = THREE.MathUtils.clamp(state.panYT, -m.panRange, m.panRange);
-  state.panY += (state.panYT - state.panY) * (1 - Math.exp(-dt * 8));
+  state.pxWorld = m.visH / window.innerHeight;
+  state.scrollT = THREE.MathUtils.clamp(state.scrollT, 0, m.range);
+  state.scroll += (state.scrollT - state.scroll) * (1 - Math.exp(-dt * 9));
+  const cy = m.top - m.visH / 2 - state.scroll;
+  // scroll indicator
+  if (scrollThumb) {
+    scrollEl.classList.toggle('on', m.range > 0 && state.mode === 'browse');
+    const th = Math.min(1, m.visH / (m.top - m.bot));
+    scrollThumb.style.height = `${th * 100}%`;
+    scrollThumb.style.transform = `translateY(${(m.range > 0 ? state.scroll / m.range : 0) * (1 / th - 1) * 100}%)`;
+  }
 
-  const par = pointer.nx * 0.06;
-  const bp = new THREE.Vector3(Math.sin(par) * m.dist, m.cy + state.panY + pointer.ny * -0.05, Math.cos(par) * m.dist);
-  const bt = new THREE.Vector3(0, m.cy + state.panY, 0);
+  const par = pointer.nx * 0.05;
+  const bp = new THREE.Vector3(Math.sin(par) * m.dist, cy + pointer.ny * -0.04, Math.cos(par) * m.dist);
+  const bt = new THREE.Vector3(0, cy, 0);
 
   // try-on view
   const dist = m.portrait ? 5.2 : 3.0;
@@ -580,6 +599,11 @@ ui.add.addEventListener('click', () => {
 });
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeTryOn(); else if (e.key === 'ArrowRight') step(1); else if (e.key === 'ArrowLeft') step(-1);
+  else if (state.mode === 'browse') {
+    if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') { state.scrollT += ROW_SP; e.preventDefault(); }
+    else if (e.key === 'ArrowUp' || e.key === 'PageUp') { state.scrollT -= ROW_SP; e.preventDefault(); }
+    else if (e.key === 'Home') state.scrollT = 0; else if (e.key === 'End') state.scrollT = 1e3;
+  }
 });
 
 /* ================================================================== */
@@ -620,6 +644,7 @@ requestAnimationFrame(frame);
 window.__nails = {
   camera, handRig, scene, THREE,
   open: openTryOn, close: closeTryOn, state, boxes, pointer, tip,
+  scrollTo(v) { state.scrollT = v; },
   advance(sec) { for (let t = 0; t < sec; t += 1 / 60) { state.time += 1 / 60; updateContacts(); simulate(1 / 60); } scene.updateMatrixWorld(true); camera.updateMatrixWorld(true); },
   snapshot() { renderer.render(scene, camera); return canvas.toDataURL('image/png'); },
   moveFinger(x, y, down = false) { pointer.x = x; pointer.y = y; pointer.nx = (x / innerWidth) * 2 - 1; pointer.ny = (y / innerHeight) * 2 - 1; pointer.inside = true; pointer.down = down; },

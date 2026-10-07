@@ -1,6 +1,6 @@
 # Lacquer — press-on nail shop
 
-A variation on the 3D rack idea: eight crystal-clear press-on nail cases hang from pegs on a wall. Your cursor is a
+A variation on the 3D rack idea: 24 crystal-clear press-on nail cases hang from pegs on a wall. Your cursor is a
 real pointing finger. Click a box and it flies to a try-on room, opens, and the nails appear on a
 half-folded hand.
 
@@ -12,6 +12,7 @@ cd nails && python3 -m http.server 8000
 
 | Action | Result |
 | --- | --- |
+| Scroll / swipe / `↓` `↑` | Move down the rack: 24 sets in rows of four (two across on phones) |
 | Move | The pointing finger follows; it glides just in front of the boxes and nudges them |
 | Press and drag over a box | Pushes it back into the wall and swings it |
 | Click a box | Fly to the try-on room: lid opens, the set is fitted to five fingers |

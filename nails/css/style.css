@@ -27,9 +27,13 @@ body.is-tryon .bar nav { opacity: 0; pointer-events: none; }
 .bar nav a:hover::after { transform: scaleX(1); }
 .bag span { display: inline-block; min-width: 1.4em; text-align: center; }
 
-.hint { position: fixed; left: 0; right: 0; bottom: calc(var(--pad) + env(safe-area-inset-bottom)); text-align: center; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); pointer-events: none; z-index: 4; opacity: 0; transition: opacity 0.8s ease 1.4s; }
+.hint { position: fixed; left: 0; right: 0; bottom: 0; padding: 34px 16px calc(var(--pad) + env(safe-area-inset-bottom)); background: linear-gradient(to top, var(--bg) 35%, rgba(233, 216, 209, 0)); text-align: center; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); pointer-events: none; z-index: 4; opacity: 0; transition: opacity 0.8s ease 1.4s; }
 body.ready .hint { opacity: 1; }
 body.is-tryon .hint, .hint.gone { opacity: 0 !important; transition-delay: 0s; }
+
+.scroll { position: fixed; right: 14px; top: 110px; bottom: 90px; width: 3px; background: rgba(43, 34, 36, 0.12); border-radius: 3px; opacity: 0; transition: opacity 0.4s; pointer-events: none; z-index: 4; }
+.scroll.on { opacity: 1; }
+.scroll i { display: block; width: 100%; background: var(--ink); border-radius: 3px; will-change: transform; }
 
 .tag { position: fixed; left: 0; top: 0; z-index: 6; pointer-events: none; display: flex; gap: 12px; align-items: baseline; padding: 8px 12px; background: rgba(255, 250, 248, 0.94); border: 1px solid var(--line); font-size: 12px; letter-spacing: 0.04em; white-space: nowrap; opacity: 0; transition: opacity 0.18s; will-change: transform; }
 .tag b { font-weight: 600; } .tag span { color: var(--muted); } .tag.show { opacity: 1; }

@@ -45,6 +45,22 @@ export const PRODUCTS = [
     finish: 'Glitter · Ombré', paint: 'golden', mat: { roughness: 0.12, metalness: 0.2, clearcoat: 1 },
     desc: 'Peach melts into liquid gold glitter at the tip. A long stiletto made for sunsets.',
   },
+  { id: '09', name: 'Pink Pearl', price: 24, tone: '#f3d6e2', ink: '#5a2c42', accent: '#f4b6d0', shape: 'almond', length: 1, finish: 'Glazed · Chrome', paint: 'chrome', pc: ['#f1e0e6', '#f7c9dc', '#fde9f1', '#e9d2e6', '#faf0f5'], mat: { roughness: 0.1, metalness: 1, clearcoat: 0.6 }, desc: 'The glazed-donut finish: a milky pearl chrome with a soft pink flush.' },
+  { id: '10', name: 'Burgundy Velvet', price: 22, tone: '#d9a8b4', ink: '#3a0c1a', accent: '#8a1f3c', shape: 'almond', length: 1, finish: 'Magnetic · Wine', paint: 'cateye', pc: ['#4a0c1e', '#1e050d', '#f08aa4'], mat: { roughness: 0.1, metalness: 0.55, clearcoat: 1 }, desc: 'Deep wine with a velvet magnetic shimmer that glows rose in the light.' },
+  { id: '11', name: 'Tortoise Shell', price: 22, tone: '#e5c9a0', ink: '#3b2410', accent: '#b9772c', shape: 'coffin', length: 1, finish: 'Gloss · Amber', paint: 'tortoise', pc: ['#d99a3d', '#4a2a10'], mat: { roughness: 0.06, metalness: 0, clearcoat: 1 }, desc: 'Honey amber clouded with dark tortoiseshell, in a short coffin.' },
+  { id: '12', name: 'Blueberry Aura', price: 22, tone: '#cfd0f2', ink: '#2c2a6a', accent: '#8f8aef', shape: 'oval', length: 1, finish: 'Airbrush · Periwinkle', paint: 'aura', pc: ['#ece9fc', '#8f8aef', '#c7b6f7'], mat: { roughness: 0.12, metalness: 0, clearcoat: 1 }, desc: 'A soft airbrushed glow, periwinkle fading to milk at the edges.' },
+  { id: '13', name: 'Checkmate', price: 20, tone: '#d8d6d2', ink: '#101010', accent: '#222222', shape: 'square', length: 1, finish: 'Gloss · Mono', paint: 'checker', pc: ['#111111', '#f4f1ea'], mat: { roughness: 0.06, metalness: 0, clearcoat: 1 }, desc: 'A crisp black-and-white check on a short square nail.' },
+  { id: '14', name: 'Night Sky', price: 22, tone: '#b9bfe0', ink: '#0e1636', accent: '#fff3b0', shape: 'almond', length: 2, finish: 'Gloss · Stars', paint: 'stars', pc: ['#0e1636', '#fff3b0'], mat: { roughness: 0.07, metalness: 0.1, clearcoat: 1 }, desc: 'Midnight blue scattered with tiny gold stars. Long, dreamy almonds.' },
+  { id: '15', name: 'Leopard Latte', price: 20, tone: '#ead3b4', ink: '#3b2614', accent: '#b98a5c', shape: 'coffin', length: 1, finish: 'Gloss · Animal', paint: 'leopard', pc: ['#dbb88e', '#5a3a22'], mat: { roughness: 0.08, metalness: 0, clearcoat: 1 }, desc: 'Latte leopard spots with a glossy finish. Wild, but make it neutral.' },
+  { id: '16', name: 'Soft Rainbow', price: 20, tone: '#f6e4ec', ink: '#5b3550', accent: '#9fd3c7', shape: 'almond', length: 1, finish: 'Gloss · Pastel', paint: 'rainbow', pc: ['#ffb3c1', '#ffd6a5', '#fdf1a6', '#b5ead7', '#b7c7ff'], mat: { roughness: 0.08, metalness: 0, clearcoat: 1 }, desc: 'Pastel stripes in five soft colours, one for every finger.' },
+  { id: '17', name: 'Sunset Ombré', price: 24, tone: '#f6d3c0', ink: '#6a2a2a', accent: '#ff7f8f', shape: 'stiletto', length: 2, finish: 'Gloss · Ombré', paint: 'ombre', pc: ['#ffe0a8', '#ff9a7a', '#ff5f8b'], mat: { roughness: 0.07, metalness: 0, clearcoat: 1 }, desc: 'Golden peach melts into hot pink. A long stiletto for golden hour.' },
+  { id: '18', name: 'Candy Glitter', price: 22, tone: '#f6cfe2', ink: '#6a1f4a', accent: '#ff6fae', shape: 'coffin', length: 1, finish: 'Glitter · Pink', paint: 'glitter', orm: 'glitter', pc: ['#ff9ec7', '#ff6fae', '#ffe6f2'], mat: { roughness: 0.1, metalness: 0.2, clearcoat: 1 }, desc: 'Bubblegum pink packed with fine glitter that catches every light.' },
+  { id: '19', name: 'Ocean Wave', price: 20, tone: '#cfe0f0', ink: '#103a6a', accent: '#2f6fb8', shape: 'almond', length: 1, finish: 'Gloss · Blue', paint: 'wave', pc: ['#2f6fb8', '#eaf4ff'], mat: { roughness: 0.07, metalness: 0, clearcoat: 1 }, desc: 'Cobalt blue with white swells. Clean, graphic, a little bit surf.' },
+  { id: '20', name: 'Polka Cream', price: 18, tone: '#f1e6d2', ink: '#5a1f30', accent: '#e0587a', shape: 'oval', length: 1, finish: 'Gloss · Dots', paint: 'dots', pc: ['#f7efe0', '#e0587a'], mat: { roughness: 0.08, metalness: 0, clearcoat: 1 }, desc: 'Cream base with raspberry polka dots. Playful and retro.' },
+  { id: '21', name: 'Lilac Jelly', price: 18, tone: '#e3d6f5', ink: '#3f2a6e', accent: '#b49ae6', shape: 'almond', length: 1, finish: 'Jelly · Lilac', paint: 'solid', pc: ['#d8c6f6', '#b49ae6'], mat: { roughness: 0.04, metalness: 0, clearcoat: 1 }, desc: 'A juicy, see-through lilac jelly with a wet shine.' },
+  { id: '22', name: 'Forest Matte', price: 18, tone: '#bfd0c4', ink: '#12281c', accent: '#2f4a3a', shape: 'square', length: 1, finish: 'Matte · Green', paint: 'solid', pc: ['#35553f', '#233a2c'], mat: { roughness: 0.62, metalness: 0, clearcoat: 0 }, desc: 'Deep forest green with a velvet matte finish. Understated, rich.' },
+  { id: '23', name: 'Gingham Picnic', price: 20, tone: '#f4d3d6', ink: '#6a1f2e', accent: '#e2556f', shape: 'square', length: 1, finish: 'Gloss · Check', paint: 'gingham', pc: ['#e2556f'], mat: { roughness: 0.08, metalness: 0, clearcoat: 1 }, desc: 'Red gingham on white. Sunday-picnic sweet.' },
+  { id: '24', name: 'Silver Lining', price: 26, tone: '#dcdfe6', ink: '#2a2f3c', accent: '#c9ccd3', shape: 'stiletto', length: 2, finish: 'Mirror · Silver', paint: 'chrome', pc: ['#f4f5f7', '#c9ccd3', '#ffffff', '#9ea3ad', '#eef0f4'], mat: { roughness: 0.06, metalness: 1, clearcoat: 0.5 }, desc: 'Pure liquid silver on a long, sharp stiletto.' },
 ];
 
 export const SKIN_TONES = [
@@ -105,9 +121,10 @@ const PAINT = {
     g.addColorStop(0, '#c4202f'); g.addColorStop(0.6, '#9a111e'); g.addColorStop(1, '#6a0912');
     ctx.fillStyle = g; ctx.fillRect(0, 0, NW, NH);
   },
-  chrome(ctx, r) {
+  chrome(ctx, r, p) {
+    const stops = (p && p.pc) || ['#e9eaf2', '#f6d4e6', '#cfe0ff', '#e7d6f6', '#f4f6fb'];
     const g = ctx.createLinearGradient(0, NH, NW, 0);
-    g.addColorStop(0, '#e9eaf2'); g.addColorStop(0.3, '#f6d4e6'); g.addColorStop(0.55, '#cfe0ff'); g.addColorStop(0.8, '#e7d6f6'); g.addColorStop(1, '#f4f6fb');
+    stops.forEach((c, i) => g.addColorStop(i / (stops.length - 1), c));
     ctx.fillStyle = g; ctx.fillRect(0, 0, NW, NH);
     ctx.filter = 'blur(10px)';
     for (let i = 0; i < 8; i++) {
@@ -116,17 +133,18 @@ const PAINT = {
     }
     ctx.filter = 'none';
   },
-  cateye(ctx, r) {
+  cateye(ctx, r, p) {
+    const pc = (p && p.pc) || ['#16224a', '#0a1230', '#bfe8ff'];
     const g = ctx.createLinearGradient(0, 0, NW, NH);
-    g.addColorStop(0, '#16224a'); g.addColorStop(0.5, '#0a1230'); g.addColorStop(1, '#101c40');
+    g.addColorStop(0, pc[0]); g.addColorStop(0.5, pc[1]); g.addColorStop(1, pc[0]);
     ctx.fillStyle = g; ctx.fillRect(0, 0, NW, NH);
     ctx.filter = 'blur(12px)';
     const s = ctx.createLinearGradient(NW * 0.1, NH * 0.9, NW * 0.9, NH * 0.1);
-    s.addColorStop(0.3, 'rgba(120,200,255,0)'); s.addColorStop(0.5, 'rgba(190,240,255,0.95)'); s.addColorStop(0.7, 'rgba(120,200,255,0)');
+    s.addColorStop(0.3, 'rgba(255,255,255,0)'); s.addColorStop(0.5, pc[2]); s.addColorStop(0.7, 'rgba(255,255,255,0)');
     ctx.fillStyle = s; ctx.fillRect(0, 0, NW, NH);
     ctx.filter = 'none';
     ctx.globalAlpha = 0.6;
-    for (let i = 0; i < 500; i++) { ctx.fillStyle = r() > 0.6 ? '#bfe8ff' : '#7fa0d8'; ctx.fillRect(r() * NW, r() * NH, 1.2, 1.2); }
+    for (let i = 0; i < 500; i++) { ctx.fillStyle = r() > 0.6 ? pc[2] : pc[0]; ctx.fillRect(r() * NW, r() * NH, 1.2, 1.2); }
     ctx.globalAlpha = 1;
   },
   marble(ctx, r) {
@@ -146,6 +164,73 @@ const PAINT = {
       ctx.stroke();
     }
     ctx.filter = 'none';
+  },
+  solid(ctx, r, p) {
+    const g = ctx.createLinearGradient(0, NH, 0, 0);
+    g.addColorStop(0, p.pc[0]); g.addColorStop(1, p.pc[1]);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, NW, NH);
+    const s = ctx.createLinearGradient(30, 0, 120, 0);
+    s.addColorStop(0, 'rgba(255,255,255,0)'); s.addColorStop(0.5, 'rgba(255,255,255,0.18)'); s.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = s; ctx.fillRect(30, 60, 90, 400); void r;
+  },
+  ombre(ctx, r, p) {
+    const g = ctx.createLinearGradient(0, NH, 0, 0);
+    g.addColorStop(0, p.pc[0]); g.addColorStop(0.55, p.pc[1]); g.addColorStop(1, p.pc[2]);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, NW, NH); void r;
+  },
+  aura(ctx, r, p) {
+    ctx.fillStyle = p.pc[0]; ctx.fillRect(0, 0, NW, NH);
+    const blob = (x, y, rad, c, a) => { const g = ctx.createRadialGradient(x, y, 0, x, y, rad); g.addColorStop(0, c); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.globalAlpha = a; ctx.fillStyle = g; ctx.fillRect(0, 0, NW, NH); ctx.globalAlpha = 1; };
+    blob(NW * 0.5, NH * 0.5, 230, p.pc[1], 0.95); blob(NW * 0.55, NH * 0.62, 150, p.pc[2], 0.7); blob(NW * 0.5, NH * 0.4, 90, p.pc[0], 0.6); void r;
+  },
+  checker(ctx, r, p) {
+    const n = 4, w = NW / n;
+    for (let y = 0; y * w < NH; y++) for (let x = 0; x < n; x++) { ctx.fillStyle = (x + y) % 2 ? p.pc[0] : p.pc[1]; ctx.fillRect(x * w, NH - (y + 1) * w, w + 1, w + 1); } void r;
+  },
+  tortoise(ctx, r, p) {
+    ctx.fillStyle = p.pc[0]; ctx.fillRect(0, 0, NW, NH);
+    ctx.filter = 'blur(7px)';
+    for (let i = 0; i < 26; i++) { ctx.fillStyle = `rgba(${74 + r() * 30},${42 + r() * 20},16,${0.35 + r() * 0.5})`; ctx.beginPath(); ctx.ellipse(r() * NW, r() * NH, 14 + r() * 46, 10 + r() * 36, r() * 3, 0, 7); ctx.fill(); }
+    ctx.filter = 'none';
+  },
+  stars(ctx, r, p) {
+    const g = ctx.createLinearGradient(0, NH, 0, 0); g.addColorStop(0, p.pc[0]); g.addColorStop(1, '#1b2a66'); ctx.fillStyle = g; ctx.fillRect(0, 0, NW, NH);
+    for (let i = 0; i < 18; i++) {
+      const x = r() * NW, y = r() * NH, R = 6 + r() * 16; ctx.fillStyle = p.pc[1]; ctx.beginPath();
+      for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2, rr2 = k % 2 ? R * 0.28 : R; ctx.lineTo(x + Math.cos(a) * rr2, y + Math.sin(a) * rr2); } ctx.closePath(); ctx.fill();
+    }
+    for (let i = 0; i < 240; i++) { ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillRect(r() * NW, r() * NH, 1.4, 1.4); }
+  },
+  leopard(ctx, r, p) {
+    ctx.fillStyle = p.pc[0]; ctx.fillRect(0, 0, NW, NH);
+    for (let i = 0; i < 40; i++) {
+      const x = r() * NW, y = r() * NH, R = 10 + r() * 16; ctx.strokeStyle = p.pc[1]; ctx.lineWidth = 5 + r() * 4;
+      ctx.beginPath(); ctx.arc(x, y, R, 0.4 + r(), 5.2 + r() * 0.8); ctx.stroke(); ctx.fillStyle = 'rgba(60,35,18,0.25)'; ctx.beginPath(); ctx.arc(x, y, R * 0.55, 0, 7); ctx.fill();
+    }
+  },
+  rainbow(ctx, r, p) {
+    const w = NW / p.pc.length; p.pc.forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(i * w, 0, w + 1, NH); });
+    ctx.filter = 'blur(4px)'; ctx.fillStyle = 'rgba(255,255,255,0.15)'; ctx.fillRect(0, NH * 0.5, NW, 40); ctx.filter = 'none'; void r;
+  },
+  glitter(ctx, r, p) {
+    const g = ctx.createLinearGradient(0, NH, 0, 0); g.addColorStop(0, p.pc[0]); g.addColorStop(1, p.pc[1]); ctx.fillStyle = g; ctx.fillRect(0, 0, NW, NH);
+    for (let i = 0; i < 1900; i++) { ctx.fillStyle = r() > 0.5 ? p.pc[2] : '#ffffff'; ctx.fillRect(r() * NW, r() * NH, 1.5 + r() * 2.6, 1.5 + r() * 2.6); }
+  },
+  wave(ctx, r, p) {
+    ctx.fillStyle = p.pc[0]; ctx.fillRect(0, 0, NW, NH);
+    ctx.strokeStyle = p.pc[1]; ctx.lineWidth = 14; ctx.lineCap = 'round';
+    for (let k = 0; k < 9; k++) { ctx.beginPath(); for (let x = -10; x <= NW + 10; x += 6) { const y = 40 + k * 56 + Math.sin(x / 34 + k * 0.8) * 16; x === -10 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); } ctx.stroke(); } void r;
+  },
+  dots(ctx, r, p) {
+    ctx.fillStyle = p.pc[0]; ctx.fillRect(0, 0, NW, NH); ctx.fillStyle = p.pc[1];
+    for (let y = 0; y < 9; y++) for (let x = 0; x < 5; x++) { ctx.beginPath(); ctx.arc(24 + x * 52 + (y % 2) * 26, 30 + y * 58, 12, 0, 7); ctx.fill(); } void r;
+  },
+  gingham(ctx, r, p) {
+    ctx.fillStyle = '#fbf6f2'; ctx.fillRect(0, 0, NW, NH);
+    ctx.fillStyle = p.pc[0]; ctx.globalAlpha = 0.5;
+    for (let i = 0; i < 8; i++) ctx.fillRect(i * 64, 0, 32, NH);
+    for (let j = 0; j < 14; j++) ctx.fillRect(0, j * 64, NW, 32);
+    ctx.globalAlpha = 1; void r;
   },
   matcha(ctx, r) {
     const g = ctx.createLinearGradient(0, NH, 0, 0);
@@ -168,6 +253,7 @@ const PAINT = {
 
 /** roughness (G) / metalness (B) texture for the sparkly finishes */
 const ORM = {
+  glitter(ctx, r) { ORM.golden(ctx, r); },
   chrome(ctx) { ctx.fillStyle = 'rgb(0,18,255)'; ctx.fillRect(0, 0, NW, NH); },
   cateye(ctx, r) {
     ctx.fillStyle = 'rgb(0,40,120)'; ctx.fillRect(0, 0, NW, NH);
@@ -193,9 +279,10 @@ export function makeNailMaterial(product, maxAniso = 8, envIntensity = 1) {
   const map = new THREE.CanvasTexture(c);
   map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = maxAniso;
   const params = { map, side: THREE.DoubleSide, specularIntensity: 1, ...product.mat, clearcoatRoughness: 0.02, envMapIntensity: envIntensity * 1.35 };
-  if (ORM[product.paint]) {
+  const ormKey = product.orm || product.paint;
+  if (ORM[ormKey]) {
     const o = canvas(NW, NH);
-    ORM[product.paint](o.getContext('2d'), rng(parseInt(product.id, 10) * 17));
+    ORM[ormKey](o.getContext('2d'), rng(parseInt(product.id, 10) * 17));
     const orm = new THREE.CanvasTexture(o);
     orm.anisotropy = maxAniso;
     params.roughnessMap = orm; params.metalnessMap = orm;
