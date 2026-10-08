@@ -3,16 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Maple Hill, Toronto Autumn</title>
+<title>Maple Hill Fall Colour</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: a dusk-lit canvas hero with falling leaves and the skyline, then a single reading column (max 1120px)
-   that alternates full-width imagery with two-column text. Same smoky dark world as the Maple Hill scene, by choice. */
+/* Layout: live 3D hero with a one-sentence answer, then the report as a map beside a filterable list,
+   then how-to-read notes and city extras. Single smoky-dark world shared with the Maple Hill scene.
+   Stage colours mirror the leaves themselves: green, gold, orange, red, brown. */
 :root {
   --night: #140e0c;
   --ember: #1d1411;
+  --panel: #221815;
   --well: rgba(255, 236, 214, 0.05);
   --edge: rgba(255, 220, 186, 0.14);
   --ink: #f7ecdf;
@@ -20,54 +22,54 @@
   --ink-faint: #9b8571;
   --maple: #e2562b;
   --amber: #f2b349;
-  --leaf-green: #6f9a33;
-  --leaf-gold: #f4ad38;
-  --leaf-red: #c4301c;
-  --leaf-brown: #6b3b1f;
+  --st-green: #7fa63a;
+  --st-turning: #e7bd3c;
+  --st-near: #ee8a2f;
+  --st-peak: #e0452a;
+  --st-past: #9a6a4a;
+  --water: #16252d;
+  --land: #2a1f1a;
+  --ontario: #3a2a21;
   --font-display: 'Young Serif', Georgia, 'Times New Roman', serif;
   --font-body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
-  --step-0: 1rem; --step-1: 1.2rem; --step-2: 1.6rem; --step-3: 2.3rem; --step-4: clamp(2.6rem, 6.2vw, 5.2rem);
+  --step-1: 1.2rem; --step-2: 1.6rem; --step-3: clamp(1.9rem, 3.6vw, 2.4rem); --step-4: clamp(2.5rem, 5.6vw, 4.6rem);
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { scroll-behavior: smooth; }
-body {
-  margin: 0; background: var(--night); color: var(--ink);
-  font: 400 var(--step-0)/1.6 var(--font-body);
-  -webkit-font-smoothing: antialiased;
-}
+body { margin: 0; background: var(--night); color: var(--ink); font: 400 1rem/1.6 var(--font-body); -webkit-font-smoothing: antialiased; }
 img { max-width: 100%; display: block; }
 a { color: inherit; }
 :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 4px; }
-h1, h2, h3 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; margin: 0; line-height: 1.08; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; margin: 0; line-height: 1.1; }
 h2 { font-size: var(--step-3); }
 h3 { font-size: var(--step-1); line-height: 1.25; }
 p { margin: 0; }
 .eyebrow { font: 500 0.72rem/1.4 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--amber); }
-.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-.wrap { width: 100%; max-width: 1120px; margin-inline: auto; padding-inline: 20px; }
-.lede { font-size: var(--step-1); color: var(--ink-dim); max-width: 60ch; }
+.wrap { width: 100%; max-width: 1180px; margin-inline: auto; padding-inline: 20px; }
+.lede { font-size: var(--step-1); color: var(--ink-dim); max-width: 62ch; }
+.muted { color: var(--ink-dim); }
+.faint { color: var(--ink-faint); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+section { padding-block: clamp(56px, 8vw, 96px); }
+.section-head { display: grid; gap: 12px; margin-bottom: 28px; }
 
 .btn {
-  display: inline-flex; align-items: center; gap: 10px; text-decoration: none;
-  font: 600 0.98rem/1 var(--font-body); padding: 15px 22px; border-radius: 12px;
+  display: inline-flex; align-items: center; gap: 10px; text-decoration: none; cursor: pointer;
+  font: 600 0.98rem/1 var(--font-body); padding: 14px 20px; border-radius: 12px;
   border: 1px solid var(--edge); background: var(--well); color: var(--ink);
-  transition: transform .15s, background .15s, border-color .15s;
 }
-.btn:hover { transform: translateY(-1px); border-color: rgba(242, 179, 73, 0.5); }
+.btn:hover { border-color: rgba(242, 179, 73, 0.5); }
 .btn.primary { background: var(--maple); border-color: var(--maple); color: #fff8f0; }
 .btn.primary:hover { background: #ec6436; }
 .btn svg { width: 18px; height: 18px; }
 
 /* Top bar */
-.bar {
-  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
-  background: rgba(20, 14, 12, 0.78); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--edge);
-}
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: rgba(20, 14, 12, 0.82); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--edge); }
 .bar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 12px; }
-.mark { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 400 1.25rem var(--font-display); }
+.mark { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 400 1.25rem var(--font-display); white-space: nowrap; }
 .mark svg { width: 24px; height: 24px; color: var(--maple); }
 .nav { display: flex; gap: 22px; align-items: center; font-size: 0.92rem; }
 .nav a { text-decoration: none; color: var(--ink-dim); }
@@ -75,294 +77,339 @@ p { margin: 0; }
 .nav .btn { padding: 10px 14px; font-size: 0.88rem; color: #fff8f0; }
 
 /* Hero */
-.hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--edge); height: clamp(560px, 86vh, 920px); background: var(--ember); }
+.hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--edge); height: clamp(560px, 82vh, 860px); background: var(--ember); padding: 0; }
 .hero-stage { position: absolute; inset: 0; }
 .hero-still, .hero iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
 .hero-still { object-fit: cover; object-position: 70% 50%; }
 .hero-scrim { position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(90deg, rgba(20, 14, 12, 0.88) 0%, rgba(20, 14, 12, 0.6) 32%, rgba(20, 14, 12, 0) 60%),
+  background: linear-gradient(90deg, rgba(20, 14, 12, 0.92) 0%, rgba(20, 14, 12, 0.7) 34%, rgba(20, 14, 12, 0) 62%),
               linear-gradient(0deg, rgba(20, 14, 12, 0.7) 0%, rgba(20, 14, 12, 0) 30%); }
-.hero-inner { position: relative; height: 100%; display: grid; align-content: center; gap: 22px; padding-block: 40px; pointer-events: none; }
+.hero-inner { position: relative; height: 100%; display: grid; align-content: center; gap: 20px; padding-block: 40px; pointer-events: none; }
 .hero-inner a, .hero-inner button { pointer-events: auto; }
-.scene-cmds { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
-.scene-cmds .label { font: 500 0.72rem var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-dim); margin-right: 4px; }
-.chip {
-  border: 1px solid var(--edge); background: rgba(26, 17, 14, 0.62); color: var(--ink);
-  font: 500 0.86rem/1 var(--font-body); padding: 9px 12px; border-radius: 999px; cursor: pointer;
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-}
-.chip:hover { border-color: rgba(242, 179, 73, 0.55); }
-.chip.gust { border-color: rgba(226, 86, 43, 0.7); }
-.hero-tip {
-  position: absolute; right: 20px; bottom: 18px; pointer-events: none;
-  font: 400 0.78rem var(--font-mono); color: var(--ink-dim);
-  background: rgba(26, 17, 14, 0.62); border: 1px solid var(--edge); border-radius: 999px; padding: 6px 12px;
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-}
-.hero-tip b { color: var(--maple); font-weight: 500; }
-.hero h1 { font-size: var(--step-4); max-width: 13ch; text-shadow: 0 2px 24px rgba(20, 10, 6, 0.5); }
-.hero .lede { color: var(--ink); text-shadow: 0 1px 14px rgba(20, 10, 6, 0.6); }
+.hero h1 { font-size: var(--step-4); max-width: 14ch; text-shadow: 0 2px 24px rgba(20, 10, 6, 0.5); }
+.hero .lede { color: var(--ink); max-width: 52ch; text-shadow: 0 1px 14px rgba(20, 10, 6, 0.6); }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
-.coords {
-  display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 10px;
-  font: 400 0.8rem var(--font-mono); color: var(--ink-dim); font-variant-numeric: tabular-nums;
+.tally { display: flex; flex-wrap: wrap; gap: 8px; }
+.tally a {
+  display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-size: 0.88rem;
+  padding: 7px 12px 7px 10px; border-radius: 999px; border: 1px solid var(--edge);
+  background: rgba(26, 17, 14, 0.66); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
 }
-.coords b { color: var(--ink); font-weight: 500; }
+.tally a:hover { border-color: rgba(242, 179, 73, 0.55); }
+.tally b { font: 500 0.92rem var(--font-mono); }
+.hero-tip { position: absolute; right: 20px; bottom: 18px; pointer-events: none; font: 400 0.76rem var(--font-mono); color: var(--ink-dim);
+  background: rgba(26, 17, 14, 0.62); border: 1px solid var(--edge); border-radius: 999px; padding: 6px 12px; }
+.hero-tip b { color: var(--maple); font-weight: 500; }
 
-section { padding-block: clamp(64px, 9vw, 112px); }
-.section-head { display: grid; gap: 14px; margin-bottom: 36px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; background: var(--c); box-shadow: 0 0 0 2px rgba(20, 14, 12, 0.6); display: inline-block; }
+.pill { display: inline-flex; align-items: center; gap: 7px; font: 600 0.8rem/1 var(--font-body); padding: 6px 10px; border-radius: 999px; white-space: nowrap;
+  background: color-mix(in srgb, var(--c) 18%, transparent); color: var(--ink); border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); }
 
-/* Gallery */
-.gallery { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; }
-.gallery figure { margin: 0; position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--edge); background: var(--ember); }
-.gallery figure:first-child { grid-row: span 3; }
-.gallery img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: 16 / 10; }
-.gallery figure:first-child img { aspect-ratio: auto; min-height: 100%; }
-.gallery figcaption {
-  position: absolute; left: 0; right: 0; bottom: 0; padding: 30px 16px 12px;
-  background: linear-gradient(to top, rgba(14, 9, 7, 0.86), rgba(14, 9, 7, 0));
-  display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 0.92rem;
+/* Picks */
+.picks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.pick { display: grid; gap: 12px; align-content: start; padding: 22px; border-radius: 16px; background: var(--panel); border: 1px solid var(--edge); text-decoration: none; min-width: 0; }
+.pick:hover { border-color: rgba(242, 179, 73, 0.45); }
+.pick .band { font: 500 0.74rem var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); }
+.pick h3 { font-size: var(--step-2); }
+.pick .stats { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; font-size: 0.92rem; color: var(--ink-dim); }
+.pick .stats .big { font: 500 1.6rem/1 var(--font-mono); color: var(--ink); }
+.pick .meta { display: flex; gap: 8px; align-items: flex-start; font-size: 0.92rem; color: var(--ink-dim); }
+.pick .meta .swatch { margin-top: 3px; }
+.pick p { color: var(--ink-dim); font-size: 0.94rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Report */
+#report { background: var(--ember); border-block: 1px solid var(--edge); }
+.notice { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(242, 179, 73, 0.4); background: rgba(242, 179, 73, 0.08); font-size: 0.94rem; }
+.filters { display: grid; gap: 14px; margin-bottom: 22px; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.filter-row .label { font: 500 0.72rem var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); min-width: 68px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--edge); background: var(--well); color: var(--ink);
+  font: 500 0.88rem/1 var(--font-body); padding: 9px 12px; border-radius: 999px; cursor: pointer;
 }
-.gallery figcaption .mono { font-size: 0.78rem; color: var(--amber); white-space: nowrap; }
-
-/* Controls list */
-.controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--edge); }
-.control { padding: 22px 22px 26px 0; border-bottom: 1px solid var(--edge); display: grid; gap: 8px; align-content: start; min-width: 0; }
-.control:not(:nth-child(3n + 1)) { padding-left: 22px; border-left: 1px solid var(--edge); }
-.control .tab { font: 500 0.74rem var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); }
-.control p { color: var(--ink-dim); font-size: 0.96rem; }
-.keys { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 10px 22px; color: var(--ink-dim); font-size: 0.92rem; }
-kbd { font: 500 0.8rem var(--font-mono); color: var(--ink); border: 1px solid var(--edge); border-bottom-width: 2px; border-radius: 6px; padding: 1px 7px; margin-right: 6px; }
-
-/* Colour calendar */
-.calendar { display: grid; gap: 30px; }
-.band-wrap { position: relative; padding-top: 34px; }
-.band {
-  height: 22px; border-radius: 999px;
-  background: linear-gradient(90deg, var(--leaf-green) 0%, #a3ad44 14%, var(--leaf-gold) 30%, #e86a24 46%, var(--leaf-red) 60%, #8e1a16 74%, var(--leaf-brown) 88%, #4a3020 100%);
+.chip:hover { border-color: rgba(242, 179, 73, 0.5); }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--night); border-color: var(--ink); }
+.chip .n { font: 500 0.78rem var(--font-mono); opacity: 0.7; }
+.controls-line { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.field { display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--ink-dim); }
+select, input[type="search"], input[type="date"] {
+  font: 500 0.92rem var(--font-body); color: var(--ink); background: var(--well); border: 1px solid var(--edge); border-radius: 10px; padding: 9px 12px;
 }
-.today { position: absolute; top: 0; transform: translateX(-50%); display: grid; justify-items: center; gap: 4px; transition: left .3s; }
-.today span { font: 500 0.72rem var(--font-mono); color: var(--ink); background: var(--maple); padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
-.today i { width: 2px; height: 34px; background: var(--ink); display: block; }
-.ticks { display: flex; justify-content: space-between; margin-top: 8px; font: 400 0.76rem var(--font-mono); color: var(--ink-faint); }
-.stages { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; list-style: none; margin: 0; padding: 0; counter-reset: stage; }
-.stages li { display: grid; gap: 8px; align-content: start; min-width: 0; padding-top: 14px; border-top: 3px solid var(--c); }
-.stages .when { font: 500 0.78rem var(--font-mono); color: var(--ink-dim); }
-.stages p { color: var(--ink-dim); font-size: 0.95rem; }
+input[type="search"] { width: min(260px, 100%); }
+.report-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.map-card { position: sticky; top: calc(76px + env(safe-area-inset-top, 0px)); display: grid; gap: 10px; }
+.map-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.map-box { position: relative; border-radius: 16px; overflow: hidden; border: 1px solid var(--edge); background: var(--water); }
+.map-box svg { display: block; width: 100%; height: auto; max-height: 72vh; }
+.map-box .park-dot { cursor: pointer; }
+.map-box .park-dot:focus-visible { outline: none; }
+.map-box .park-dot:focus-visible circle, .map-box .park-dot.sel circle { stroke: #fff8f0; }
+.map-tip { position: absolute; pointer-events: none; transform: translate(-50%, calc(-100% - 12px)); background: var(--night); border: 1px solid var(--edge);
+  border-radius: 10px; padding: 8px 10px; font-size: 0.84rem; white-space: nowrap; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); }
+.map-tip b { display: block; font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.84rem; color: var(--ink-dim); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.map-note { font-size: 0.8rem; color: var(--ink-faint); }
+.results-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px; font-size: 0.92rem; color: var(--ink-dim); }
+.list { display: grid; gap: 12px; }
+.park { display: grid; gap: 12px; padding: 18px; border-radius: 14px; background: var(--panel); border: 1px solid var(--edge); scroll-margin-top: 90px; min-width: 0; }
+.park.sel { border-color: var(--amber); box-shadow: 0 0 0 1px var(--amber); }
+.park header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.park h3 { font-size: 1.22rem; }
+.park h3 small { display: block; margin-top: 3px; font: 400 0.8rem var(--font-body); color: var(--ink-faint); }
+.meters { display: grid; gap: 8px; }
+.meter { display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px; gap: 10px; align-items: center; font-size: 0.84rem; color: var(--ink-dim); }
+.meter .track { height: 8px; border-radius: 999px; background: rgba(255, 232, 205, 0.1); overflow: hidden; }
+.meter .fill { height: 100%; border-radius: 999px; background: var(--c); }
+.meter .num { text-align: right; color: var(--ink); }
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; }
+.facts div { display: grid; gap: 2px; min-width: 0; }
+.facts dt { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+.facts dd { margin: 0; font-size: 0.92rem; display: flex; align-items: center; gap: 7px; }
+.swatch { width: 16px; height: 16px; border-radius: 4px; flex: none; border: 1px solid rgba(255, 255, 255, 0.15); }
+.viewing { font-size: 0.92rem; color: var(--ink-dim); }
+.viewing.clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.park-links { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 0.86rem; }
+.park-links a, .park-links button { color: var(--amber); background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.empty { padding: 28px; border-radius: 14px; border: 1px dashed var(--edge); color: var(--ink-dim); text-align: center; }
 
-/* Sun tool */
-.sun-tool {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 32px; align-items: center;
-  background: var(--ember); border: 1px solid var(--edge); border-radius: 18px; padding: 28px;
-}
-.sun-tool label { display: grid; gap: 8px; font-weight: 500; }
-.sun-tool input[type="date"] {
-  font: 500 1rem var(--font-mono); color: var(--ink); background: var(--well);
-  border: 1px solid var(--edge); border-radius: 10px; padding: 12px 14px; width: 100%; max-width: 260px;
-}
-.sun-tool .hint { font-size: 0.88rem; color: var(--ink-faint); margin-top: 10px; }
+/* How to read */
+.stages { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; list-style: none; margin: 0 0 32px; padding: 0; }
+.stages li { display: grid; gap: 8px; align-content: start; padding-top: 14px; border-top: 4px solid var(--c); min-width: 0; }
+.stages .rule { font: 500 0.78rem var(--font-mono); color: var(--ink-dim); }
+.stages p { color: var(--ink-dim); font-size: 0.92rem; }
+.explain { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.explain div { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.explain p { color: var(--ink-dim); font-size: 0.95rem; }
+.trees { display: grid; gap: 8px; margin-top: 4px; }
+.trees span { display: flex; align-items: center; gap: 10px; font-size: 0.92rem; color: var(--ink-dim); }
+
+/* City + planner */
+.city-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+.near-list { display: grid; gap: 0; border-top: 1px solid var(--edge); }
+.near-list a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 14px 0; border-bottom: 1px solid var(--edge); text-decoration: none; }
+.near-list a:hover h3 { color: var(--amber); }
+.near-list h3 { font-size: 1.08rem; }
+.near-list .meta { grid-column: 1 / -1; font-size: 0.88rem; color: var(--ink-dim); }
+.places { display: grid; gap: 0; border-top: 1px solid var(--edge); }
+.place { display: grid; gap: 4px; padding: 14px 0; border-bottom: 1px solid var(--edge); }
+.place h3 { font-size: 1.08rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.place small { font: 400 0.76rem var(--font-mono); color: var(--ink-faint); }
+.place p { color: var(--ink-dim); font-size: 0.94rem; }
+.sun-tool { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 32px; align-items: center; background: var(--ember); border: 1px solid var(--edge); border-radius: 18px; padding: 28px; }
+.sun-tool label { display: grid; gap: 8px; font-weight: 500; margin-top: 14px; }
+.sun-tool input[type="date"] { font-family: var(--font-mono); max-width: 240px; }
 .sun-read { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .sun-read div { display: grid; gap: 2px; }
 .sun-read b { font: 500 clamp(1.5rem, 3.2vw, 2.1rem)/1.1 var(--font-mono); font-variant-numeric: tabular-nums; }
-.sun-read span { font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); }
+.sun-read span { font-size: 0.76rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); }
 .sun-read .gold b { color: var(--amber); }
 .sun-note { grid-column: 1 / -1; color: var(--ink-dim); font-size: 0.95rem; }
 
-/* Places */
-.places { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 48px; }
-.place { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 16px; padding-block: 20px; border-bottom: 1px solid var(--edge); }
-.place .pin { grid-row: span 2; width: 12px; height: 12px; margin-top: 8px; border-radius: 50%; background: var(--c, var(--maple)); box-shadow: 0 0 0 4px rgba(226, 86, 43, 0.15); }
-.place h3 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
-.place h3 small { font: 400 0.76rem var(--font-mono); color: var(--ink-faint); letter-spacing: 0.04em; }
-.place p { color: var(--ink-dim); font-size: 0.96rem; }
-
-/* Residents */
-.residents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
-.resident { display: grid; gap: 10px; align-content: start; min-width: 0; }
-.resident svg { width: 56px; height: 56px; color: var(--amber); }
-.resident p { color: var(--ink-dim); font-size: 0.96rem; }
-.resident .in-scene { font: 400 0.8rem var(--font-mono); color: var(--ink-faint); }
-
-/* Species */
-.species { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
-.sp { display: grid; gap: 10px; min-width: 0; }
-.swatch { display: flex; height: 54px; border-radius: 10px; overflow: hidden; border: 1px solid var(--edge); }
-.swatch i { flex: 1; }
-.sp h3 { font-size: 1.05rem; }
-.sp p { color: var(--ink-faint); font-size: 0.86rem; font-style: italic; }
-
-/* Closing */
 .closing { position: relative; overflow: hidden; border-top: 1px solid var(--edge); }
-.closing img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.42; }
+.closing img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.45; }
 .closing::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20, 14, 12, 0.92) 20%, rgba(20, 14, 12, 0.35)); }
-.closing .wrap { position: relative; z-index: 1; display: grid; gap: 20px; justify-items: start; }
-.closing h2 { font-size: clamp(2.2rem, 5vw, 3.6rem); max-width: 14ch; }
-.closing .small { color: var(--ink-dim); font-size: 0.92rem; }
-
+.closing .wrap { position: relative; z-index: 1; display: grid; gap: 18px; justify-items: start; }
+.closing h2 { font-size: clamp(2rem, 4.6vw, 3.2rem); max-width: 16ch; }
 footer { border-top: 1px solid var(--edge); }
 footer .wrap { padding-block: 26px 34px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 24px; color: var(--ink-faint); font-size: 0.86rem; }
+footer a { color: var(--ink-dim); }
 
-@media (max-width: 900px) {
-  .controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .control:not(:nth-child(3n + 1)) { padding-left: 0; border-left: 0; }
-  .control:nth-child(2n) { padding-left: 20px; border-left: 1px solid var(--edge); }
-  .stages { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .species { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 980px) {
+  .report-grid { grid-template-columns: 1fr; }
+  .map-card { position: static; }
+  .stages { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .explain, .city-grid { grid-template-columns: 1fr; }
+  .picks { grid-template-columns: 1fr; }
   .sun-tool { grid-template-columns: 1fr; }
 }
 @media (max-width: 680px) {
   .nav a:not(.btn) { display: none; }
   .hero { height: auto; }
-  .hero-stage { position: relative; height: 54vh; min-height: 340px; }
+  .hero-stage { position: relative; height: 46vh; min-height: 300px; }
   .hero-scrim { background: linear-gradient(0deg, rgba(20, 14, 12, 1) 0%, rgba(20, 14, 12, 0) 30%); }
-  .hero-inner { height: auto; padding-block: 4px 40px; gap: 16px; margin-top: -40px; }
-  .hero h1 { font-size: 2.6rem; }
+  .hero-inner { height: auto; padding-block: 4px 40px; gap: 16px; margin-top: -36px; }
+  .hero h1 { font-size: 2.4rem; }
   .hero .lede { font-size: 1.02rem; }
   .hero-tip { left: 16px; right: auto; top: 14px; bottom: auto; font-size: 0.72rem; }
-  .coords, .hero-tip .wide { display: none; }
-  .gallery { grid-template-columns: 1fr; }
-  .gallery figure:first-child { grid-row: auto; }
-  .gallery figure:first-child img { aspect-ratio: 16 / 10; }
-  .controls, .places, .residents, .stages { grid-template-columns: 1fr; }
-  .control, .control:nth-child(2n) { padding-left: 0; border-left: 0; }
-  .species { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stages { grid-template-columns: 1fr 1fr; }
+  .facts { grid-template-columns: 1fr 1fr; }
+  .meter { grid-template-columns: 84px minmax(0, 1fr) 40px; }
   .sun-read { grid-template-columns: 1fr 1fr; }
   .sun-tool { padding: 20px; }
 }
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  .btn, .today { transition: none; }
-}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 </style>
 </head>
 <body>
 <header class="bar">
   <div class="wrap">
-    <a class="mark" href="#top" aria-label="Maple Hill, back to top">
+    <a class="mark" href="#top" aria-label="Maple Hill Fall Colour, back to top">
       <svg viewBox="0 0 48 48" fill="currentColor" aria-hidden="true"><path d="M24 3l3.6 8.4 5-2.2-1.6 9.6 7.4-5.4.4 4.2 6-1.4-3.4 7 2.6 1.8-9.8 7 1.4 3.6-9.2-1.4.4 9.8h-2.4l.4-9.8-9.2 1.4 1.4-3.6-9.8-7 2.6-1.8-3.4-7 6 1.4.4-4.2 7.4 5.4-1.6-9.6 5 2.2z"/></svg>
       Maple Hill
     </a>
     <nav class="nav" aria-label="Sections">
-      <a href="#moods">The scene</a>
-      <a href="#calendar">Colour calendar</a>
-      <a href="#places">Where to go</a>
-      <a href="#residents">Residents</a>
-      <a class="btn primary" href="index.html">Open the scene</a>
+      <a href="#report">Colour report</a>
+      <a href="#how">How to read it</a>
+      <a href="#city">Near the city</a>
+      <a class="btn primary" href="index.html">Open the 3D park</a>
     </nav>
   </div>
 </header>
 
 <main id="top">
-  <section class="hero" aria-labelledby="hero-title" style="padding-block: 0;">
+  <section class="hero" aria-labelledby="hero-title">
     <div class="hero-stage">
       <img class="hero-still" src="img/golden-hour.jpg" alt="" width="1600" height="1000">
-      <iframe id="heroScene" src="index.html#embed" title="Maple Hill, a live 3D scene you can drag to look around" loading="eager"></iframe>
+      <iframe id="heroScene" src="index.html#embed" title="Maple Hill, a live 3D autumn park you can drag to look around" loading="eager"></iframe>
       <div class="hero-scrim"></div>
-      <p class="hero-tip"><b>●</b> Live 3D · drag to look around<span class="wide"> · click a tree to shake it</span></p>
+      <p class="hero-tip"><b>●</b> Live 3D park · drag to look around</p>
     </div>
     <div class="wrap hero-inner">
-      <p class="eyebrow">Riverdale Park East · Toronto · October</p>
-      <h1 id="hero-title">Toronto, the week the maples turn.</h1>
-      <p class="lede">Maple Hill is a 3D autumn park on the slope above the Don Valley, looking west to the CN Tower. Set the wind, move the sun, shake a tree and watch a city's worth of leaves come down.</p>
+      <p class="eyebrow" id="heroEyebrow">Ontario fall colour report</p>
+      <h1 id="hero-title">Where the leaves are turning this week</h1>
+      <p class="lede" id="heroSummary">Loading the latest Ontario Parks reports…</p>
+      <div class="tally" id="heroTally" aria-label="Parks by colour stage"></div>
       <div class="hero-actions">
-        <a class="btn primary" href="index.html">
-          Step into Maple Hill
-          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h12M11 5l5 5-5 5"/></svg>
+        <a class="btn primary" href="#report">
+          See the colour map
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4v12M5 11l5 5 5-5"/></svg>
         </a>
-        <a class="btn" href="#calendar">When to see the real thing</a>
-      </div>
-      <div class="coords" aria-label="Location and today's sun">
-        <span>43.67° N, 79.35° W</span>
-        <span>Sunset today <b id="heroSunset">--:--</b></span>
-        <span>Golden hour from <b id="heroGolden">--:--</b></span>
-      </div>
-      <div class="scene-cmds" role="group" aria-label="Change the live scene">
-        <span class="label">Try it</span>
-        <button class="chip gust" type="button" data-cmd="gust">Send a gust</button>
-        <button class="chip" type="button" data-cmd="preset" data-name="Golden hour">Golden hour</button>
-        <button class="chip" type="button" data-cmd="preset" data-name="Rainy evening">Rain</button>
-        <button class="chip" type="button" data-cmd="preset" data-name="Autumn night">Night</button>
+        <a class="btn" href="index.html">Step into Maple Hill</a>
       </div>
     </div>
   </section>
 
-  <section id="moods" aria-labelledby="moods-title">
+  <section id="picks" aria-labelledby="picks-title">
     <div class="wrap">
       <div class="section-head">
-        <p class="eyebrow">The scene</p>
-        <h2 id="moods-title">Four moods of the same hill</h2>
-        <p class="lede">One sugar maple, a grove of oaks, birches and spruces, a pond with Canada geese, and downtown on the horizon. Every frame below is the live scene with a different preset.</p>
+        <p class="eyebrow">Best bets from Toronto</p>
+        <h2 id="picks-title">Where to go this weekend</h2>
+        <p class="lede">The most colourful park in each drive-time band, from the latest reports. Parks where half the leaves are already down are skipped.</p>
       </div>
-      <div class="gallery">
-        <figure>
-          <img src="img/golden-hour.jpg" alt="The big sugar maple glowing orange at golden hour, the CN Tower and downtown towers behind it, geese on the pond" width="1600" height="1000">
-          <figcaption><span>Golden hour, light westerly</span><span class="mono">18:06 · 14 km/h</span></figcaption>
-        </figure>
-        <figure>
-          <img src="img/gust-front.jpg" alt="Pale wind trails streaming across the park as a gust front tears leaves from the trees" width="1600" height="1000" loading="lazy">
-          <figcaption><span>Gust front</span><span class="mono">95 km/h</span></figcaption>
-        </figure>
-        <figure>
-          <img src="img/rainy-evening.jpg" alt="Rain falling over the park under grey cloud, the skyline faded in mist" width="1600" height="1000" loading="lazy">
-          <figcaption><span>Rainy evening</span><span class="mono">17:18 · rain 75%</span></figcaption>
-        </figure>
-        <figure>
-          <img src="img/autumn-night.jpg" alt="The park at night with fireflies over the grass, the stone lantern lit and downtown windows glowing" width="1600" height="1000" loading="lazy">
-          <figcaption><span>Autumn night</span><span class="mono">22:24 · fireflies</span></figcaption>
-        </figure>
-      </div>
+      <div class="picks" id="picks-list"></div>
     </div>
   </section>
 
-  <section aria-labelledby="controls-title" style="padding-top: 0;">
+  <section id="report" aria-labelledby="report-title">
     <div class="wrap">
       <div class="section-head">
-        <p class="eyebrow">What you can change</p>
-        <h2 id="controls-title">A whole autumn on one panel</h2>
+        <p class="eyebrow">The colour report</p>
+        <h2 id="report-title">Every provincial park that's reporting</h2>
+        <p class="lede" id="reportIntro"></p>
+        <div class="notice" id="staleNotice" hidden></div>
       </div>
-      <div class="controls">
-        <div class="control"><span class="tab">Wind</span><h3>Speed, gusts and a compass dial</h3><p>Drag the dial to set where the wind comes from. Push it to 90 km/h, or send a gust front that sweeps the whole park.</p></div>
-        <div class="control"><span class="tab">Leaves</span><h3>Species, season and how fast they fall</h3><p>Turn the big tree from sugar to red or Norway maple, slide from early September to late October, then rake the lawn.</p></div>
-        <div class="control"><span class="tab">Sky</span><h3>Time of day or the sun's exact angle</h3><p>Follow the clock from dawn to the city lights at night, or place the sun by height and compass direction.</p></div>
-        <div class="control"><span class="tab">Weather</span><h3>Rain, cloud and valley mist</h3><p>A downpour roughens the pond, dims the sun and hides the towers behind a grey wall.</p></div>
-        <div class="control"><span class="tab">Wildlife</span><h3>Raccoons, black squirrels, geese</h3><p>Click the grass to scatter acorns or the pond to toss bread, and they come over to eat.</p></div>
-        <div class="control"><span class="tab">Sound</span><h3>Wind, leaves, rain, birds, crickets</h3><p>Every sound is generated in your browser and follows the wind speed and the hour.</p></div>
+
+      <div class="filters" role="group" aria-label="Filter parks">
+        <div class="filter-row" id="stageFilter"><span class="label">Stage</span></div>
+        <div class="controls-line">
+          <label class="field" for="driveFilter">Drive from Toronto
+            <select id="driveFilter">
+              <option value="9999">Any distance</option>
+              <option value="120">Under 2 hours</option>
+              <option value="180">Under 3 hours</option>
+              <option value="300">Under 5 hours</option>
+            </select>
+          </label>
+          <label class="field" for="sortBy">Sort by
+            <select id="sortBy">
+              <option value="drive">Closest first</option>
+              <option value="colour">Most colour first</option>
+              <option value="recent">Newest report first</option>
+              <option value="name">Name</option>
+            </select>
+          </label>
+          <label class="field" for="search"><span class="sr">Find a park</span>
+            <input type="search" id="search" placeholder="Find a park" autocomplete="off">
+          </label>
+        </div>
       </div>
-      <div class="keys" aria-label="Keyboard shortcuts">
-        <span><kbd>G</kbd>Send a gust front</span>
-        <span><kbd>H</kbd>Hide the panel</span>
-        <span><kbd>Space</kbd>Pause everything</span>
-        <span>Click any tree to shake it</span>
+
+      <div class="report-grid">
+        <div class="map-card">
+          <div class="map-head">
+            <div class="legend" id="mapLegend"></div>
+            <div class="filter-row" role="group" aria-label="Map view">
+              <button class="chip" type="button" data-view="south" aria-pressed="true">Near Toronto</button>
+              <button class="chip" type="button" data-view="all" aria-pressed="false">All Ontario</button>
+            </div>
+          </div>
+          <div class="map-box" id="mapBox">
+            <svg id="map" viewBox="0 0 1000 1081" role="img" aria-label="Map of Ontario with a dot for each reporting park, coloured by colour stage"></svg>
+            <div class="map-tip" id="mapTip" hidden></div>
+          </div>
+          <p class="map-note">Tap a dot to jump to that park. Drive times are estimates from straight-line distance to downtown Toronto.</p>
+        </div>
+        <div>
+          <div class="results-head"><span id="resultCount"></span><button class="chip" type="button" id="resetFilters" hidden>Clear filters</button></div>
+          <div class="list" id="parkList" aria-live="polite"></div>
+        </div>
       </div>
     </div>
   </section>
 
-  <section id="calendar" aria-labelledby="cal-title" style="background: var(--ember); border-block: 1px solid var(--edge);">
-    <div class="wrap calendar">
-      <div class="section-head" style="margin-bottom: 0;">
-        <p class="eyebrow">Colour calendar</p>
-        <h2 id="cal-title">How Toronto's ravines change colour</h2>
-        <p class="lede">The city turns from the north and the ravine floors first. Peak colour downtown usually lands in the second half of October, then the oaks hold on into November. Dates shift a week either way with the weather.</p>
+  <section id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">How to read the report</p>
+        <h2 id="how-title">Five stages, from green to bare</h2>
+        <p class="lede">Park staff report two numbers: how much of the canopy has changed colour, and how many leaves have fallen. We group them into five stages so you can see at a glance whether it's worth the drive.</p>
       </div>
-      <div class="band-wrap">
-        <div class="today" id="todayMark" hidden><span id="todayLabel">Today</span><i></i></div>
-        <div class="band" role="img" aria-label="Typical leaf colour from mid September, green, through gold and red in October, to brown in mid November"></div>
-        <div class="ticks mono" aria-hidden="true"><span>Sep 15</span><span>Oct 1</span><span>Oct 15</span><span>Nov 1</span><span>Nov 15</span></div>
+      <ol class="stages" id="stageGuide"></ol>
+      <div class="explain">
+        <div>
+          <h3>Colour change</h3>
+          <p>The share of leaves that have turned from green. Most parks look their best from about 70% to 90%, before many leaves have dropped.</p>
+        </div>
+        <div>
+          <h3>Leaf fall</h3>
+          <p>The share of leaves already on the ground. Once it passes half, trails look thinner, but the forest floor is a carpet of colour.</p>
+        </div>
+        <div>
+          <h3>Main colour</h3>
+          <p>The colour you'll see most of. It comes from the trees in each park:</p>
+          <div class="trees">
+            <span><i class="swatch" style="background:#f2d14f"></i>Yellow: birch, poplar, aspen, tamarack</span>
+            <span><i class="swatch" style="background:#f08c2c"></i>Orange: sugar maple</span>
+            <span><i class="swatch" style="background:#d2321e"></i>Red: red maple, sumac, red oak</span>
+          </div>
+        </div>
       </div>
-      <ol class="stages">
-        <li style="--c: var(--leaf-gold);"><span class="when">Late September</span><h3>First colour in the ravines</h3><p>Red and silver maples on the valley floors redden first, along with sumac on the slopes.</p></li>
-        <li style="--c: #e86a24;"><span class="when">Early to mid October</span><h3>Sugar maples go orange</h3><p>Street trees and park maples move through orange to scarlet. Thanksgiving weekend is often the first strong week.</p></li>
-        <li style="--c: var(--leaf-red);"><span class="when">Mid to late October</span><h3>Peak across the city</h3><p>The Don Valley, High Park and the Rouge are at their fullest. Norway maples are still gold.</p></li>
-        <li style="--c: var(--leaf-brown);"><span class="when">Early November</span><h3>Oaks and spruces carry it</h3><p>Most maples are bare. Red oaks hold russet leaves, and the evergreens stand out against them.</p></li>
-      </ol>
+    </div>
+  </section>
 
-      <div class="sun-tool" aria-labelledby="sun-title">
+  <section id="city" aria-labelledby="city-title" style="background: var(--ember); border-block: 1px solid var(--edge);">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Near the city</p>
+        <h2 id="city-title">Not driving far?</h2>
+        <p class="lede">City parks don't file reports, so the closest provincial parks are your best guide to what Toronto's ravines look like right now.</p>
+      </div>
+      <div class="city-grid">
+        <div>
+          <h3 style="margin-bottom: 12px;">Closest reporting parks</h3>
+          <div class="near-list" id="nearList"></div>
+        </div>
+        <div>
+          <h3 style="margin-bottom: 12px;">Toronto spots worth a walk</h3>
+          <div class="places">
+            <div class="place"><h3>Riverdale Park East <small>Broadview Ave</small></h3><p>The hill that looks west over the Don Valley to the skyline. Maple Hill is modelled on it.</p></div>
+            <div class="place"><h3>High Park <small>Bloor St W</small></h3><p>Rare black oak savanna, Grenadier Pond and long loops under maples and oaks.</p></div>
+            <div class="place"><h3>Evergreen Brick Works <small>Bayview Ave</small></h3><p>Ravine trails and a quarry pond in the Don Valley, with a lookout over the treetops.</p></div>
+            <div class="place"><h3>Edwards Gardens <small>Lawrence Ave E</small></h3><p>Formal gardens leading down into the wooded Wilket Creek ravine.</p></div>
+            <div class="place"><h3>Rouge National Urban Park <small>Eastern edge of the city</small></h3><p>Canada's first national urban park, with forest, marsh and river valley trails.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sun-tool" aria-labelledby="sun-title" style="margin-top: 48px;">
         <div>
           <h3 id="sun-title" style="font-size: var(--step-2);">Plan your golden hour</h3>
-          <label for="sunDate" style="margin-top: 14px;">Pick a day
+          <label for="sunDate">Pick a day
             <input type="date" id="sunDate" min="2026-01-01" max="2030-12-31">
           </label>
-          <p class="hint">Times are for downtown Toronto, in local time.</p>
+          <p class="faint" style="font-size: 0.88rem; margin-top: 10px;">Times are for downtown Toronto, in local time.</p>
         </div>
         <div class="sun-read" aria-live="polite">
           <div><b id="outRise">--:--</b><span>Sunrise</span></div>
@@ -374,154 +421,367 @@ footer .wrap { padding-block: 26px 34px; display: flex; flex-wrap: wrap; justify
     </div>
   </section>
 
-  <section id="places" aria-labelledby="places-title">
-    <div class="wrap">
-      <div class="section-head">
-        <p class="eyebrow">Where to go</p>
-        <h2 id="places-title">Seven places to see it in person</h2>
-        <p class="lede">Maple Hill is modelled on the first one. The rest are spread across the city, from the lake to the eastern edge.</p>
-      </div>
-      <div class="places">
-        <div class="place"><span class="pin"></span><h3>Riverdale Park East <small>Broadview Ave</small></h3><p>The hill that looks west over the Don Valley to the skyline. Best near sunset, when the towers go gold.</p></div>
-        <div class="place"><span class="pin" style="--c: var(--amber);"></span><h3>High Park <small>Bloor St W</small></h3><p>Rare black oak savanna, Grenadier Pond and long loops under maples and oaks.</p></div>
-        <div class="place"><span class="pin" style="--c: #e86a24;"></span><h3>Evergreen Brick Works <small>Bayview Ave</small></h3><p>Ravine trails and a quarry pond in the Don Valley, with a lookout over the treetops.</p></div>
-        <div class="place"><span class="pin" style="--c: var(--leaf-red);"></span><h3>Edwards Gardens <small>Lawrence Ave E</small></h3><p>Formal gardens that lead down into the wooded Wilket Creek ravine.</p></div>
-        <div class="place"><span class="pin" style="--c: var(--amber);"></span><h3>Scarborough Bluffs <small>Kingston Rd</small></h3><p>Pale cliffs above Lake Ontario with autumn woods along the top.</p></div>
-        <div class="place"><span class="pin" style="--c: #e86a24;"></span><h3>Toronto Island Park <small>Ferry from Jack Layton Terminal</small></h3><p>Quiet tree-lined paths and the classic view back across the harbour to downtown.</p></div>
-        <div class="place"><span class="pin" style="--c: var(--leaf-red);"></span><h3>Rouge National Urban Park <small>Eastern edge of the city</small></h3><p>Canada's first national urban park, with forest, marsh and river valley trails.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section id="residents" aria-labelledby="res-title" style="padding-top: 0;">
-    <div class="wrap">
-      <div class="section-head">
-        <p class="eyebrow">Residents</p>
-        <h2 id="res-title">Who you'll meet under the trees</h2>
-      </div>
-      <div class="residents">
-        <div class="resident">
-          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="26" cy="36" rx="16" ry="11"/><circle cx="44" cy="28" r="8"/><path d="M38 26h12M48 22l2-5M40 22l-1-5M10 34c-6 2-7 9-2 12M14 46v6M34 46v6"/></svg>
-          <h3>Raccoons</h3>
-          <p>Toronto's unofficial mascot. The city even redesigned its green bins in 2016 to keep them out.</p>
-          <p class="in-scene">In the scene they dig through leaf piles and come for acorns.</p>
-        </div>
-        <div class="resident">
-          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M30 46c-8 0-12-6-10-13 2-6 9-8 14-5"/><circle cx="38" cy="22" r="6"/><path d="M36 16l1-4M22 34c-10-4-12-16-4-22 6-4 14 0 12 8"/><path d="M26 46v6M34 44v8"/></svg>
-          <h3>Black squirrels</h3>
-          <p>A dark colour form of the eastern grey squirrel, so common in Toronto that many visitors notice them first.</p>
-          <p class="in-scene">In the scene they hop across the lawn and climb the big maple.</p>
-        </div>
-        <div class="resident">
-          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 40c0-7 9-11 20-11 8 0 14 3 16 8 1 4-3 8-10 8H20c-4 0-6-2-6-5z"/><path d="M42 30c2-6 2-12 0-16"/><circle cx="42" cy="12" r="3"/><path d="M44 12h6M8 50c8-3 40-3 48 0"/></svg>
-          <h3>Canada geese</h3>
-          <p>Year-round on the city's ponds and waterfront, and loud about it.</p>
-          <p class="in-scene">In the scene they paddle the pond, dip for food and leave ripples.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section aria-labelledby="sp-title" style="padding-top: 0;">
-    <div class="wrap">
-      <div class="section-head">
-        <p class="eyebrow">Trees in the scene</p>
-        <h2 id="sp-title">Five palettes of a Toronto October</h2>
-      </div>
-      <div class="species">
-        <div class="sp"><div class="swatch"><i style="background:#c4301c"></i><i style="background:#e86a24"></i><i style="background:#f08c2c"></i><i style="background:#f6c84a"></i></div><h3>Sugar maple</h3><p>Acer saccharum</p></div>
-        <div class="sp"><div class="swatch"><i style="background:#8e1a16"></i><i style="background:#a8211a"></i><i style="background:#d23b20"></i><i style="background:#9a2b3a"></i></div><h3>Red maple</h3><p>Acer rubrum</p></div>
-        <div class="sp"><div class="swatch"><i style="background:#c9922a"></i><i style="background:#e9c03e"></i><i style="background:#f2d14f"></i><i style="background:#b8a23a"></i></div><h3>Norway maple</h3><p>Acer platanoides</p></div>
-        <div class="sp"><div class="swatch"><i style="background:#6e341c"></i><i style="background:#8a3a1e"></i><i style="background:#a8622e"></i><i style="background:#b5532a"></i></div><h3>Red oak</h3><p>Quercus rubra</p></div>
-        <div class="sp"><div class="swatch"><i style="background:#c9a73a"></i><i style="background:#e8c94a"></i><i style="background:#f0d65c"></i><i style="background:#f3e07a"></i></div><h3>Birch</h3><p>Betula</p></div>
-      </div>
-    </div>
-  </section>
-
   <section class="closing" aria-labelledby="close-title">
     <img src="img/golden-hour.jpg" alt="" width="1600" height="1000" loading="lazy">
     <div class="wrap">
-      <p class="eyebrow">The hill is open</p>
-      <h2 id="close-title">Go stand under the big maple.</h2>
+      <p class="eyebrow">Stuck at your desk?</p>
+      <h2 id="close-title">Peak colour is always on at Maple Hill.</h2>
+      <p class="muted" style="max-width: 52ch;">A 3D autumn park on the Riverdale hill. Set the wind, move the sun, shake the big maple and send a gust across the valley.</p>
       <a class="btn primary" href="index.html">
         Step into Maple Hill
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10h12M11 5l5 5-5 5"/></svg>
       </a>
-      <p class="small">Runs in any recent desktop or phone browser with WebGL. Turn sound on in the Sound tab.</p>
     </div>
   </section>
 </main>
 
 <footer>
   <div class="wrap">
-    <span>Maple Hill · Riverdale Park East, Toronto</span>
-    <span>Built with Three.js · Sun times calculated for 43.65° N, 79.38° W</span>
+    <span>Fall colour reports from <a href="https://www.ontarioparks.ca/fallcolour" target="_blank" rel="noopener">Ontario Parks</a>. Check each park's page before you go.</span>
+    <span>Map outlines from Natural Earth · Maple Hill, Riverdale Park East, Toronto</span>
   </div>
 </footer>
 
+<script type="application/json" id="mapData">{"w":1000,"h":1081,"bbox":[-96,41.3,-73.8,57.2],"k":0.6626200482157375,"ontario":"M38,532L38,297L107,234L153,185L194,142L271,67L318,24L323,26L340,40L357,50L366,58L380,78L383,80L409,87L444,101L451,102L465,108L471,113L476,120L486,126L486,129L479,144L486,134L493,130L509,132L517,132L545,128L556,132L576,135L587,134L591,139L605,140L613,145L617,150L621,162L614,185L611,201L613,205L620,214L624,230L622,244L624,260L624,267L619,275L618,284L619,288L630,298L649,324L650,329L648,332L638,338L651,337L663,347L670,351L677,355L691,370L700,391L701,395L691,403L683,413L691,408L699,400L704,399L709,400L716,402L728,410L736,421L742,427L743,656L740,660L741,666L744,672L746,684L750,692L758,705L770,729L776,734L790,741L825,749L839,757L844,766L851,772L857,775L859,774L860,770L864,770L871,786L876,793L882,796L889,796L895,795L901,797L905,801L918,798L952,786L959,785L965,786L973,791L970,808L976,815L959,829L953,829L938,836L928,845L910,864L908,864L903,870L899,872L886,877L883,879L870,882L854,893L853,891L855,888L861,885L860,884L855,887L854,887L855,884L854,883L849,885L841,885L831,889L829,892L841,887L842,887L841,890L843,891L844,890L843,889L850,886L852,887L850,892L851,894L862,890L859,895L855,898L854,901L861,900L861,901L854,905L849,907L846,906L847,901L843,903L842,901L844,900L833,900L831,898L831,896L825,894L823,897L802,900L791,903L785,903L763,908L752,919L748,922L744,922L739,928L731,945L733,948L742,951L751,952L763,946L762,959L764,961L765,966L768,968L769,971L763,975L754,974L739,975L732,975L711,981L703,987L700,992L716,994L718,996L717,996L703,994L700,994L674,988L658,990L643,1003L639,1008L636,1016L636,1012L633,1015L628,1016L624,1018L612,1026L610,1030L608,1038L605,1033L602,1031L593,1034L588,1033L580,1028L582,1015L587,1011L604,1012L611,1008L611,1000L603,998L602,996L606,991L612,964L622,960L627,956L632,950L638,946L642,939L644,933L642,893L650,873L652,870L658,866L663,857L663,853L663,844L660,838L659,831L655,829L649,818L644,814L644,812L663,812L661,819L663,821L664,827L669,831L670,835L672,835L674,832L677,831L674,840L670,845L677,842L680,843L681,845L680,855L685,850L692,848L694,854L700,858L711,863L717,864L719,862L721,853L716,845L716,842L721,839L724,839L723,841L728,845L736,845L734,844L734,838L731,842L728,834L725,833L723,828L717,822L717,821L720,819L718,815L716,816L715,814L715,812L718,809L719,806L718,804L717,803L713,803L713,806L709,805L705,802L703,798L703,790L702,787L701,790L699,790L698,789L692,779L689,771L684,765L677,764L671,766L669,764L669,760L665,763L655,762L649,764L647,763L649,762L647,759L651,756L651,755L648,753L647,753L645,756L641,757L641,754L622,752L616,751L615,748L601,749L598,747L585,749L565,745L559,742L547,741L546,739L537,737L535,735L537,727L535,725L533,723L521,726L518,729L515,725L515,722L521,712L518,711L518,713L516,714L515,707L519,704L522,704L524,701L523,700L518,697L514,698L514,699L506,693L506,691L509,685L508,683L513,675L514,671L506,662L498,657L495,650L500,636L503,630L502,629L487,628L475,630L468,629L461,627L455,623L450,618L443,605L442,599L441,597L438,585L431,574L424,574L419,570L414,573L405,572L396,573L387,568L380,568L380,566L362,560L359,558L355,558L349,559L351,566L355,573L354,579L350,585L340,588L338,594L335,595L334,592L335,589L343,581L346,575L346,573L343,568L338,569L336,572L335,581L332,585L331,590L330,590L329,593L327,599L318,603L321,600L326,586L306,594L305,597L306,604L304,607L301,615L295,619L291,625L275,626L270,625L268,620L266,618L256,619L237,618L234,616L233,612L229,611L223,612L216,618L208,622L202,622L186,612L180,605L172,603L167,603L164,607L161,607L158,596L147,589L135,584L128,583L118,584L114,587L103,590L99,588L97,584L88,581L71,578L62,575L59,570L54,558L51,536L48,534L38,532ZM742,424L734,414L732,409L737,393L740,389L742,385L742,424ZM602,1050L600,1051L601,1045L602,1049L602,1050ZM713,843L710,840L710,838L713,838L713,843ZM644,793L643,796L640,798L638,797L638,796L644,793ZM587,772L576,768L577,763L581,766L582,764L587,765L593,762L594,763L594,767L596,771L601,771L607,775L607,772L605,771L605,768L607,766L608,765L610,766L613,763L616,763L618,763L618,765L620,765L623,770L624,770L628,764L633,763L636,768L638,769L638,774L639,779L644,768L646,768L644,774L649,775L642,789L636,793L632,790L634,788L637,788L641,782L639,782L628,791L616,783L597,775L588,774L587,772ZM570,762L574,765L571,770L568,770L565,769L564,768L565,766L568,762L570,762ZM548,751L546,751L544,755L542,754L536,742L538,740L542,741L549,744L550,747L548,751ZM468,643L457,645L453,642L456,640L461,638L467,640L469,642L468,643ZM358,568L364,567L369,567L371,568L369,573L363,574L359,577L358,577L357,575L357,570L358,568ZM374,574L372,574L372,568L375,570L377,573L377,574L374,574ZM870,888L864,888L867,886L872,884L872,885L870,888ZM890,882L886,883L882,889L879,889L879,885L881,882L891,880L890,882Z","neighbours":"M318,24L194,142L107,234L38,297L38,558L-242,558L-270,94L-270,-190L56,-190L54,-141L52,-130L47,-127L55,-124L60,-113L64,-113L70,-106L77,-103L75,-75L78,-80L81,-97L85,-105L100,-107L113,-105L122,-106L127,-104L130,-87L143,-60L146,-47L158,-18L161,-8L155,6L144,19L160,11L166,10L164,15L216,-2L230,-4L244,-2L267,10L279,15L318,24ZM56,-190L-270,-190L-270,-478L-584,-515L-595,-517L-609,-524L-661,-564L-744,-564L-1111,-735L-1112,-841L-1090,-829L-1030,-820L-994,-805L-956,-796L-920,-794L-903,-791L-912,-801L-898,-799L-896,-801L-889,-801L-855,-792L-839,-785L-819,-770L-815,-764L-809,-761L-812,-755L-816,-752L-823,-751L-845,-753L-849,-747L-862,-743L-864,-741L-863,-735L-876,-728L-862,-722L-807,-714L-741,-713L-731,-716L-702,-718L-687,-722L-680,-720L-675,-720L-647,-731L-632,-733L-628,-727L-623,-725L-614,-716L-596,-716L-587,-713L-584,-700L-579,-695L-571,-707L-568,-707L-563,-699L-540,-684L-536,-677L-540,-673L-551,-670L-563,-672L-529,-644L-517,-632L-507,-625L-528,-649L-529,-665L-524,-666L-518,-662L-511,-662L-503,-658L-511,-670L-508,-673L-517,-680L-521,-685L-525,-692L-525,-701L-539,-714L-539,-722L-530,-728L-528,-731L-531,-737L-515,-738L-502,-742L-488,-743L-481,-749L-469,-748L-469,-756L-463,-760L-447,-764L-441,-770L-439,-775L-447,-777L-452,-777L-471,-769L-478,-758L-489,-761L-502,-755L-509,-754L-523,-757L-529,-754L-526,-748L-529,-746L-555,-744L-573,-754L-556,-775L-515,-781L-458,-796L-436,-791L-430,-783L-425,-765L-422,-762L-410,-754L-404,-755L-401,-751L-390,-750L-390,-744L-382,-739L-372,-736L-356,-737L-337,-742L-308,-724L-285,-716L-265,-717L-250,-713L-219,-721L-190,-723L-157,-720L-139,-715L-132,-716L-109,-721L-122,-732L-123,-737L-118,-739L-109,-733L-87,-714L-65,-708L-52,-716L-51,-720L-54,-724L-70,-732L-78,-733L-95,-728L-99,-729L-113,-742L-107,-743L-120,-759L-111,-760L-100,-756L-81,-761L-86,-765L-87,-770L-82,-770L-70,-766L-64,-768L-51,-760L-44,-751L-28,-751L-19,-755L-33,-737L-24,-738L-20,-744L1,-751L-9,-715L-17,-704L-17,-701L-8,-692L-8,-686L-0,-684L12,-688L14,-687L10,-679L20,-681L26,-677L26,-667L20,-664L11,-664L-1,-668L-9,-666L-16,-671L-19,-669L5,-649L8,-645L9,-640L12,-645L11,-647L-1,-657L-2,-661L1,-663L17,-661L27,-663L29,-665L31,-677L34,-684L28,-701L15,-716L26,-738L39,-740L51,-737L57,-739L93,-766L115,-776L106,-777L105,-791L103,-798L98,-802L95,-801L90,-790L87,-788L68,-785L63,-787L63,-789L65,-796L87,-810L79,-813L77,-818L79,-824L107,-831L99,-821L98,-820L101,-817L116,-828L111,-828L111,-835L106,-838L93,-833L78,-833L60,-847L53,-842L32,-847L18,-854L1,-857L-22,-879L-25,-884L-25,-892L-13,-905L-2,-909L6,-907L0,-912L5,-918L-12,-914L-25,-925L-21,-943L-23,-947L-19,-950L-20,-954L-3,-966L12,-961L20,-961L27,-972L8,-974L6,-977L36,-999L53,-1005L65,-1005L68,-1000L68,-996L76,-990L99,-990L102,-988L101,-981L124,-969L138,-956L140,-947L140,-932L136,-928L164,-913L171,-903L178,-896L177,-892L178,-891L181,-890L188,-894L191,-892L200,-882L197,-880L180,-880L166,-886L157,-877L160,-876L178,-875L181,-873L140,-847L144,-846L158,-848L166,-848L170,-847L169,-845L171,-843L184,-838L192,-839L208,-846L216,-846L219,-846L217,-844L205,-838L212,-839L240,-837L251,-833L239,-831L234,-826L233,-822L230,-820L223,-822L224,-824L214,-821L237,-809L249,-794L246,-790L247,-781L245,-766L258,-753L261,-751L275,-768L276,-777L281,-786L285,-803L303,-820L313,-820L332,-806L351,-796L358,-790L368,-765L368,-754L365,-751L354,-752L351,-757L344,-754L346,-731L351,-719L360,-709L383,-690L386,-681L389,-678L393,-679L409,-691L420,-695L425,-699L428,-713L433,-721L453,-739L460,-756L463,-769L462,-777L464,-780L472,-787L483,-784L501,-787L490,-791L494,-798L500,-799L502,-807L490,-813L483,-814L477,-821L476,-826L478,-831L476,-835L477,-839L473,-846L475,-855L472,-859L477,-860L487,-857L512,-860L528,-859L556,-850L597,-850L614,-846L608,-838L597,-836L617,-830L621,-822L619,-820L621,-819L633,-821L642,-820L659,-815L661,-812L647,-802L633,-796L633,-794L645,-794L661,-791L664,-785L663,-779L650,-771L635,-765L621,-769L608,-767L606,-765L612,-758L611,-754L621,-744L630,-747L626,-735L628,-729L638,-719L657,-707L664,-698L656,-672L647,-666L634,-665L622,-650L606,-640L588,-636L572,-625L562,-623L541,-648L529,-650L524,-653L528,-655L517,-664L509,-668L503,-668L493,-663L490,-659L496,-658L502,-662L512,-660L531,-644L549,-614L545,-613L526,-618L519,-610L512,-612L491,-620L476,-635L469,-637L448,-634L419,-634L417,-633L419,-629L417,-627L420,-623L450,-611L452,-606L448,-600L397,-556L385,-553L361,-554L330,-572L327,-576L312,-580L285,-593L274,-594L273,-594L277,-590L275,-589L233,-595L206,-595L223,-587L222,-590L226,-592L274,-583L287,-576L304,-561L316,-554L351,-549L397,-546L404,-544L405,-538L393,-519L366,-490L361,-479L355,-475L331,-463L324,-462L313,-465L306,-470L310,-460L297,-465L293,-463L287,-464L281,-469L279,-475L267,-471L271,-469L277,-460L274,-458L263,-461L270,-449L264,-441L254,-436L244,-439L239,-435L228,-434L201,-443L183,-446L182,-448L184,-449L181,-450L171,-447L160,-449L116,-464L104,-472L108,-465L105,-458L110,-453L123,-451L118,-456L117,-458L118,-459L171,-442L173,-441L171,-439L159,-432L167,-432L182,-441L188,-442L194,-439L210,-429L226,-424L237,-418L239,-402L235,-393L220,-389L205,-381L178,-385L164,-382L163,-379L166,-375L182,-370L183,-367L180,-363L171,-366L155,-364L154,-358L148,-355L146,-350L149,-348L157,-338L141,-347L126,-351L136,-346L140,-341L132,-336L135,-332L130,-330L119,-328L123,-324L120,-321L109,-323L113,-316L121,-310L103,-299L94,-291L93,-289L95,-282L93,-279L87,-280L87,-268L67,-231L65,-227L56,-224L61,-219L56,-190ZM781,-239L783,-243L800,-246L794,-242L781,-239ZM718,-175L713,-174L717,-180L723,-182L725,-180L718,-175ZM769,63L765,70L758,89L756,90L753,87L760,71L757,67L748,86L743,90L739,90L731,95L743,75L741,73L725,91L720,88L743,59L745,45L746,51L741,69L745,67L748,63L754,41L756,44L760,46L762,51L767,53L770,60L769,63ZM717,67L720,60L732,56L740,50L735,59L722,67L717,67ZM771,73L770,72L774,56L776,53L781,52L781,64L776,70L771,73ZM687,303L684,304L672,301L638,288L630,285L629,282L638,273L661,270L670,271L686,291L689,297L687,303ZM746,357L740,356L737,353L751,347L754,348L750,356L746,357ZM1319,624L1310,628L1308,632L1304,631L1293,633L1290,636L1280,630L1279,626L1256,626L1256,630L1244,630L1244,653L1239,661L1214,673L1214,664L1205,662L1171,713L1168,731L1160,744L1158,768L1153,775L1152,779L1139,792L1139,801L1135,802L1131,812L1128,807L1117,812L1111,809L1107,816L1103,829L959,829L965,827L979,816L989,813L1001,803L1011,800L1015,788L1029,761L1037,755L1048,749L1058,737L1070,731L1076,724L1086,718L1096,717L1114,710L1119,705L1127,704L1148,691L1154,685L1161,674L1168,668L1170,662L1182,649L1195,627L1203,622L1217,607L1224,600L1237,594L1251,583L1281,567L1324,549L1343,543L1378,540L1404,544L1416,551L1432,566L1432,571L1418,568L1431,578L1430,588L1426,597L1413,601L1406,611L1384,624L1375,623L1355,612L1347,618L1337,619L1331,617L1319,624ZM1414,-211L1403,-208L1406,-204L1414,-200L1412,-198L1401,-193L1404,-189L1412,-185L1407,-181L1406,-178L1405,-159L1409,-154L1422,-158L1424,-157L1425,-154L1418,-149L1418,-138L1420,-130L1427,-124L1424,-122L1407,-126L1404,-124L1403,-119L1405,-117L1428,-113L1431,-108L1433,-106L1454,-113L1462,-109L1464,-105L1443,-101L1438,-98L1439,-92L1446,-92L1449,-89L1448,-86L1437,-79L1425,-66L1423,-63L1431,-56L1439,-40L1443,-41L1448,-35L1451,-34L1459,-35L1452,-22L1453,-13L1451,-5L1453,-2L1447,12L1446,21L1436,33L1445,50L1443,52L1436,55L1436,62L1446,67L1442,72L1441,75L1460,80L1461,82L1455,87L1455,91L1468,109L1479,115L1482,126L1463,138L1462,144L1465,152L1457,174L1453,176L1426,168L1391,169L1366,167L1361,163L1356,156L1344,152L1316,127L1315,128L1319,135L1318,141L1322,160L1322,163L1319,167L1312,165L1299,154L1293,145L1287,145L1290,155L1300,173L1293,182L1282,178L1279,180L1279,187L1283,202L1273,211L1272,215L1285,232L1285,244L1299,248L1303,257L1309,262L1308,281L1305,287L1303,302L1308,306L1314,307L1321,304L1324,290L1328,288L1330,284L1334,286L1338,295L1336,296L1332,308L1333,326L1330,333L1333,341L1336,343L1339,333L1347,339L1350,346L1356,350L1359,350L1361,347L1370,348L1376,340L1391,343L1400,349L1413,366L1410,373L1414,381L1418,380L1428,372L1427,358L1429,348L1436,341L1437,328L1433,316L1434,298L1435,295L1443,293L1446,280L1454,278L1456,278L1462,288L1462,301L1468,307L1463,310L1443,315L1439,321L1446,330L1452,333L1457,349L1451,350L1453,353L1752,354L1752,391L1743,389L1736,389L1722,392L1710,400L1689,401L1685,404L1683,410L1659,436L1650,444L1639,456L1630,461L1626,468L1618,472L1594,474L1585,473L1578,475L1569,477L1563,475L1544,482L1535,474L1499,469L1481,470L1476,473L1460,472L1448,468L1434,471L1418,469L1402,471L1384,468L1362,472L1353,470L1346,476L1341,474L1329,475L1318,485L1309,490L1296,516L1294,527L1290,534L1259,540L1249,544L1251,547L1248,549L1237,553L1231,562L1220,569L1206,586L1200,599L1192,608L1182,612L1154,600L1125,594L1133,600L1148,601L1177,614L1181,619L1172,643L1151,664L1139,684L1127,693L1114,707L1092,716L1086,715L1072,723L1069,729L1051,742L1037,747L1035,753L1029,757L1015,779L1004,781L991,794L977,793L991,800L992,806L987,807L976,815L970,808L973,791L965,786L952,786L918,798L905,801L901,797L895,795L882,796L876,793L871,786L864,770L860,770L857,775L844,766L839,757L825,749L790,741L776,734L770,729L750,692L740,660L743,656L742,427L750,438L749,433L742,424L742,385L743,383L753,379L754,384L764,390L770,408L772,395L778,388L767,371L767,369L769,367L773,356L779,351L788,336L791,336L787,332L786,320L777,309L776,302L777,292L770,282L764,247L761,241L760,237L764,230L768,229L762,222L766,217L755,211L759,206L750,200L739,177L734,172L790,149L821,130L849,104L867,82L872,74L877,48L875,1L861,-38L849,-56L831,-71L810,-82L788,-98L790,-114L808,-136L822,-148L817,-154L823,-162L822,-168L829,-169L838,-161L840,-162L837,-164L834,-169L841,-176L839,-185L843,-191L842,-193L831,-194L829,-196L835,-200L825,-219L829,-225L833,-227L824,-230L820,-234L829,-246L816,-244L802,-246L818,-263L823,-272L822,-288L833,-296L816,-308L810,-315L805,-334L804,-342L806,-348L815,-356L829,-362L839,-365L864,-361L909,-348L916,-343L910,-339L931,-347L945,-344L962,-334L964,-335L960,-339L962,-341L1004,-358L1023,-349L1041,-335L1051,-335L1052,-328L1046,-316L1048,-315L1058,-321L1071,-315L1079,-305L1077,-302L1070,-299L1071,-298L1080,-300L1087,-305L1097,-300L1098,-297L1092,-294L1088,-288L1097,-286L1093,-284L1093,-281L1107,-269L1125,-267L1139,-262L1159,-263L1164,-260L1165,-252L1171,-249L1175,-249L1184,-253L1188,-262L1193,-261L1198,-249L1187,-237L1182,-220L1184,-211L1188,-205L1188,-198L1180,-193L1173,-191L1142,-192L1143,-189L1180,-187L1183,-184L1188,-178L1190,-171L1189,-165L1185,-156L1186,-146L1198,-145L1201,-143L1196,-135L1198,-128L1192,-113L1187,-110L1183,-118L1180,-119L1177,-113L1164,-108L1164,-106L1181,-101L1204,-115L1214,-116L1232,-115L1243,-108L1246,-95L1251,-90L1251,-82L1245,-65L1240,-60L1218,-52L1214,-48L1242,-57L1248,-67L1256,-87L1260,-87L1266,-75L1259,-64L1268,-74L1273,-82L1276,-67L1276,-54L1280,-69L1305,-84L1324,-91L1328,-102L1335,-108L1341,-107L1347,-99L1350,-94L1351,-84L1355,-91L1355,-96L1349,-110L1358,-112L1359,-113L1355,-116L1358,-121L1365,-120L1364,-124L1372,-123L1379,-126L1369,-130L1365,-137L1369,-137L1373,-146L1378,-145L1375,-154L1381,-155L1393,-148L1395,-149L1389,-154L1378,-159L1375,-164L1377,-175L1383,-178L1394,-174L1395,-175L1388,-181L1395,-198L1405,-213L1409,-213L1414,-211ZM1125,702L1121,703L1122,700L1134,694L1130,699L1125,702ZM1010,797L1007,799L1001,797L993,799L1005,791L1012,782L1015,782L1010,797ZM999,791L998,790L1003,783L1010,782L1005,790L999,791ZM1090,1033L1090,1073L1088,1078L1069,1082L1065,1080L1060,1083L1043,1083L1040,1082L1035,1086L1007,1102L1004,1094L1014,1086L1012,1081L1012,1075L1015,1030L1044,1031L1044,1033L1047,1033L1047,1031L1090,1033ZM855,1245L850,1241L854,1237L859,1245L855,1250L855,1245ZM944,1274L914,1274L911,1188L917,1180L927,1182L919,1194L920,1205L927,1218L928,1231L932,1239L937,1249L942,1252L942,1256L937,1265L941,1264L943,1266L944,1274ZM205,1143L201,1137L194,1132L192,1127L11,1128L6,1119L7,1096L4,1087L5,1080L2,1076L3,1070L-0,1065L-3,1064L-4,1045L-16,1016L-17,1005L-28,982L-21,959L-21,954L-25,949L-24,942L-27,931L214,931L214,935L220,946L218,959L222,980L227,985L235,987L239,992L244,1003L251,1011L254,1019L263,1027L264,1034L261,1046L251,1063L244,1068L228,1072L223,1076L222,1087L227,1096L225,1108L216,1125L210,1128L208,1133L208,1142L205,1143ZM205,1143L208,1142L208,1133L210,1128L216,1125L225,1108L227,1096L222,1087L223,1076L228,1072L244,1068L251,1063L262,1041L263,1027L254,1019L251,1011L241,998L369,1000L369,1019L374,1027L382,1052L382,1212L379,1214L379,1222L376,1226L382,1250L375,1272L370,1277L366,1285L362,1286L363,1293L359,1301L358,1312L356,1312L358,1320L355,1326L355,1337L352,1342L338,1349L340,1361L339,1367L321,1361L313,1361L309,1366L309,1373L303,1368L302,1372L296,1366L293,1358L295,1343L292,1330L278,1313L262,1301L254,1288L253,1284L265,1249L261,1244L254,1242L249,1241L244,1243L240,1238L237,1225L229,1211L208,1186L203,1163L205,1143ZM358,1320L356,1312L358,1312L359,1301L363,1293L362,1286L366,1285L370,1277L375,1272L382,1250L376,1226L379,1222L379,1214L382,1212L382,1052L387,1057L394,1058L402,1056L411,1049L504,1050L504,1231L501,1242L504,1244L504,1249L488,1258L484,1256L477,1256L475,1269L464,1284L460,1286L450,1306L441,1303L436,1294L434,1293L434,1295L430,1297L430,1301L428,1302L427,1308L424,1314L411,1307L407,1309L399,1319L389,1311L382,1311L379,1308L378,1316L375,1316L375,1313L365,1311L363,1319L358,1320ZM-271,1373L-272,1169L29,1169L40,1178L46,1176L48,1179L50,1187L45,1190L42,1197L42,1202L47,1208L55,1224L62,1229L62,1373L-271,1373ZM309,1373L309,1366L313,1361L321,1361L339,1367L340,1361L338,1349L352,1342L355,1337L355,1326L360,1319L363,1319L365,1311L375,1313L377,1316L379,1308L382,1311L385,1309L389,1311L399,1319L407,1309L411,1307L424,1314L427,1308L428,1302L430,1301L430,1297L434,1295L434,1293L436,1294L441,1303L450,1306L460,1286L464,1284L475,1269L477,1256L484,1256L488,1258L504,1249L504,1244L501,1242L503,1238L503,1231L509,1228L510,1231L521,1231L524,1234L531,1246L535,1251L543,1253L554,1261L562,1258L569,1263L576,1262L585,1257L591,1257L596,1268L604,1276L605,1287L603,1295L613,1317L618,1327L626,1334L632,1337L615,1353L600,1364L590,1380L579,1389L560,1397L554,1401L428,1396L368,1397L366,1395L356,1394L358,1407L295,1407L299,1399L304,1401L306,1399L309,1386L309,1373ZM1090,1033L1052,1031L1044,1033L1044,1031L1015,1030L1013,1028L1024,982L1111,986L1127,974L1135,974L1134,977L1136,984L1138,988L1143,987L1144,989L1134,996L1124,1011L1138,1018L1144,1031L1142,1034L1147,1038L1148,1046L1152,1050L1159,1052L1171,1045L1166,1031L1164,1029L1162,1031L1160,1027L1162,1026L1166,1028L1172,1036L1174,1054L1153,1059L1142,1065L1141,1053L1139,1053L1127,1064L1119,1068L1117,1058L1119,1050L1116,1053L1111,1047L1109,1032L1090,1033ZM1148,1076L1136,1079L1134,1077L1137,1076L1141,1071L1144,1070L1148,1076ZM1161,1082L1167,1080L1169,1074L1172,1083L1169,1085L1161,1082ZM855,1245L855,1250L859,1245L854,1237L850,1241L843,1234L834,1230L833,1227L834,1222L822,1213L820,1202L816,1198L818,1197L813,1196L807,1191L793,1194L790,1200L785,1201L781,1200L776,1195L767,1206L762,1205L753,1216L744,1223L744,1188L911,1188L914,1274L944,1274L944,1279L942,1280L942,1276L940,1278L939,1288L936,1289L929,1304L918,1305L916,1308L908,1307L910,1300L908,1295L904,1294L907,1287L907,1280L902,1286L902,1283L899,1286L891,1280L888,1272L889,1264L901,1264L891,1254L888,1253L886,1257L888,1250L893,1248L891,1242L886,1243L887,1237L892,1238L895,1232L895,1229L891,1233L890,1224L894,1216L897,1212L906,1212L901,1209L906,1202L902,1203L903,1197L898,1199L897,1208L894,1210L891,1212L889,1208L888,1215L886,1210L882,1222L875,1220L882,1231L880,1235L876,1233L878,1241L877,1255L878,1266L883,1280L881,1280L875,1276L871,1264L871,1269L872,1274L883,1287L886,1300L880,1293L866,1287L862,1279L861,1285L856,1275L849,1278L846,1278L846,1269L855,1252L855,1245ZM1214,673L1216,677L1224,679L1240,674L1247,669L1251,670L1270,688L1272,766L1270,780L1277,786L1287,788L1287,793L1284,795L1287,804L1286,812L1292,819L1295,816L1301,818L1303,830L1301,836L1307,840L1307,841L1297,852L1290,850L1281,853L1279,858L1277,859L1268,858L1265,867L1263,866L1262,869L1259,871L1256,864L1250,862L1245,867L1241,863L1237,880L1231,875L1224,874L1229,867L1226,867L1227,859L1225,860L1223,864L1218,868L1218,874L1213,891L1206,898L1201,897L1194,904L1191,898L1190,905L1188,905L1187,898L1183,907L1180,904L1180,913L1177,909L1172,912L1173,907L1169,908L1163,913L1159,920L1162,923L1148,942L1142,956L1138,960L1130,943L1128,934L1122,809L1128,807L1131,812L1132,811L1133,804L1140,800L1139,792L1152,779L1153,775L1158,766L1158,757L1160,744L1168,731L1171,713L1195,677L1205,662L1214,664L1214,673ZM612,964L606,991L602,996L601,987L600,986L595,988L595,993L593,994L590,1007L585,1009L581,1014L577,1023L577,1030L565,1051L504,1053L504,1050L411,1049L419,1044L425,1034L434,1012L440,989L439,963L426,922L431,911L427,892L437,875L439,860L439,850L447,844L448,835L455,831L457,832L464,820L470,815L466,841L469,842L472,831L473,830L471,845L478,827L479,811L486,805L499,801L493,798L491,792L498,779L497,777L506,775L509,777L515,781L529,786L537,795L544,796L567,809L573,826L566,825L565,828L572,844L571,872L565,879L563,879L558,893L546,900L543,915L548,920L556,923L560,918L565,916L569,905L568,903L586,893L591,894L598,901L601,907L610,960L612,964ZM378,822L373,816L375,804L374,803L368,805L366,803L369,795L369,783L364,778L355,774L356,770L354,765L338,760L323,759L310,751L265,738L260,727L255,723L253,724L251,722L264,717L284,704L299,701L309,694L318,690L323,683L331,678L332,682L336,685L340,693L340,707L343,702L352,696L371,701L377,705L389,726L398,726L404,725L410,729L417,728L421,731L432,722L444,715L468,715L489,708L497,709L495,715L494,727L502,730L509,728L514,731L524,727L529,734L531,741L529,748L538,751L538,755L545,760L545,763L542,764L520,761L518,762L512,758L510,759L508,764L509,770L506,771L491,758L474,754L468,760L455,764L455,766L445,763L438,766L434,773L427,778L422,787L419,785L419,782L421,778L425,775L425,770L419,772L416,771L411,781L408,782L406,776L407,767L400,782L396,788L388,805L379,817L378,822ZM370,666L360,667L361,669L351,679L350,682L341,693L339,688L342,685L342,681L340,683L341,685L333,682L335,675L346,665L366,660L372,664L370,666ZM320,630L317,630L318,633L308,636L306,634L308,631L306,631L309,629L326,618L338,614L334,618L332,623L320,630ZM473,778L473,787L469,789L468,785L470,779L471,777L473,778ZM562,760L563,762L559,766L548,764L546,763L546,760L551,760L555,757L555,754L560,756L562,760ZM535,738L532,737L528,728L532,725L534,725L533,734L535,738ZM-55,558L38,558L38,532L48,534L51,537L54,558L59,570L62,575L88,581L97,584L99,588L103,590L114,587L118,584L135,584L158,596L161,607L164,607L167,603L172,603L180,605L186,612L202,622L208,622L223,612L229,611L233,612L237,618L266,618L270,625L289,625L270,636L244,647L232,653L208,679L177,705L170,716L167,716L167,756L164,759L149,767L140,785L140,789L146,793L149,800L146,814L146,822L144,824L146,848L151,853L164,860L169,866L178,870L188,884L208,898L212,911L214,931L-20,931L-20,809L-24,804L-31,800L-38,789L-37,785L-30,778L-27,772L-25,752L-28,739L-33,729L-36,718L-34,699L-37,692L-39,653L-45,638L-45,630L-51,614L-51,579L-55,558ZM284,1441L253,1442L267,1421L267,1416L263,1407L62,1407L62,1229L55,1224L47,1208L42,1202L42,1197L45,1190L50,1187L48,1179L46,1176L40,1178L29,1168L22,1151L18,1149L15,1145L11,1128L192,1127L194,1132L201,1137L205,1143L203,1163L208,1186L229,1211L237,1225L240,1238L244,1243L249,1241L254,1242L261,1244L265,1249L253,1284L254,1288L262,1301L278,1313L287,1323L292,1330L295,1343L293,1353L296,1366L302,1372L303,1368L309,1373L309,1386L306,1399L304,1401L299,1399L294,1408L292,1404L290,1404L291,1412L290,1416L288,1417L289,1423L285,1426L287,1434L284,1441ZM-242,558L-55,558L-51,579L-51,614L-45,630L-45,638L-39,653L-37,692L-34,699L-36,718L-33,729L-28,739L-25,752L-25,766L-361,765L-362,558L-242,558ZM-272,1169L-272,1101L-362,1101L-362,966L-110,966L-96,975L-89,979L-85,975L-76,974L-56,975L-53,978L-30,990L-25,998L-20,999L-17,1005L-13,1024L-9,1031L-4,1045L-3,1064L-0,1065L3,1070L2,1076L5,1080L4,1087L7,1096L8,1123L12,1130L15,1145L18,1149L22,1151L25,1163L29,1169L-272,1169ZM1103,829L1107,816L1111,809L1117,812L1122,809L1128,934L1130,943L1138,960L1136,970L1135,974L1127,974L1111,986L1060,983L1056,973L1060,963L1065,926L1076,900L1081,875L1089,872L1099,863L1100,856L1098,845L1103,835L1103,829ZM943,1171L958,1159L947,1142L944,1141L942,1133L937,1128L938,1116L941,1115L942,1111L940,1101L950,1091L954,1081L959,1077L995,1102L990,1118L982,1125L979,1133L980,1138L989,1140L991,1138L992,1142L993,1147L987,1184L988,1169L987,1171L983,1188L976,1201L973,1200L971,1211L970,1214L965,1216L955,1237L950,1241L948,1241L951,1227L944,1223L940,1223L922,1204L922,1196L927,1183L931,1180L939,1178L943,1171ZM763,958L763,946L790,939L803,938L818,941L832,947L844,945L858,948L861,944L870,941L880,931L891,928L892,925L891,914L888,906L891,904L890,906L892,906L898,897L893,898L894,893L892,892L887,894L885,890L908,870L911,866L910,864L938,836L953,829L1020,829L1020,857L1022,866L1021,881L1017,892L1019,906L1017,925L1018,926L1021,923L1025,928L1023,978L1024,982L1013,1028L1015,1030L1012,1081L1014,1086L1004,1094L1007,1102L992,1118L997,1097L995,1086L992,1085L995,1102L959,1077L957,1072L949,1069L944,1060L944,1049L942,1045L935,1041L930,1034L731,1033L731,1015L756,996L771,979L769,966L771,961L763,958ZM1055,1107L1060,1106L1073,1098L1077,1100L1085,1097L1054,1114L1027,1125L996,1130L1000,1127L999,1124L990,1130L990,1123L996,1115L1005,1110L1007,1112L1010,1107L1026,1107L1031,1104L1053,1102L1069,1091L1055,1107ZM982,1134L981,1134L982,1127L988,1125L987,1130L982,1134ZM697,1034L697,1125L692,1128L691,1131L694,1145L684,1175L681,1192L664,1211L661,1213L656,1211L649,1219L646,1219L641,1231L639,1231L640,1241L635,1245L633,1238L630,1237L627,1240L621,1253L622,1264L619,1265L613,1276L608,1277L603,1275L596,1268L591,1257L585,1257L576,1262L569,1263L562,1258L554,1261L543,1253L535,1251L531,1246L524,1234L521,1231L510,1231L509,1228L504,1231L504,1053L565,1050L587,1064L590,1065L593,1062L599,1066L584,1070L591,1071L594,1070L602,1070L609,1074L625,1068L643,1067L666,1049L697,1034ZM731,1015L731,1033L930,1034L935,1041L942,1045L944,1049L944,1060L947,1067L957,1072L959,1077L954,1081L950,1091L940,1101L942,1111L937,1119L938,1130L942,1133L944,1141L947,1142L958,1159L945,1168L938,1176L927,1182L917,1180L911,1188L697,1188L697,1034L706,1031L731,1015ZM1088,1078L1090,1073L1090,1033L1109,1032L1111,1047L1116,1053L1114,1055L1111,1049L1108,1047L1110,1054L1107,1058L1106,1071L1103,1075L1088,1078ZM-20,931L-27,931L-24,942L-25,949L-21,954L-21,959L-28,982L-24,989L-22,998L-25,998L-30,990L-53,978L-56,975L-76,974L-85,975L-89,979L-96,975L-110,966L-362,966L-361,765L-25,766L-30,778L-37,785L-38,789L-31,800L-24,804L-20,809L-20,931ZM850,1241L855,1245L854,1253L844,1264L842,1278L846,1282L851,1280L854,1281L860,1292L876,1299L880,1305L885,1308L889,1312L889,1316L885,1327L878,1327L858,1299L851,1294L876,1328L887,1334L885,1337L889,1339L889,1349L883,1347L883,1353L880,1354L877,1352L867,1339L867,1341L874,1352L886,1363L888,1369L883,1374L874,1364L872,1358L869,1358L855,1352L844,1351L847,1353L856,1355L859,1358L871,1361L872,1370L878,1376L879,1380L883,1380L890,1376L901,1379L907,1404L903,1397L902,1404L680,1401L635,1399L633,1401L556,1400L579,1389L590,1380L600,1364L615,1353L632,1337L632,1341L636,1351L649,1359L660,1350L667,1356L680,1352L683,1345L688,1346L698,1341L700,1344L704,1341L709,1331L708,1327L709,1322L722,1302L734,1278L736,1268L739,1266L741,1267L743,1272L748,1274L752,1275L755,1273L766,1249L771,1250L785,1237L791,1226L796,1206L818,1227L823,1213L834,1222L833,1227L834,1230L843,1234L850,1241ZM916,1308L918,1305L929,1304L919,1330L920,1335L910,1343L904,1363L901,1356L902,1346L906,1331L914,1317L916,1308ZM1020,829L1103,829L1103,835L1098,845L1100,856L1099,863L1089,872L1081,875L1076,900L1065,926L1060,963L1056,973L1060,983L1024,982L1023,978L1025,928L1021,923L1018,926L1017,925L1019,913L1017,892L1021,881L1022,866L1020,857L1020,829ZM241,998L239,992L235,987L227,985L222,980L220,974L218,959L220,946L214,935L212,911L208,898L188,884L178,870L169,866L164,860L151,853L146,848L144,824L146,822L146,814L149,800L146,793L140,789L140,785L149,767L164,759L167,756L167,716L170,716L175,709L181,714L203,709L216,701L220,703L230,696L236,700L228,719L229,720L236,718L237,715L246,720L252,721L253,724L255,723L260,727L265,738L310,751L323,759L338,760L354,765L356,770L355,774L364,778L369,783L369,795L366,803L368,805L374,803L375,804L373,816L378,822L377,827L367,835L360,851L360,859L363,859L370,853L378,840L386,838L390,843L382,871L382,886L375,893L374,899L372,908L374,914L365,949L365,964L370,978L369,1000L241,998ZM403,809L405,809L406,813L403,815L403,818L402,819L403,822L397,830L397,835L391,841L388,838L387,834L393,824L394,820L403,809ZM632,1337L626,1334L618,1327L613,1317L603,1295L605,1287L603,1275L608,1277L613,1276L619,1265L622,1264L621,1253L627,1240L630,1237L633,1238L635,1245L640,1241L639,1231L641,1231L646,1219L649,1219L656,1211L661,1213L664,1211L681,1192L684,1175L694,1145L692,1128L697,1125L697,1188L744,1188L744,1223L753,1216L762,1205L767,1206L776,1195L781,1200L785,1201L790,1200L793,1194L802,1191L807,1191L813,1196L818,1197L816,1198L820,1202L820,1207L823,1213L818,1227L796,1206L791,1226L785,1237L771,1250L766,1249L755,1273L752,1275L748,1274L743,1272L741,1267L737,1267L734,1278L722,1302L709,1322L708,1327L709,1331L704,1341L700,1344L698,1341L688,1346L683,1345L680,1352L667,1356L660,1350L649,1359L636,1351L632,1341L632,1337ZM959,829L1103,829L1107,816L1111,809L1117,812L1128,807L1131,812L1132,811L1133,804L1140,800L1139,792L1152,779L1153,775L1158,768L1160,744L1168,731L1171,713L1205,662L1214,664L1214,675L1219,679L1224,679L1240,674L1247,669L1251,670L1270,688L1272,766L1270,780L1277,786L1287,788L1287,793L1284,795L1287,804L1286,812L1292,819L1295,816L1301,818L1303,830L1301,833L1302,837L1305,838L1307,841L1297,852L1290,850L1281,853L1279,858L1277,859L1268,858L1265,867L1263,866L1262,869L1259,871L1256,864L1250,862L1245,867L1241,863L1237,880L1229,874L1224,874L1229,867L1226,867L1227,859L1223,864L1218,868L1218,874L1213,891L1206,898L1201,897L1193,904L1191,898L1190,905L1188,905L1187,898L1183,907L1180,904L1180,913L1177,909L1172,912L1173,907L1163,913L1159,920L1162,923L1148,942L1142,956L1138,960L1134,977L1138,988L1143,987L1144,991L1134,996L1124,1011L1138,1018L1144,1031L1142,1034L1147,1038L1148,1046L1152,1050L1158,1052L1171,1045L1166,1031L1164,1029L1162,1031L1160,1027L1162,1026L1166,1028L1172,1036L1173,1055L1153,1059L1142,1065L1141,1053L1139,1053L1127,1064L1119,1068L1117,1058L1119,1050L1114,1055L1111,1049L1108,1047L1110,1053L1107,1058L1106,1071L1103,1075L1091,1079L1084,1078L1069,1082L1065,1080L1060,1083L1043,1083L1040,1082L1035,1086L1010,1100L992,1118L997,1097L996,1090L992,1085L995,1092L994,1107L990,1118L982,1125L979,1133L980,1138L989,1140L991,1138L992,1142L993,1147L987,1184L988,1169L987,1171L983,1188L976,1201L973,1200L971,1211L964,1217L955,1237L950,1241L948,1241L951,1227L944,1223L940,1223L922,1204L922,1196L927,1183L939,1178L943,1171L938,1176L928,1180L919,1194L920,1205L927,1218L928,1231L937,1249L942,1252L942,1256L937,1265L941,1264L943,1266L944,1276L942,1280L943,1278L940,1278L939,1288L936,1289L930,1301L919,1330L920,1335L914,1338L909,1344L904,1363L901,1355L902,1346L906,1331L914,1317L916,1308L908,1307L910,1300L908,1295L904,1294L907,1287L907,1280L902,1286L902,1283L899,1286L891,1280L889,1276L888,1272L889,1264L901,1264L891,1254L888,1253L886,1257L888,1250L893,1248L892,1243L890,1241L886,1243L887,1237L892,1238L895,1232L895,1229L891,1233L890,1224L894,1216L897,1212L906,1212L901,1209L906,1202L902,1203L903,1197L898,1199L897,1208L891,1212L890,1208L888,1215L886,1210L882,1222L875,1220L881,1228L882,1232L880,1235L876,1233L878,1241L877,1254L878,1269L883,1280L881,1280L875,1276L871,1264L871,1269L872,1274L883,1287L886,1300L880,1293L866,1287L862,1279L861,1285L856,1275L849,1278L846,1278L846,1268L855,1252L855,1245L854,1253L844,1264L842,1278L844,1281L854,1281L860,1292L876,1299L880,1305L885,1308L889,1316L885,1327L878,1327L858,1299L851,1294L876,1328L887,1334L885,1337L889,1339L889,1349L883,1347L883,1353L880,1354L877,1352L867,1339L867,1343L874,1352L886,1363L888,1369L886,1372L883,1374L874,1364L872,1358L869,1358L855,1352L844,1351L847,1353L856,1355L859,1358L871,1361L872,1370L878,1376L879,1380L883,1380L890,1376L901,1379L912,1426L922,1453L913,1434L903,1397L901,1409L907,1423L909,1434L906,1429L894,1422L894,1431L889,1428L891,1433L884,1432L882,1436L876,1440L871,1436L868,1426L868,1444L885,1445L892,1442L898,1443L897,1462L901,1460L902,1448L909,1444L912,1452L911,1465L893,1485L879,1482L875,1473L872,1478L867,1480L854,1473L857,1478L874,1487L878,1491L874,1502L866,1510L862,1509L853,1499L857,1508L860,1511L867,1513L880,1510L885,1513L881,1520L878,1524L869,1526L868,1529L850,1529L843,1536L840,1535L837,1527L837,1537L839,1541L822,1558L817,1567L814,1581L813,1566L810,1583L793,1583L785,1586L773,1596L759,1617L757,1628L755,1624L756,1617L753,1624L756,1632L747,1642L739,1645L738,1651L732,1657L729,1660L724,1658L726,1664L723,1668L720,1671L712,1673L705,1679L695,1677L692,1678L700,1684L698,1691L694,1693L692,1686L689,1690L684,1683L686,1693L689,1698L687,1703L683,1705L679,1717L670,1721L673,1728L667,1733L668,1740L664,1744L668,1745L663,1756L658,1757L663,1763L659,1769L656,1768L652,1790L664,1863L680,1914L697,1952L694,1966L700,1992L693,1973L694,1950L689,1962L687,1954L690,1946L686,1942L686,1935L683,1933L687,1959L711,2039L715,2047L718,2066L719,2083L715,2132L714,2129L707,2147L704,2166L699,2173L695,2173L687,2178L682,2177L670,2180L668,2173L670,2168L671,2168L677,2174L678,2171L677,2168L670,2164L666,2149L660,2139L659,2132L650,2128L644,2122L639,2111L636,2091L633,2088L638,2074L634,2078L632,2084L629,2084L627,2073L628,2061L630,2055L622,2057L622,2064L618,2062L599,2019L602,2017L611,2001L612,1994L611,1992L607,1994L605,1988L602,1986L601,1987L604,1994L603,2000L601,2004L597,2005L593,1995L601,1952L601,1925L596,1914L573,1886L554,1854L538,1842L526,1844L523,1855L516,1856L504,1865L501,1864L494,1868L481,1871L478,1870L477,1865L477,1859L480,1867L481,1865L479,1858L465,1841L467,1841L468,1839L465,1836L469,1829L462,1832L460,1838L442,1827L430,1822L439,1820L445,1821L443,1817L439,1816L430,1816L420,1822L396,1826L400,1822L406,1820L407,1815L405,1810L402,1815L398,1813L397,1818L393,1826L383,1828L385,1823L377,1831L360,1833L361,1832L370,1829L367,1821L364,1818L364,1811L360,1802L354,1824L329,1825L320,1821L306,1827L301,1825L295,1834L289,1838L272,1831L268,1825L260,1823L255,1830L251,1839L262,1847L270,1845L275,1840L281,1840L282,1838L285,1839L279,1849L282,1854L289,1855L293,1845L297,1846L299,1861L292,1865L289,1868L290,1869L284,1871L283,1875L285,1880L292,1888L307,1894L310,1900L315,1903L309,1916L305,1912L298,1918L299,1912L292,1900L287,1896L279,1894L276,1886L263,1880L263,1883L268,1888L268,1894L264,1908L261,1910L257,1899L253,1897L248,1896L244,1899L240,1907L236,1908L212,1898L212,1895L219,1895L214,1886L214,1879L210,1882L202,1879L195,1866L188,1866L185,1860L180,1862L174,1869L178,1875L177,1877L169,1879L150,1876L127,1864L104,1865L98,1868L95,1862L99,1859L101,1853L97,1850L93,1862L95,1870L85,1872L56,1891L56,1888L67,1880L55,1880L57,1872L57,1866L53,1866L50,1871L44,1869L45,1881L50,1892L39,1906L38,1912L32,1920L6,1942L-11,1952L-0,1942L-17,1940L-20,1944L-26,1936L-29,1937L-23,1952L-19,1954L-25,1960L-30,1962L-35,1957L-36,1970L-40,1974L-42,1970L-46,1974L-52,1975L-51,1981L-47,1979L-48,1986L-53,1993L-64,1996L-58,2007L-65,2031L-68,2032L-79,2022L-76,2033L-67,2037L-67,2045L-70,2055L-65,2088L-54,2116L-52,2117L-51,2119L-51,2124L-58,2125L-62,2130L-72,2122L-103,2113L-112,2106L-121,2102L-124,2098L-136,2094L-140,2091L-149,2061L-156,2047L-155,2042L-158,2033L-157,2021L-158,2016L-169,2003L-185,1973L-194,1963L-195,1951L-209,1919L-210,1913L-227,1886L-239,1874L-242,1866L-251,1862L-259,1864L-270,1863L-283,1858L-286,1858L-287,1862L-298,1866L-303,1873L-308,1887L-311,1902L-314,1904L-323,1917L-327,1917L-354,1897L-360,1895L-379,1878L-388,1859L-391,1850L-391,1840L-404,1805L-418,1794L-442,1765L-457,1750L-470,1729L-550,1728L-550,1759L-678,1759L-849,1679L-843,1665L-952,1677L-952,1669L-954,1666L-957,1668L-958,1649L-960,1638L-967,1625L-995,1596L-1003,1594L-1004,1597L-1009,1595L-1009,1587L-1014,1576L-1028,1576L-1043,1569L-1046,1566L-1048,1560L-1063,1549L-1074,1549L-1089,1545L-1103,1545L-1106,1540L-1110,1538L-1109,1522L-1111,1501L-1120,1495L-1121,1490L-1120,1484L-1122,1480L-1127,1476L-1132,1468L-1139,1463L-1156,1431L-1166,1419L-1167,1402L-1162,1391L-1163,1383L-1166,1378L-1178,1374L-1189,1359L-1189,1348L-1194,1337L-1194,1321L-1191,1319L-1189,1320L-1188,1328L-1184,1333L-1177,1341L-1174,1341L-1189,1308L-1181,1302L-1158,1303L-1150,1301L-1154,1300L-1166,1300L-1172,1297L-1178,1301L-1189,1295L-1193,1298L-1192,1316L-1195,1317L-1213,1301L-1216,1306L-1215,1290L-1211,1297L-1212,1292L-1219,1284L-1222,1275L-1229,1269L-1248,1243L-1248,1230L-1253,1212L-1251,1195L-1254,1185L-1266,1163L-1276,1152L-1278,1144L-1278,1136L-1274,1121L-1273,1119L-1271,1122L-1270,1117L-1271,1116L-1267,1104L-1268,1091L-1264,1075L-1268,1052L-1272,1048L-1271,1034L-1278,1025L-1280,1013L-1279,994L-1285,978L-1277,942L-1270,937L-1272,935L-1274,937L-1268,918L-1266,875L-1264,868L-1264,845L-1258,790L-1259,752L-1260,746L-1257,749L-1247,749L-1240,746L-1234,751L-1226,751L-1237,743L-1245,743L-1247,741L-1257,743L-1259,741L-1265,742L-1264,720L-1259,732L-1256,716L-1265,711L-1267,703L-1254,696L-1267,691L-1268,696L-1278,649L-1282,640L-1289,632L-1291,627L-1293,600L-1290,600L-1260,614L-1229,617L-1223,615L-1215,621L-1210,619L-1206,616L-1201,633L-1206,643L-1208,644L-1208,640L-1219,656L-1222,664L-1222,669L-1217,669L-1212,666L-1219,666L-1219,661L-1215,655L-1208,649L-1198,637L-1198,630L-1195,631L-1195,641L-1199,645L-1199,652L-1201,652L-1196,662L-1197,674L-1198,675L-1203,672L-1206,678L-1208,671L-1212,674L-1217,684L-1208,683L-1204,686L-1200,683L-1194,673L-1190,672L-1187,668L-1188,652L-1190,649L-1188,642L-1189,640L-1182,625L-1190,613L-1189,620L-1194,616L-1195,610L-1189,607L-1189,605L-1195,597L-1201,594L-1200,592L-1194,591L-1194,580L-1197,573L-1201,574L-1207,558L38,558L38,532L51,536L54,558L59,570L62,575L88,581L97,584L99,588L103,590L114,587L118,584L135,584L158,596L161,607L164,607L167,603L172,603L180,605L186,612L202,622L208,622L223,612L229,611L233,612L237,618L266,618L270,625L295,626L307,622L333,607L343,605L428,655L501,700L506,718L515,730L523,726L534,725L535,742L542,756L558,753L565,762L559,774L606,806L624,927L612,960L606,991L591,1007L582,1013L579,1024L579,1035L584,1045L599,1056L611,1056L663,1019L709,1008L764,979L768,975L770,970L765,964L762,943L758,934L778,923L864,923L880,893L892,881L894,877L906,869L928,845L938,836L953,829L959,829ZM1055,1107L1060,1106L1073,1098L1077,1100L1085,1097L1051,1116L1027,1125L996,1130L1000,1127L999,1124L990,1130L991,1123L996,1115L1005,1110L1007,1112L1010,1107L1024,1107L1053,1102L1069,1091L1055,1107ZM982,1134L981,1134L982,1127L988,1125L987,1130L982,1134ZM1148,1076L1136,1079L1134,1077L1137,1076L1141,1071L1144,1070L1148,1076ZM1161,1082L1167,1080L1169,1074L1172,1083L1169,1085L1161,1082ZM931,1313L929,1314L942,1285L940,1293L931,1313Z","lakes":"M581,1014L582,1015L580,1028L588,1033L593,1034L599,1031L604,1031L608,1038L610,1030L612,1026L624,1018L628,1016L633,1015L636,1012L636,1016L639,1008L643,1003L658,990L664,989L674,988L700,994L703,994L717,996L718,996L716,994L700,992L703,987L705,987L711,981L724,978L732,975L739,975L748,974L763,975L769,971L768,968L764,964L764,961L762,959L763,958L770,960L771,961L769,966L771,979L766,983L756,996L751,998L734,1013L706,1031L681,1041L666,1049L655,1056L643,1067L632,1067L625,1068L609,1074L602,1070L601,1071L594,1070L591,1071L584,1070L599,1066L594,1064L593,1062L592,1062L590,1065L587,1064L582,1060L574,1056L573,1054L566,1052L565,1051L569,1041L572,1038L574,1037L574,1035L577,1030L577,1023L581,1014ZM-13,447L-17,447L-20,445L-25,440L-27,444L-27,452L-26,458L-27,459L-31,462L-34,462L-39,461L-42,458L-44,446L-42,418L-42,416L-38,413L-35,407L-31,404L-28,399L-28,398L-33,397L-42,408L-44,408L-44,404L-33,384L-34,380L-36,380L-37,373L-40,372L-48,376L-51,380L-51,388L-55,391L-56,391L-58,381L-56,369L-56,363L-59,355L-61,351L-67,354L-70,359L-71,359L-72,354L-68,349L-67,344L-78,344L-80,346L-78,348L-82,361L-89,359L-92,355L-93,347L-96,343L-96,339L-98,334L-109,328L-111,321L-126,304L-127,302L-127,300L-131,295L-131,291L-125,288L-113,284L-111,282L-121,280L-126,280L-135,282L-143,274L-146,273L-145,262L-139,253L-134,237L-135,234L-132,226L-127,225L-118,228L-110,228L-104,229L-89,239L-86,238L-86,235L-99,226L-104,220L-104,217L-101,213L-98,203L-91,189L-87,192L-87,193L-90,196L-89,196L-83,196L-82,197L-84,199L-94,204L-99,216L-99,218L-93,222L-90,217L-87,215L-82,215L-78,212L-78,214L-79,217L-89,219L-82,236L-82,242L-77,251L-72,266L-67,272L-61,284L-61,285L-62,287L-64,288L-63,294L-60,300L-54,308L-45,335L-46,340L-43,348L-39,354L-37,358L-39,361L-38,363L-34,363L-31,368L-34,370L-33,374L-27,381L-25,385L-25,389L-22,393L-16,400L-13,404L-13,407L-18,415L-17,440L-16,443L-13,447ZM-87,332L-85,329L-87,318L-90,317L-92,322L-92,326L-89,332L-87,332ZM-28,411L-27,408L-32,408L-35,415L-38,417L-38,419L-34,421L-31,419L-28,411ZM911,864L911,866L908,870L890,885L885,890L887,894L892,892L894,893L894,894L892,897L893,898L898,897L892,906L890,906L891,904L888,906L891,914L892,926L891,928L880,931L875,934L870,941L861,944L858,948L857,946L844,945L832,947L828,946L818,941L803,938L780,941L763,946L751,952L742,951L733,948L731,945L740,926L743,924L744,922L748,922L752,919L763,908L785,903L791,903L802,900L823,897L825,894L831,896L831,898L833,900L844,900L842,901L843,903L847,901L846,906L849,907L854,905L861,901L861,900L854,901L855,898L859,895L862,890L851,894L850,892L852,887L850,886L843,889L844,890L843,891L841,890L842,887L841,887L829,892L831,889L841,885L849,885L854,883L855,884L854,887L855,887L860,884L861,885L855,888L853,891L854,893L870,882L883,879L886,877L899,872L903,870L908,864L911,864ZM890,882L891,880L881,882L879,885L879,889L882,889L886,883L890,882ZM582,1015L581,1014L583,1011L590,1007L593,994L595,993L595,988L600,986L602,989L602,996L603,998L611,1000L611,1008L607,1011L604,1012L591,1011L587,1011L583,1013L582,1015ZM-150,275L-152,276L-153,281L-155,282L-158,282L-160,281L-159,279L-161,278L-162,274L-164,273L-164,275L-166,276L-171,276L-174,278L-179,279L-193,273L-201,266L-205,265L-220,255L-221,254L-219,251L-207,252L-209,247L-195,245L-194,242L-197,234L-200,232L-195,227L-196,225L-203,224L-202,221L-195,221L-194,219L-194,211L-196,206L-196,203L-191,203L-188,200L-180,204L-174,205L-190,217L-185,219L-185,222L-187,227L-185,229L-173,222L-165,215L-162,215L-163,218L-170,229L-176,229L-177,234L-183,239L-190,240L-190,243L-181,249L-179,252L-177,258L-178,262L-176,268L-173,269L-166,265L-155,263L-154,265L-154,268L-151,272L-150,275ZM506,775L501,777L497,777L498,779L492,788L491,792L493,798L498,800L499,801L494,804L490,804L481,808L478,813L478,827L471,845L470,844L473,834L473,830L472,831L470,834L471,836L469,842L467,842L466,841L469,831L467,830L469,824L469,821L470,816L470,815L464,820L460,829L457,832L455,831L453,831L450,835L448,835L447,838L447,844L445,846L440,848L439,850L439,860L437,875L434,881L427,892L430,903L431,911L426,920L431,938L436,950L441,972L440,989L437,1005L425,1034L419,1044L402,1056L394,1058L387,1057L380,1049L374,1027L371,1023L369,1019L369,996L370,978L368,972L368,968L365,964L366,959L365,949L366,942L369,932L369,929L374,914L372,908L374,899L375,893L382,886L382,871L383,863L389,848L390,843L386,838L384,838L378,840L370,853L363,859L361,860L360,859L359,855L360,851L368,833L377,827L379,817L388,805L396,788L400,782L403,772L407,767L406,776L407,780L408,782L411,781L416,771L419,772L425,770L425,775L421,778L419,782L419,785L422,787L422,785L427,778L434,773L438,766L445,763L455,766L455,764L464,762L468,760L470,756L474,754L478,754L491,758L497,762L504,770L506,771L506,775ZM473,778L471,777L470,779L468,785L468,788L469,789L473,787L473,778ZM403,809L398,816L394,820L393,824L387,834L388,838L391,841L397,835L397,830L400,824L401,825L403,822L402,819L403,819L403,818L403,815L403,814L405,814L406,813L405,809L403,809ZM525,725L524,727L517,731L514,731L512,729L509,728L506,730L502,730L500,728L494,727L493,725L495,715L495,711L497,709L489,708L476,714L468,715L459,714L453,714L446,715L444,715L432,722L421,731L417,728L412,729L410,729L407,725L404,725L398,726L389,726L388,725L388,721L382,715L377,705L371,701L355,698L352,696L343,702L343,704L340,707L339,704L340,693L338,691L336,685L333,684L332,682L332,680L331,678L323,683L320,687L318,690L309,694L299,701L284,704L276,708L264,717L255,720L249,722L242,719L237,715L236,718L229,720L228,719L231,712L231,709L236,700L233,696L230,696L220,703L216,701L203,709L188,714L181,714L177,711L175,708L208,679L232,653L244,647L270,636L283,629L287,626L291,625L295,619L299,617L301,615L304,607L306,604L305,597L306,594L326,586L326,586L321,600L318,603L327,599L329,593L330,590L331,590L332,585L335,581L336,572L338,569L340,568L343,568L346,573L346,575L343,581L335,589L334,592L335,595L338,594L340,588L350,585L354,579L355,573L351,566L349,559L355,558L359,558L362,560L380,566L380,568L387,568L396,573L405,572L414,573L419,570L424,574L431,574L438,585L441,597L442,599L443,605L450,618L455,623L461,627L468,629L475,630L487,628L502,629L503,630L500,636L499,640L495,650L498,657L506,662L510,668L513,670L513,675L508,683L509,685L506,691L506,693L514,699L514,698L518,697L523,700L524,701L522,704L519,704L515,707L516,714L518,713L518,711L520,711L521,712L515,722L515,725L518,729L521,726L525,725ZM241,705L244,703L242,702L236,706L234,709L238,708L241,705ZM358,568L357,570L358,577L363,574L369,573L371,568L369,567L360,567L358,568ZM320,630L332,623L334,618L338,614L334,615L326,618L309,629L306,631L308,631L306,634L308,636L318,633L319,632L317,631L317,630L320,630ZM370,666L372,664L369,662L366,660L355,662L346,665L343,667L335,675L333,679L333,682L335,683L341,685L341,684L340,683L341,681L342,681L342,685L339,688L339,690L341,693L350,682L349,681L351,679L361,669L359,667L360,667L370,666ZM374,574L377,574L377,573L375,570L372,568L372,574L374,574ZM468,643L469,642L467,640L461,638L456,640L453,642L453,644L457,645L468,643ZM525,725L530,723L535,725L537,727L535,735L537,737L546,739L547,741L559,742L560,744L565,745L585,749L590,749L598,747L601,749L615,748L616,751L622,752L641,754L641,757L645,756L647,753L648,753L651,755L651,756L647,759L649,762L647,763L649,764L655,762L665,763L669,760L669,764L671,766L677,764L684,765L689,771L692,779L698,789L699,790L701,790L702,787L703,790L703,798L705,802L709,805L713,806L713,803L717,803L718,804L719,806L718,809L715,812L715,814L716,816L718,815L720,819L717,821L717,822L722,828L723,828L725,833L728,834L731,842L732,839L734,838L734,844L736,845L734,846L728,845L723,841L725,840L724,839L721,839L716,842L716,845L720,849L721,853L719,862L717,864L711,863L700,858L694,854L692,848L685,850L680,855L681,845L680,843L677,842L670,845L670,844L674,840L677,831L674,832L672,835L670,835L669,831L664,827L663,821L661,819L663,812L644,812L644,814L649,818L653,824L655,829L659,831L660,838L663,844L663,857L656,868L654,868L650,873L642,893L644,922L644,933L642,939L638,946L632,950L627,956L622,960L612,964L610,960L601,907L598,901L591,894L588,893L586,893L568,903L569,905L565,916L560,918L556,923L548,920L543,915L544,906L546,900L552,897L558,893L563,879L565,878L565,879L571,872L573,851L572,844L571,838L566,832L565,828L566,825L573,826L572,825L571,818L568,814L567,809L564,807L546,798L544,796L537,795L535,793L534,790L529,786L515,781L506,775L506,771L509,770L508,764L510,759L512,758L516,759L518,762L520,761L542,764L544,764L545,763L545,760L540,757L538,755L539,752L538,751L531,749L529,748L531,745L531,741L529,734L524,727L525,725ZM570,762L568,762L565,766L564,768L565,769L568,770L571,770L574,765L570,762ZM562,760L560,756L555,754L555,757L551,760L546,760L546,763L548,764L559,766L562,764L563,762L562,760ZM548,751L550,747L549,744L542,741L538,740L536,742L542,754L544,755L546,751L548,751ZM535,738L533,734L534,725L532,725L531,725L528,728L532,737L535,738ZM521,775L515,774L518,778L521,779L523,779L524,777L522,774L521,775ZM587,772L588,774L597,775L616,783L621,787L627,789L628,791L629,791L639,782L641,782L637,788L634,788L632,790L636,793L638,792L642,789L649,775L644,774L646,772L646,768L644,768L639,779L638,774L638,769L636,768L633,763L631,763L628,764L624,770L623,770L620,765L618,765L618,763L616,763L613,763L610,766L608,765L607,766L605,767L605,771L607,772L607,775L601,771L596,771L594,767L594,763L593,762L587,765L582,764L581,766L577,763L576,768L587,772ZM1007,416L1019,405L1033,395L1037,395L1033,400L1034,400L1041,397L1046,397L1043,401L1033,407L1032,410L1033,411L1044,405L1050,405L1049,407L1037,414L1031,422L1015,436L1018,429L1024,423L1027,417L1029,417L1030,414L1029,411L1028,411L1018,422L1010,433L1007,433L1000,449L999,459L1001,463L999,463L999,462L998,462L1000,473L999,475L990,481L987,486L984,487L981,485L982,484L987,483L990,477L996,475L999,473L996,467L998,446L995,452L994,458L991,457L986,462L985,462L993,440L998,429L995,429L995,424L1007,416ZM58,567L53,566L45,560L37,564L32,565L31,562L31,559L33,555L33,548L36,546L46,544L48,541L48,536L45,534L45,533L48,530L49,527L53,523L59,519L61,516L61,515L59,515L57,515L49,522L40,526L39,525L40,521L38,515L40,514L45,514L47,515L46,518L48,518L53,516L51,512L53,511L63,508L65,506L64,503L60,493L62,490L66,494L66,500L70,507L74,508L76,511L75,514L76,516L73,519L76,522L82,523L84,527L84,529L88,533L87,541L85,544L85,540L80,531L77,530L79,525L69,525L61,527L56,531L54,533L55,534L61,533L63,534L64,537L69,542L74,540L78,542L78,544L79,545L85,546L87,547L81,551L78,549L76,551L76,553L58,567ZM59,544L54,544L57,551L60,551L63,555L67,555L67,549L70,545L70,544L67,543L59,544ZM359,492L354,496L355,499L355,509L353,518L352,526L347,526L344,528L342,531L341,531L336,520L336,524L332,529L326,526L325,524L326,522L329,518L334,516L334,515L333,514L327,515L325,519L321,522L317,523L315,522L315,518L317,519L319,519L320,518L318,506L317,506L315,509L311,505L312,503L312,501L315,504L318,503L318,497L320,494L320,486L326,475L329,472L332,471L335,473L340,473L344,478L348,479L348,477L341,471L341,470L345,471L350,475L353,480L351,483L350,490L354,487L359,491L359,492ZM335,488L335,487L332,486L331,493L327,497L328,500L330,500L334,503L332,495L335,488ZM343,514L343,510L338,512L338,516L343,515L343,514ZM912,950L913,951L910,953L903,953L897,949L897,948L898,948L912,950ZM346,893L345,901L341,911L340,910L337,896L338,890L341,884L344,884L346,885L346,893ZM1019,887L1018,894L1020,912L1020,914L1016,895L1016,884L1020,878L1016,854L1018,845L1019,834L1020,828L1021,827L1023,835L1027,828L1029,824L1031,824L1032,826L1027,833L1027,849L1026,857L1024,860L1026,868L1024,870L1023,875L1019,887ZM1079,594L1074,593L1068,584L1066,580L1068,575L1074,574L1081,576L1088,581L1091,584L1091,590L1089,593L1085,595L1079,594ZM854,990L851,998L847,1004L847,1004L849,994L850,994L852,989L854,990ZM861,1005L860,1002L857,974L861,987L861,1005ZM877,999L877,1000L871,992L866,981L867,970L868,969L869,982L871,988L877,999ZM992,80L988,83L982,84L981,85L981,86L980,86L979,85L981,82L976,80L958,76L955,72L954,63L956,61L961,59L970,60L977,64L980,70L984,72L989,72L992,75L992,80ZM701,742L705,742L706,744L709,744L714,744L715,742L714,741L715,740L718,738L727,738L736,737L743,740L746,745L744,749L740,750L731,747L722,751L720,750L720,745L708,746L701,742ZM876,70L883,58L881,55L885,44L887,50L890,53L891,55L889,56L892,60L904,70L903,72L894,73L881,72L876,70ZM897,240L897,236L899,236L904,233L905,232L905,230L908,228L921,225L933,225L937,230L955,225L958,225L958,227L954,229L951,232L934,237L934,239L956,241L964,240L970,238L971,239L961,244L954,244L945,247L946,243L944,242L935,244L917,242L916,243L919,245L917,249L914,252L904,254L896,253L895,250L898,247L905,241L903,239L897,240ZM897,236L897,240L885,243L883,245L878,248L863,252L847,252L843,250L838,250L834,247L833,244L835,242L828,241L825,239L837,231L841,230L843,232L855,230L860,228L866,223L868,219L861,214L863,211L871,216L873,215L874,214L878,214L880,214L880,212L875,208L876,207L885,205L889,208L892,207L896,210L889,213L887,220L874,232L867,236L869,238L897,236ZM872,268L870,271L870,274L866,276L863,279L865,287L863,288L860,286L858,277L861,271L861,262L863,259L869,254L869,257L871,257L875,252L878,254L878,258L877,260L871,262L871,265L874,265L874,266L872,268ZM292,293L296,291L296,289L303,285L310,288L318,286L313,295L309,296L294,295L292,293ZM209,423L213,417L226,421L234,415L243,407L251,412L251,414L247,417L228,425L211,427L209,426L209,423ZM967,594L967,596L962,598L960,601L959,596L957,595L952,588L948,586L947,590L948,592L948,601L942,602L940,606L942,593L944,590L945,584L940,588L938,593L938,597L936,598L931,596L927,596L933,585L938,585L943,577L947,578L954,574L962,571L966,571L967,574L965,582L966,584L969,586L973,585L973,588L977,595L981,596L983,599L987,600L980,602L970,593L968,593L967,594ZM1028,143L1029,141L1040,137L1058,134L1071,130L1068,134L1068,138L1065,141L1053,146L1049,149L1034,153L1026,152L1011,156L1009,155L1018,151L1016,149L1013,147L1013,146L1020,146L1028,143ZM844,978L840,986L840,983L844,972L845,974L844,978ZM79,681L76,687L74,688L71,688L67,683L65,685L64,689L63,688L62,679L73,677L77,674L76,681L79,681ZM257,562L257,563L255,570L253,572L250,572L243,570L242,569L241,563L239,563L239,561L242,559L246,564L248,565L254,565L257,562ZM915,700L912,712L910,713L907,710L900,711L899,709L902,705L903,702L908,700L912,693L915,700ZM1167,527L1165,524L1164,517L1158,514L1155,517L1156,522L1155,523L1150,521L1148,530L1145,525L1142,526L1139,529L1136,521L1134,521L1133,522L1129,530L1128,530L1134,515L1139,522L1145,519L1152,511L1156,512L1158,510L1158,507L1154,497L1157,499L1161,510L1162,511L1165,510L1167,511L1170,517L1173,520L1176,521L1178,525L1181,532L1181,534L1179,535L1178,534L1175,527L1176,525L1173,522L1170,523L1167,527ZM254,233L256,229L257,226L262,229L270,225L277,230L288,233L279,239L273,239L268,239L263,234L254,233ZM128,417L124,419L116,411L113,406L117,401L118,401L122,403L126,401L129,403L132,411L129,413L128,417ZM79,236L67,237L59,236L51,232L48,229L47,227L48,222L56,218L62,218L63,219L62,221L59,223L59,225L63,227L84,225L88,226L90,228L90,231L85,234L79,236ZM1148,286L1153,287L1149,294L1150,295L1150,298L1152,310L1152,312L1149,311L1148,307L1148,300L1147,299L1145,299L1144,302L1142,303L1137,300L1136,292L1134,292L1129,298L1128,298L1127,296L1127,294L1130,290L1138,288L1138,286L1136,285L1134,285L1134,281L1140,286L1148,286ZM111,745L112,749L111,751L105,752L100,748L99,744L101,741L108,737L110,738L111,745ZM1113,922L1116,926L1116,929L1114,929L1110,924L1106,923L1108,916L1111,918L1113,922ZM746,877L743,882L742,874L739,870L746,863L748,856L749,850L750,854L756,861L759,867L757,871L746,877ZM93,161L106,165L94,167L91,172L71,178L68,184L56,189L57,184L61,181L67,172L68,169L68,163L85,160L93,161ZM18,108L13,117L11,119L4,121L5,117L8,114L9,111L18,108ZM118,584L117,578L119,577L119,575L116,572L107,568L116,568L115,564L121,562L123,569L126,571L126,575L123,579L125,580L130,576L129,579L130,580L144,578L145,579L141,582L141,584L147,585L150,585L154,589L155,592L153,593L158,594L160,597L160,601L160,601L153,597L139,596L135,595L133,593L133,590L145,594L149,591L138,587L138,586L132,585L130,588L128,588L122,584L120,585L118,584ZM-25,77L-26,76L-23,72L-13,70L-9,67L-2,63L5,61L7,62L6,63L3,65L-5,68L-2,71L-4,76L-16,75L-25,77ZM46,623L55,627L54,631L40,633L34,631L34,626L37,623L41,621L45,621L46,623ZM44,617L53,613L59,612L62,612L65,614L65,616L63,618L56,621L45,621L43,619L44,617ZM864,658L877,647L878,648L869,655L868,657L869,657L874,655L872,659L880,661L883,663L880,671L878,682L879,684L886,686L883,690L881,689L876,685L873,675L872,674L871,675L872,681L871,680L867,669L866,669L866,663L864,660L864,658Z"}</script>
+<!-- PARK DATA:START -->
+<script type="application/json" id="parkData">{"source":"https://www.ontarioparks.ca/fallcolour","retrieved":"2026-10-08","parks":[{"name":"Algonquin","area":"","slug":"algonquin","region":"Algonquin","change":90,"fall":40,"colour":"Yellow/Orange","viewing":"There are spectacular viewing opportunities throughout Algonquin Provincial Park along the Highway 60 Corridor and other access points, such as the Park's trails and day use areas. Obtain your daily vehicle permit up to five days in advance to guarantee your access to the park. Please use designated parking areas. Do not park on the side of the road, which is dangerous and illegal. To learn more, visit our blog: Fall Colours at Algonquin Provincial Park","date":"2026-10-07","lat":45.5508,"lng":-78.6393},{"name":"Arrowhead","area":"","slug":"arrowhead","region":"Algonquin","change":100,"fall":40,"colour":"Orange","viewing":"Check out Big Bend Lookout, Beach Area #1, or the Arrowhead Lake Trail for spectacular fall colours.","date":"2026-10-08","lat":45.3915,"lng":-79.214},{"name":"Awenda","area":"","slug":"awenda","region":"Southwestern","change":70,"fall":10,"colour":"Yellow","viewing":"Enjoy a natural amphitheatre of vivid colour at Kettle’s Lake with a walk around the Wendat Trail. The Park’s Georgian Bay waterfront and Beach Trail offers the best September viewing while the main Awenda Park Road often features a tunnel of subtle yellows right through until November.","date":"2026-10-08","lat":44.8437,"lng":-80.0027},{"name":"Balsam Lake","area":"","slug":"balsamlake","region":"Southeastern","change":60,"fall":30,"colour":"Yellow/Orange","viewing":"We recommend visitors walk through the closed Cedar and Maple campgrounds to enjoy the beautiful maple trees in those areas. Visitors will enjoy the Lookout Trail as portions of the trail have Staghorn Sumac that will soon start to turn a beautiful vibrant red.","date":"2026-10-06","lat":44.6255,"lng":-78.8574},{"name":"Bass Lake","area":"","slug":"basslake","region":"Southeastern","change":10,"fall":10,"colour":"Green","viewing":"The fall colours are especially beautiful all along our hiking trail leading along the water and through the forest.","date":"2026-10-08","lat":44.601,"lng":-79.4829},{"name":"Batchawana Bay","area":"","slug":"batchawanabay","region":"Northeastern","change":50,"fall":20,"colour":"Yellow","viewing":"The best fall colour viewing in Batchawana Bay Provincial Park is available from the beach on the east side of the park where the contrast of Lake Superior’s blue waters can be seen against the brilliant yellows and oranges of the season’s change. The drive along Highway 17 from Haviland Shores around Batchawana Bay to the Park is spectacular, with the Algoma Hills towering above the Superior shore, clad in red, gold and orange.","date":"2026-10-06","lat":46.9442,"lng":-84.551},{"name":"Bon Echo","area":"","slug":"bonecho","region":"Southeastern","change":60,"fall":40,"colour":"Orange","viewing":"Take in the fall colours along the Cliff Top Trail with red, yellow, and brown leaves from Sugar Maple, White Birch and Red Oak trees. The observation platforms along this trail also provide great views of the changing leaves on the west side of the main campground area. The High Pines Trail and the Shield Trail are also great places to view fall colours.","date":"2026-10-08","lat":44.8972,"lng":-77.2095},{"name":"Bonnechere","area":"","slug":"bonnechere","region":"Algonquin","change":70,"fall":50,"colour":"Yellow/Orange","viewing":"The best place to experience the vibrant tones of maple, oak, poplar, birch, and tamarack trees is at the main day use/beach area, which provides views of the entire shoreline of Round Lake.","date":"2026-10-05","lat":45.6573,"lng":-77.5789},{"name":"Bronte Creek","area":"","slug":"brontecreek","region":"Southwestern","change":40,"fall":20,"colour":"Yellow","viewing":"The most scenic and picturesque areas during the fall include the Lookout/ Ravine Trail #4, Half Moon Valley Trail #6, Field and Forest Trail # 8 and for that old country charm you can't beat the farm area around Spruce Lane (parking lot F) in the day use only area. Be sure to check out our fall events!","date":"2026-10-05","lat":43.4068,"lng":-79.7689},{"name":"Caliper Lake","area":"","slug":"caliperlake","region":"Northwestern","change":60,"fall":20,"colour":"Yellow","viewing":"Best viewing is along the campground roads, the day use and beach areas.","date":"2026-10-03","lat":49.069,"lng":-93.9041},{"name":"Charleston Lake","area":"","slug":"charlestonlake","region":"Southeastern","change":60,"fall":20,"colour":"Yellow/Orange","viewing":"The best fall colour viewing in the park is on the Quiddity Trail and the Tallow Rock Bay Trail.","date":"2026-10-07","lat":44.5018,"lng":-76.0413},{"name":"Chutes","area":"","slug":"chutes","region":"Northeastern","change":80,"fall":60,"colour":"Yellow/Orange","viewing":"For the best viewing opportunities, the Twin Bridges Trail and the Main Falls Lookout are the perfect places to watch the glistening leaves and the change of season next to the Aux Sables River.","date":"2026-10-08","lat":46.2176,"lng":-82.0702},{"name":"Darlington","area":"","slug":"darlington","region":"Southeastern","change":20,"fall":10,"colour":"Green","viewing":"The best place to view the stunning fall colours is the Burk Trail Viewing Platform (also known as “the lookout”). This is located roughly in the middle of the Burk Trail, west of the Park Office and the Pioneer Cemetery, north of Day Use 2, and east of Day Use 3. The Burk Trail can be accessed across the road from the Park Store, by the Park Office, from the McLaughlin Bay Trail, or the Waterfront Trail.","date":"2026-10-02","lat":43.8755,"lng":-78.7778},{"name":"Driftwood","area":"","slug":"driftwood","region":"Northeastern","change":80,"fall":40,"colour":"Yellow/Orange","viewing":"Adventure out onto the Ottawa River with one of our canoe rentals or hike the Oak Highlands Trail to get the best views of the colourful fall show.","date":"2026-10-07","lat":46.18,"lng":-77.84},{"name":"Earl Rowe","area":"","slug":"earlrowe","region":"Southwestern","change":40,"fall":10,"colour":"Yellow","viewing":"The best spots to view fall colours is by hiking the Lookout Trail and walking through the Meadowbrook and Trillium Woods campgrounds.","date":"2026-10-05","lat":44.1502,"lng":-79.8989},{"name":"Ferris","area":"","slug":"ferris","region":"Southeastern","change":60,"fall":30,"colour":"Yellow/Orange","viewing":"We recommend visitors take a walk over the suspension bridge to see the fall colours pop along the Trent River or take a hike through our Drumlin Trail System to experience beautiful fall colours.","date":"2026-10-08","lat":44.2908,"lng":-77.7858},{"name":"Finlayson Point","area":"","slug":"finlaysonpoint","region":"Northeastern","change":80,"fall":30,"colour":"Yellow/Orange","viewing":"The Temagami region features a mix of large white and red pines alongside colourful stands of tamarack, birch, and poplar. You can enjoy these striking transition forests by boat on Lake Temagami, or, for a spectacular panoramic view, visit the nearby Caribou Mountain and climb the historic fire tower.","date":"2026-10-08","lat":47.055,"lng":-79.8044},{"name":"Fitzroy","area":"","slug":"fitzroy","region":"Southeastern","change":40,"fall":10,"colour":"Green","viewing":"The best viewing locations in the park are at the lookout in the Group Picnic Area, along our hiking trails, and in Pine Grove Campground.","date":"2026-10-05","lat":45.4821,"lng":-76.2137},{"name":"Forks of the Credit","area":"","slug":"forksofthecredit","region":"Southwestern","change":70,"fall":10,"colour":"Yellow/Orange","viewing":"The best fall colour viewing spot in the park is along the Trans Canada Trail. Please note that reservations are required to guarantee your access to the park. For top tips on how to plan your trip, visit the blog: How to plan your day trip to Forks of the Credit","date":"2026-10-05","lat":43.8164,"lng":-80.0114},{"name":"French River","area":"","slug":"frenchriver","region":"Northeastern","change":30,"fall":10,"colour":"Green","viewing":"The French River Gorge and the area around the French River Visitor Centre, just off Highway #400, is an amazing place. Scenic, and historic, where the river is lined with towering White Pines. In fall, the waters of the French River reflect the reds, golds, and burgundies of the changing trees mixed between the green pines. Stop in at the award-winning visitor centre for the \"Voices of the River\" exhibit, and then stroll down the path to the Gorge for some scenic views. For a more adventurous hike, take the 1.5km Recollet Falls Trail along the Gorge to Recollet Falls - maples, birch, and poplar provide brilliant dashes of colour between the pines. Be sure to wear study footwear, the trail is rocky and steep in places.","date":"2026-10-01","lat":46.018,"lng":-80.5838},{"name":"Frontenac","area":"","slug":"frontenac","region":"Southeastern","change":60,"fall":40,"colour":"Orange","viewing":"With over 100 km of hiking trails, Frontenac provides excellent fall colour viewing opportunities. Two trails that are sure to provide a beautiful fall colour experience are Doe Lake Loop (3 km) and Dedication Trail (2.4 km one way). For more information on fall hiking in Frontenac, check out our blog: Frontenac Challenge","date":"2026-10-08","lat":44.5042,"lng":-76.5558},{"name":"Grundy Lake","area":"","slug":"grundylake","region":"Algonquin","change":50,"fall":40,"colour":"Yellow","viewing":"Drive, bike, or stroll down the main road, or through the Poplar and Red Maple Campgrounds (foot or bike traffic only) for fabulous views of the fall colours. Looking for something a little bit more adventurous? Hike or bike down Pakeshkag Lake Trail! Be sure to pack a lunch and enjoy it at one of the picnic tables at Pakeshkag Lake landing. Don’t forget about our fall Discovery Programs, held every weekend until the end of Thanksgiving.","date":"2026-10-01","lat":45.9177,"lng":-80.5593},{"name":"Inverhuron","area":"","slug":"inverhuron","region":"Southwestern","change":50,"fall":30,"colour":"Yellow","viewing":"For the best views, look out from the boat launch across Inverhuron Bay. Maloney Trail is predominantly mature hardwoods and offers full immersion under the canopy of colours.","date":"2026-10-05","lat":44.3004,"lng":-81.5796},{"name":"Kakabeka Falls","area":"","slug":"kakabekafalls","region":"Northwestern","change":60,"fall":20,"colour":"Yellow","viewing":"Enjoy the thunder of Kakabeka Falls amongst the fall colours this season via the Boardwalk Trail around the top of the falls with various viewing pods. Walk a little further along the Mountain Portage Trail for additional river and falls views. If you are up for more of a challenge, take the 2.5 km loop of Little Falls Trail or try the Poplar Point Trail. Throughout the latter trail you will see many shades of autumn colours and may even get lucky to see some wildlife.","date":"2026-10-08","lat":48.4045,"lng":-89.6267},{"name":"Kap-Kig-Iwan","area":"","slug":"kapkigiwan","region":"Northeastern","change":40,"fall":20,"colour":"Yellow","viewing":"Kap-Kig-Iwan Provincial Park is bursting with autumn beauty. Top viewing spots include the High Falls Trail, where cascading water meets fiery foliage; the Aspen Crescent Lookout, offering sweeping views over the forest canopy; the peaceful Pine Grove Lookout, with its mix of evergreens and golden hues; and the Picnic Shelter by the River, a cozy spot to enjoy reflections of colour in the water. These locations showcase the park’s vibrant seasonal transformation and are perfect for visitors seeking a scenic fall escape.","date":"2026-10-01","lat":47.8012,"lng":-79.8792},{"name":"Kettle Lakes","area":"","slug":"kettlelakes","region":"Northeastern","change":70,"fall":50,"colour":"Yellow","viewing":"Enjoy the golden views of the boreal forest at Kettle Lakes. Hike the Tamarack Trail or Kettle Trail and bike the Blue Bike Trail for the best fall colour viewing opportunities. Rent one of our canoes to see the golds and greens reflected in one of our many spring-fed lakes. See the poplars, tamaracks, and ferns turn from emerald to gold! The Park is open until October 11th so book your campsite or visit for the day to enjoy the one of the most beautiful times in Northeastern Ontario!","date":"2026-10-08","lat":48.5723,"lng":-80.8919},{"name":"Killarney","area":"","slug":"killarney","region":"Northeastern","change":60,"fall":20,"colour":"Green","viewing":"To enjoy the beauty of fall, we recommend hiking to the lookout on the Granite Ridge Trail or bringing a picnic lunch to the bog area of our Cranberry Bog Trail. If you’re looking to beat the crowds, making the trip to Lake of the Woods Trail is sure to reward you with a more solitary experience. For all our trails, we recommend making sure you have sturdy footwear and bring lots of water with you.","date":"2026-10-08","lat":46.0126,"lng":-81.4019},{"name":"Killbear","area":"","slug":"killbear","region":"Algonquin","change":40,"fall":10,"colour":"Yellow","viewing":"The best fall colours can be seen along the main park road, the Recreational Trail, and the Lookout Point Trail. Colours usually peak around Thanksgiving weekend but stay surprisingly strong throughout October due to the golden glow of the American Beech trees.","date":"2026-10-03","lat":45.3589,"lng":-80.2134},{"name":"Komoka","area":"","slug":"komoka","region":"Southwestern","change":40,"fall":30,"colour":"Yellow","viewing":"Enjoy beautiful fall colours on Komoka’s 11 kilometre trail network. The White Trail offers a walk beneath the canopy of towering maple, oak, and beech trees along the Thames River. The Blue, Yellow, and Orange Trails showcase meadow scenes with fall colours in the distance.","date":"2026-10-08","lat":42.9527,"lng":-81.3835},{"name":"Lake St. Peter","area":"","slug":"lakestpeter","region":"Southeastern","change":70,"fall":20,"colour":"Yellow/Orange","viewing":"For great fall colour viewing, we recommend hiking the Lookout Trail (2.5km, strenuous). The trail crosses rugged terrain, passes by a kettle lake, and leads to a spectacular lookout over the lake.","date":"2026-10-06","lat":45.3198,"lng":-78.0231},{"name":"Lake Superior - North","area":"North","slug":"lakesuperior","region":"Northwestern","change":90,"fall":40,"colour":"Yellow/Orange","viewing":"Spectacular views of Lake Superior’s fall colours can be enjoyed by simply driving through the park along the Trans-Canada Highway. Visitors should note that given the size and forest diversity of the park, fall colours and leaf-change timing vary greatly between the north and south ends of Lake Superior Provincial Park. North of Mijineungshing Road, visitors will notice the red and orange colours of the Great Lakes-St. Lawrence Forest start to transition to more golden hues typical of the Boreal Forest that dominates the northern tip of the park. The Nokomis Trail, a moderate hike, provides stunning views of this transition zone. For those looking for a more challenging hike in the north end of the park, the Peat Mountain Trail offers breathtaking views of rolling hills of maple-rich Great-Lakes St. Lawrence Forest. Rabbit Blanket Lake and Mijinemungshing Lake are especially beautiful routes for fall paddling located in the north end of the park. Visitors are encouraged to stop by the Park Office at Red Rock Lake upon arrival for more fall colour viewing suggestions.","date":"2026-10-08","lat":47.7533,"lng":-84.8258},{"name":"Lake Superior - South","area":"South","slug":"lakesuperior","region":"Northwestern","change":80,"fall":20,"colour":"Red/Orange","viewing":"Spectacular views of Lake Superior’s fall colours can be enjoyed by simply driving through the park along the Trans-Canada Highway. Visitors should note that given the size and forest diversity of the park, fall colours and leaf-change timing vary greatly between the north and south ends of Lake Superior Provincial Park. South of the Park Office at Red Rock Lake, the park is predominated by Great Lakes-St. Lawrence Forest and brilliant shades of red, orange, and yellow. The Crescent Lake Trail, Pinguisibi (Sand River) Trail, and the first portion of Towab Trail to Burnt Rock Pool offer accessible yet stunning hiking through maple studded forests. For those up for more challenging hiking, Orphan Lake Trail and Awausee Trail deliver breathtaking views overlooking rolling hills of colour. Crescent Lake is an especially beautiful route for fall paddling located in the south end of the park. Visitors are encouraged to stop by the Visitor Centre at Agawa Bay upon arrival for more fall colour viewing suggestions.","date":"2026-10-08","lat":47.3356,"lng":-84.6171},{"name":"Long Point","area":"","slug":"longpoint","region":"Southwestern","change":30,"fall":30,"colour":"Green","viewing":"Within the Firefly Campground and as you go towards Turtle Dunes or Monarch Landing you are surrounded by cottonwoods, willows and Silver Maples changing into their fall colours. Watch for any moving orange leaves, you may spot Monarch Butterflies that come to rest in Long Point's trees before migrating to Mexico.","date":"2026-10-08","lat":42.5834,"lng":-80.3829},{"name":"MacGregor Point","area":"","slug":"macgregorpoint","region":"Southwestern","change":60,"fall":40,"colour":"Orange","viewing":"The best place to see fall colours is near the park entrance and in Nipissing Campground.","date":"2026-10-05","lat":44.4089,"lng":-81.4465},{"name":"Mark S. Burnham","area":"","slug":"marksburnham","region":"Southeastern","change":50,"fall":20,"colour":"Yellow/Orange","viewing":"Mark S. Burnham has many of the oldest maple, beech, elm and hemlock trees in the area, this makes for wonderful fall colours. Try hiking the small loop or long loop of the trail to see the many different colour changes throughout the season. Also take a break at the picnic shelter surrounded by many colourful trees and their changing leaves.","date":"2026-10-07","lat":44.297,"lng":-78.2703},{"name":"Marten River","area":"","slug":"martenriver","region":"Northeastern","change":80,"fall":30,"colour":"Yellow/Orange","viewing":"Great colour viewing can be enjoyed by hiking the park’s trails, biking throughout the campgrounds, or by boat along the Marten River. The Temagami region blends towering white pines with colourful stands of maple, birch, and poplar trees.","date":"2026-10-08","lat":46.7338,"lng":-79.8034},{"name":"McRae Point","area":"","slug":"mcraepoint","region":"Southeastern","change":40,"fall":30,"colour":"Yellow","viewing":"The fall colours can be viewed from the cove to the right of the beach and all along the Water’s Edge Trail.","date":"2026-10-06","lat":44.569,"lng":-79.329},{"name":"Mikisew","area":"","slug":"mikisew","region":"Algonquin","change":90,"fall":40,"colour":"Red/Orange","viewing":"The whole park allows for an immersive experience of the beautiful fall colours at Mikisew: the disc golf course, for example, or the Beaver Meadow and Maple Canyon trails.","date":"2026-10-05","lat":45.8214,"lng":-79.5129},{"name":"Mono Cliffs","area":"","slug":"monocliffs","region":"Southwestern","change":70,"fall":10,"colour":"Yellow/Orange","viewing":"The best spot to view fall colours is by hiking along the Cliff-Top Side Trail. Please note that reservations are required to guarantee your access to the park. For top tips on how to plan your trip, visit the blog: How to plan your day trip to Mono Cliffs","date":"2026-10-05","lat":44.0478,"lng":-80.0742},{"name":"Murphys Point","area":"","slug":"murphyspoint","region":"Southeastern","change":50,"fall":10,"colour":"Yellow","viewing":"For the best viewing opportunities: By car, take a drive along the road to the Day Use Beach, or travel out to the Lally Homestead parking lot. By foot, hike the McParlan House, Point, or Lally Homestead trails. By canoe, launch from behind the Park Store and take a paddle on Loon Lake, or launch from the beach to explore Hogg Bay.","date":"2026-10-05","lat":44.782,"lng":-76.2377},{"name":"Neys","area":"","slug":"neys","region":"Northwestern","change":60,"fall":20,"colour":"Yellow","viewing":"Enjoy the golden fall colours of poplars, birches, and tamaracks speckled throughout the peaks at Neys Provincial Park with an easy walk along the Point Trail (1 km one-way). Continue along the Under the Volcano Trail (2.5 km one-way) for more scenic views of Lake Superior’s coastline. For a longer, more challenging hike, visit the Pic Island Overlook Trail, a 9 km return hike with a gradual climb to the panoramic views of Pic Island that inspired Canadian Group of Seven artist Lawren Harris.","date":"2026-10-02","lat":48.7876,"lng":-86.6039},{"name":"Oastler Lake","area":"","slug":"oastlerlake","region":"Algonquin","change":60,"fall":20,"colour":"Orange","viewing":"Hardwood Hill Campground and the Pet Exercise Area offer excellent views of the lake and fall colours.","date":"2026-10-05","lat":45.3096,"lng":-79.964},{"name":"Oxtongue River-Ragged Falls","area":"","slug":"oxtongueriverraggedfalls","region":"Algonquin","change":100,"fall":40,"colour":"Orange","viewing":"The entire length of the short trail leading to the top of the falls shows spectacular colours. The view from the top of the waterfalls is the best view.","date":"2026-10-08","lat":45.4065,"lng":-78.889},{"name":"Pancake Bay","area":"","slug":"pancakebay","region":"Northeastern","change":70,"fall":40,"colour":"Yellow/Orange","viewing":"Hike to the Edmund Fitzgerald Lookout for a spectacular view of the area’s fall colours and Lake Superior beyond! Those looking for a more challenging hike can complete the Pancake Falls or Tower Trail hikes to experience the fall colours from below the canopy! Trails are accessible from the trailhead on Lookout Trail Road on the north side of Highway 17. Those looking for an easier hike can also catch a glimpse of the colour change from the Nature Trail accessed from the main campground road.","date":"2026-10-08","lat":46.9698,"lng":-84.7021},{"name":"Petroglyphs","area":"","slug":"petroglyphs","region":"Southeastern","change":70,"fall":30,"colour":"Yellow","viewing":"All three trails at Petroglyphs provide great examples of the forests and fall colours found throughout the park. With predominantly pine and spruce forest, you will find pops of colour throughout the park from maples, birch, and oak trees.","date":"2026-10-07","lat":44.6219,"lng":-78.0478},{"name":"Pigeon River","area":"","slug":"pigeonriver","region":"Northwestern","change":60,"fall":20,"colour":"Yellow","viewing":"Enjoy the fall colours as they engulf High Falls (High Falls Trail) and Middle Falls (Middle Falls Walk). Hike to the end of the Finger Point Trail for scenic views of Lake Superior surrounded by beautiful autumn colours. The Lookout Trail also provides a sweeping fall view of the adjacent landscape.","date":"2026-10-08","lat":48.0037,"lng":-89.5806},{"name":"Pinery","area":"","slug":"pinery","region":"Southwestern","change":10,"fall":0,"colour":"Green","viewing":"Pinery’s oaks present rusty red and orange tones late in the season, with fall wildflowers in the understory displaying beautiful yellows and purples. Sassafras Trail offers great fall colour viewing opportunities.","date":"2026-10-05","lat":43.2484,"lng":-81.8234},{"name":"Point Farms","area":"","slug":"pointfarms","region":"Southwestern","change":40,"fall":20,"colour":"Yellow","viewing":"The best views can be found along the main entrance road. Watch for beautiful displays of oranges and yellows from maple and poplar trees, complimenting the yellows and purples from goldenrods, asters, and grasses in the understory.","date":"2026-10-05","lat":43.8052,"lng":-81.713},{"name":"Port Burwell","area":"","slug":"portburwell","region":"Southwestern","change":20,"fall":10,"colour":"Green","viewing":"For the best views, head to the Ravine Creek Trail. The beach is another great option for a fall stroll. Please note that our self-serve fee station at the Day Use Gate/Beach entrance accepts cash only. Thorough instructions and envelopes are conveniently located directly beside the drive through window at the Day Use Gate. Should visitors require personalized service, the Camp Office will be open to provide the option of paying with debit or credit.","date":"2026-10-08","lat":42.6471,"lng":-80.8129},{"name":"Presqu'ile","area":"","slug":"presquile","region":"Southeastern","change":40,"fall":0,"colour":"Yellow","viewing":"There are two areas in Presqu'ile that provide beautiful fall colours. Enjoy a leisurely walk along the road leading into our Group Camping Area north of the trailhead parking lot. Craigs Campground also offers beautiful colours for those looking to plan a fall camping trip.","date":"2026-10-08","lat":44.0101,"lng":-77.7416},{"name":"Quetico","area":"","slug":"quetico","region":"Northwestern","change":80,"fall":40,"colour":"Green","viewing":"The dominant fall leaf colour in Quetico is yellow. Aspen, tamarack, and birch are found throughout the backcountry of the park along with pockets of smaller red maples. Quetico’s Dawson Trail Campground has numerous day hiking opportunities which offer opportunities to take in the fall colours.","date":"2026-10-07","lat":48.675,"lng":-91.1258},{"name":"Rainbow Falls","area":"","slug":"rainbowfalls","region":"Northwestern","change":50,"fall":20,"colour":"Yellow/Orange","viewing":"Enjoy fall views of Lake Superior from the Park’s Rossport Campground. At the Whitesand Campground, visit the Superior Trail and the Rainbow Falls Trails to view fall colours.","date":"2026-10-01","lat":48.8394,"lng":-87.4439},{"name":"Restoule","area":"","slug":"restoule","region":"Algonquin","change":80,"fall":30,"colour":"Yellow/Orange","viewing":"Predominately surrounded by deciduous trees, the entire park is lovely for fall colour viewing. The best viewing spots include the Fire Tower Trail (best viewing at the lookout) and the River Trail.","date":"2026-10-07","lat":46.0655,"lng":-79.7657},{"name":"Rideau River","area":"","slug":"rideauriver","region":"Southeastern","change":20,"fall":20,"colour":"Yellow/Orange","viewing":"Rideau River's beach areas and boat launch offer great views of the fall colours displayed along the Rideau River. Visitors will enjoy relaxing in the day use area that is filled with Silver Maple. Paddling along the Rideau River will offer beautiful fall colour viewing opportunities.","date":"2026-10-08","lat":45.0599,"lng":-75.6716},{"name":"Rondeau","area":"","slug":"rondeau","region":"Southwestern","change":30,"fall":20,"colour":"Green","viewing":"As the colours begin to change in mid-September to early October, check out Spicebush Trail for great views. Later in the season the eastern side of the park and the Black Oak Trail will display the golds and burgundies of oak trees.","date":"2026-10-07","lat":42.3241,"lng":-81.847},{"name":"Rushing River","area":"","slug":"rushingriver","region":"Northwestern","change":60,"fall":20,"colour":"Yellow","viewing":"The best viewing is on the northside of the park.","date":"2026-10-03","lat":49.6816,"lng":-94.2359},{"name":"Samuel de Champlain","area":"","slug":"samueldechamplain","region":"Algonquin","change":80,"fall":30,"colour":"Yellow/Orange","viewing":"Driving the main road through the park is an easy and accessible way to view reds, yellows, and oranges as the aspens, oaks, and maples start to turn. Campion Portage is another good spot to view the colours along the Mattawa River from shore. If you have a canoe, or rent one form the Park Store, paddling from Campion to the Gut will give you good views of mixed wood forests. The Wabashkiki Trail is a good spot to catch early fall colours in September.","date":"2026-10-03","lat":46.29,"lng":-78.86},{"name":"Sandbanks","area":"","slug":"sandbanks","region":"Southeastern","change":50,"fall":20,"colour":"Yellow/Orange","viewing":"The Lakeview Trail and Woodlands Trail provide the best fall colour viewing opportunities at Sandbanks.","date":"2026-10-07","lat":43.9112,"lng":-77.2417},{"name":"Sauble Falls","area":"","slug":"saublefalls","region":"Southwestern","change":70,"fall":40,"colour":"Yellow/Orange","viewing":"The best area to view the fall colours is at the entrance of the park on Sauble Falls Road.","date":"2026-10-06","lat":44.6734,"lng":-81.2571},{"name":"Sharbot Lake","area":"","slug":"sharbotlake","region":"Southeastern","change":50,"fall":50,"colour":"Orange","viewing":"Hike the Discovery Trail (1.2 km) to catch the best fall colours in the park. It provides great viewing opportunities all season, often highlighting some of the first areas around the park to peak in colour. Be sure to hike the short Ridgeview Trail (0.5km). It is a short but steep hike that provides a beautiful lookout over Sharbot Lake.","date":"2026-10-06","lat":44.7648,"lng":-76.7238},{"name":"Sibbald Point","area":"","slug":"sibbaldpoint","region":"Southeastern","change":50,"fall":20,"colour":"Green","viewing":"The best fall colour experience can be found camping in the campgrounds where you will be surrounded by beautiful falling yellow and red leaves. If a day trip suits you better, take a hike along the Maidenhair Fern Trail to see how cooler temperatures can affect a variety of ecosystems along the trail. The North Shore Day Use Area will display large hardwood trees changing colour and will give you a glimpse of where the Sibbald Family spent their time. Obtain your daily vehicle permit up to five days in advance to guarantee entrance into the park! For more information about Sibbald Point in the fall please visit our blog - Experience autumn at Sibbald Point Provincial Park","date":"2026-10-08","lat":44.3217,"lng":-79.325},{"name":"Silent Lake","area":"","slug":"silentlake","region":"Southeastern","change":70,"fall":30,"colour":"Yellow","viewing":"Silent Lake has many beautiful scenic locations to view fall colours. Silent Lake offers three hiking trails that offer plenty of opportunities to view fall colours: Lakehead Loop (1.5 km), Bonnies Pond (3 km), and the Lakeshore Hiking Trail (15 km). These trails offer a variety of viewpoints such as a lookout, beaches, heavily forested areas, and many lakeside viewing areas. Other prominent viewing areas include the Day Use Beach and Camper’s Beach.","date":"2026-10-08","lat":44.9231,"lng":-78.0712},{"name":"Silver Lake","area":"","slug":"silverlake","region":"Southeastern","change":70,"fall":50,"colour":"Orange","viewing":"When driving to the park along the Trans-Canada Highway you can view the park's fall colours as you approach. Walking through any of the campgrounds will offer spectacular views of the leaves changing colour, especially in Algonquin campground. The Marsh Trail also offers a scenic walk and view of the fall colours.","date":"2026-10-06","lat":44.8298,"lng":-76.5767},{"name":"Sioux Narrows","area":"","slug":"siouxnarrows","region":"Northwestern","change":60,"fall":40,"colour":"Yellow","viewing":"Best viewing locations include the Lookout and Fern Valley Trails, the beach/day use areas, and the campground road.","date":"2026-10-06","lat":49.4293,"lng":-94.0476},{"name":"Sleeping Giant","area":"","slug":"sleepinggiant","region":"Northwestern","change":80,"fall":30,"colour":"Yellow","viewing":"The drive along Highway 587 provides some of the best fall colours viewing in Sleeping Giant Provincial Park. Thunder Bay Lookout is an excellent viewpoint for fall colours as is the gorge on the Top of the Giant Trail. For a shorter hike to enjoy fall colours, check out the Sea Lion Trail.","date":"2026-10-08","lat":48.3602,"lng":-88.7981},{"name":"Sturgeon Bay","area":"","slug":"sturgeonbay","region":"Algonquin","change":50,"fall":40,"colour":"Green","viewing":"Sit back, relax, and take in the breathtaking views of the fall colours along the shores of Georgian Bay right from the beautiful beach! If you have a motorboat, canoe, or kayak, check out the forested shores of Sturgeon Bay.","date":"2026-10-07","lat":45.6236,"lng":-80.4158},{"name":"The Massasauga","area":"","slug":"themassasauga","region":"Algonquin","change":60,"fall":20,"colour":"Orange","viewing":"Spider Lake and Clear Lake offer excellent views of fall colours.","date":"2026-10-05","lat":45.1605,"lng":-79.9717},{"name":"Turkey Point","area":"","slug":"turkeypoint","region":"Southwestern","change":30,"fall":40,"colour":"Green","viewing":"Check out the Lookout Bluff Trail to enjoy beautiful fall colours. View maples, birch, oak, sassafras, and tulip trees changing colour.","date":"2026-10-05","lat":42.7004,"lng":-80.3297},{"name":"Voyageur","area":"","slug":"voyageur","region":"Southeastern","change":80,"fall":30,"colour":"Yellow/Orange","viewing":"The best fall colour spots at Voyageur are at Iroquois Beach, Iroquois Boat Launch, and on the water in Iroquois Bay. You also have a great view of the colours all along our main road and on both of our hiking trails. Our Outaouais Trail is a moderate hiking trail which is a linear 2.7km that takes about an hour. Our Coureur des Bois Trail is a 1.5km easy to moderate loop that takes approximately 45 minutes.","date":"2026-10-08","lat":45.5556,"lng":-74.4449},{"name":"Wasaga Beach","area":"","slug":"wasagabeach","region":"Southwestern","change":30,"fall":10,"colour":"Green","viewing":"Visitors to Wasaga Beach can enjoy the fall colours by taking a stroll through any of our beach areas and viewing the colours around Georgian Bay. The Nordic and Trail Centre also offers great opportunities for a fall hike with spectacular colours from an oak and maple dominant forest.","date":"2026-10-01","lat":44.4985,"lng":-80.0473},{"name":"Wheatley","area":"","slug":"wheatley","region":"Southwestern","change":20,"fall":0,"colour":"Green","viewing":"Campers will be treated to beautiful colours throughout the campground. Due to shoreline erosion, the Day Use Area has reduced parking capacity and amenities. Visitors should plan accordingly and make alternate arrangements in the event that the Day Use Area is full, and parking is not available.","date":"2026-10-08","lat":42.0907,"lng":-82.4422}]}</script>
+<!-- PARK DATA:END -->
 <script>
 (() => {
-  
-  /* ---------- Sun times for downtown Toronto (standard sunrise equation) ---------- */
+  const $ = (s) => document.querySelector(s);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  let DATA = { parks: [] }, MAP = null;
+  try { DATA = JSON.parse($('#parkData').textContent); } catch (e) {}
+  try { MAP = JSON.parse($('#mapData').textContent); } catch (e) {}
+
+  /* ---------- Stages ---------- */
+  const STAGES = [
+    { id: 'peak', label: 'At peak', c: 'var(--st-peak)', rule: '80% or more turned', text: 'The best colour of the season. Go now.' },
+    { id: 'near', label: 'Nearly peak', c: 'var(--st-near)', rule: '60–79% turned', text: 'Bright and getting better. A great trip this week.' },
+    { id: 'turning', label: 'Turning', c: 'var(--st-turning)', rule: '30–59% turned', text: 'Patches of colour among green. Peak is a week or two out.' },
+    { id: 'green', label: 'Mostly green', c: 'var(--st-green)', rule: 'Under 30% turned', text: 'Still early here. Check back later in the season.' },
+    { id: 'past', label: 'Past peak', c: 'var(--st-past)', rule: 'Half the leaves down', text: 'Leaves are dropping fast. Colour is on the ground now.' },
+  ];
+  const ST = Object.fromEntries(STAGES.map((s) => [s.id, s]));
+  const stageOf = (p) => (p.fall >= 50 && p.change >= 50 ? 'past' : p.change >= 80 ? 'peak' : p.change >= 60 ? 'near' : p.change >= 30 ? 'turning' : 'green');
+  const COLOURS = {
+    'Green': '#7fa63a', 'Yellow': '#f2d14f', 'Orange': '#f08c2c',
+    'Yellow/Orange': 'linear-gradient(135deg, #f2d14f 50%, #f08c2c 50%)',
+    'Red/Orange': 'linear-gradient(135deg, #d2321e 50%, #f08c2c 50%)', 'Red': '#d2321e',
+  };
+  const swatchFor = (name) => COLOURS[name] || COLOURS[name.split('/')[0]] || '#888';
+
+  /* ---------- Distance and dates ---------- */
+  const TO = { lat: 43.6532, lng: -79.3832 };
+  const rad = Math.PI / 180;
+  const km = (a, b) => {
+    const dLat = (b.lat - a.lat) * rad, dLng = (b.lng - a.lng) * rad;
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLng / 2) ** 2;
+    return 2 * 6371 * Math.asin(Math.sqrt(h));
+  };
+  // Roads run about 25% longer than a straight line; highways and park roads average near 90 km/h
+  const driveMin = (d) => (d * 1.25) / 90 * 60;
+  const fmtDrive = (m) => {
+    if (m < 55) return `about ${Math.max(15, Math.round(m / 5) * 5)} min`;
+    const r = m < 180 ? Math.round(m / 10) * 10 : Math.round(m / 30) * 30;
+    const h = Math.floor(r / 60), mm = r % 60;
+    return `about ${h} h${mm ? ` ${mm} min` : ''}`;
+  };
+  const tzDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit' });
+  const todayISO = tzDay.format(new Date());
+  const dayNum = (iso) => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / 864e5;
+  const fmtDay = (iso) => new Intl.DateTimeFormat('en-CA', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(dayNum(iso) * 864e5));
+  const ago = (iso) => { const d = dayNum(todayISO) - dayNum(iso); return d <= 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`; };
+
+  const parks = (DATA.parks || []).map((p, i) => {
+    const d = km(TO, p);
+    return { ...p, i, id: `park-${p.slug || i}`, stage: stageOf(p), km: d, drive: driveMin(d) };
+  });
+  const pageUrl = (p) => p.slug ? `https://www.ontarioparks.ca/park/${p.slug}` : 'https://www.ontarioparks.ca/fallcolour';
+  const fullName = (p) => p.area && !p.name.toLowerCase().includes(p.area.toLowerCase()) ? `${p.name} (${p.area})` : p.name;
+
+  if (!parks.length) {
+    $('#heroSummary').textContent = 'The colour report could not be loaded. See the latest at ontarioparks.ca/fallcolour.';
+    $('#parkList').append(el('p', 'empty', 'No park reports are built into this page yet.'));
+    return;
+  }
+
+  /* ---------- Headline summary ---------- */
+  const dates = parks.map((p) => p.date).filter(Boolean).sort();
+  const first = dates[0], last = dates[dates.length - 1];
+  const count = (id) => parks.filter((p) => p.stage === id).length;
+  const REGION = { Algonquin: 'the Algonquin region', Northeastern: 'the northeast', Northwestern: 'the northwest', Southeastern: 'eastern Ontario', Southwestern: 'southwestern Ontario' };
+  const peakish = parks.filter((p) => p.stage === 'peak');
+  const regionCounts = {};
+  peakish.forEach((p) => { regionCounts[p.region] = (regionCounts[p.region] || 0) + 1; });
+  const topRegions = Object.entries(regionCounts).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([r]) => REGION[r] || r);
+  const nearestPeak = [...peakish].sort((a, b) => a.drive - b.drive)[0];
+  const close = parks.filter((p) => p.drive <= 120).map((p) => p.change).sort((a, b) => a - b);
+  const q = (arr, f) => arr[Math.min(arr.length - 1, Math.floor(f * arr.length))];
+  const parts = [];
+  if (peakish.length) {
+    parts.push(`${peakish.length} ${peakish.length === 1 ? 'park is' : 'parks are'} at peak colour, mostly in ${topRegions.join(' and ')}.`);
+    parts.push(`The closest is ${fullName(nearestPeak)}, ${fmtDrive(nearestPeak.drive)} from Toronto.`);
+  } else {
+    const best = [...parks].sort((a, b) => b.change - a.change)[0];
+    parts.push(`No park has reached peak yet. The most colourful is ${fullName(best)} at ${best.change}%.`);
+  }
+  if (close.length >= 3) parts.push(`Within two hours of the city, most parks are ${Math.round(q(close, 0.25) / 10) * 10}–${Math.round(q(close, 0.75) / 10) * 10}% turned.`);
+  $('#heroSummary').textContent = parts.join(' ');
+  $('#heroEyebrow').textContent = `Ontario fall colour · reports ${fmtDay(first)}–${fmtDay(last)}, ${last.slice(0, 4)}`;
+  const tally = $('#heroTally');
+  STAGES.forEach((s) => {
+    const n = count(s.id); if (!n) return;
+    const a = el('a'); a.href = '#report';
+    a.addEventListener('click', () => setStage(s.id));
+    const d = el('i', 'dot'); d.style.setProperty('--c', s.c);
+    a.append(d, el('b', null, String(n)), document.createTextNode(` ${s.label.toLowerCase()}`));
+    tally.append(a);
+  });
+
+  /* ---------- Weekend picks ---------- */
+  const score = (p) => p.change - p.fall * 0.4;
+  const BANDS = [
+    { label: 'Under 2 hours', test: (p) => p.drive <= 120 },
+    { label: '2 to 4 hours', test: (p) => p.drive > 120 && p.drive <= 240 },
+    { label: 'Worth the trip', test: (p) => p.drive > 240 && p.drive <= 600 },
+  ];
+  BANDS.forEach((b) => {
+    const pool = parks.filter((p) => b.test(p) && p.stage !== 'past').sort((x, y) => score(y) - score(x) || x.drive - y.drive);
+    const p = pool[0]; if (!p) return;
+    const a = el('a', 'pick'); a.href = `#${p.id}`;
+    a.addEventListener('click', (e) => { e.preventDefault(); focusPark(p, true); });
+    const pill = el('span', 'pill', ST[p.stage].label); pill.style.setProperty('--c', ST[p.stage].c);
+    const pdot = el('i', 'dot'); pdot.style.setProperty('--c', ST[p.stage].c); pill.prepend(pdot);
+    const stats = el('div', 'stats');
+    stats.append(el('span', 'big', `${p.change}%`), document.createTextNode('turned'), pill);
+    const meta = el('div', 'meta');
+    const sw = el('i', 'swatch'); sw.style.background = swatchFor(p.colour);
+    meta.append(sw, el('span', null, `${p.colour} · ${fmtDrive(p.drive)} · reported ${fmtDay(p.date)}`));
+    a.append(el('span', 'band', b.label), el('h3', null, fullName(p)), stats, meta, el('p', null, p.viewing));
+    $('#picks-list').append(a);
+  });
+
+  /* ---------- Report intro and freshness ---------- */
+  $('#reportIntro').textContent = `${parks.length} parks, with reports dated ${fmtDay(first)} to ${fmtDay(last)}. Park staff update their numbers every few days through the season.`;
+  if (DATA.retrieved) {
+    const age = dayNum(todayISO) - dayNum(DATA.retrieved);
+    if (age >= 4) {
+      const n = $('#staleNotice');
+      n.textContent = `This snapshot was taken ${age} days ago, on ${fmtDay(DATA.retrieved)}. Colour can change quickly; check each park's Ontario Parks page for the latest report.`;
+      n.hidden = false;
+    }
+  }
+
+  /* ---------- Filters ---------- */
+  const state = { stage: 'all', drive: 9999, sort: 'drive', q: '' };
+  const stageRow = $('#stageFilter');
+  const stageBtns = [];
+  [{ id: 'all', label: 'All parks', n: parks.length }, ...STAGES.map((s) => ({ ...s, n: count(s.id) }))].forEach((s) => {
+    const b = el('button', 'chip'); b.type = 'button'; b.dataset.stage = s.id;
+    if (s.c) { const d = el('i', 'dot'); d.style.setProperty('--c', s.c); b.append(d); }
+    b.append(document.createTextNode(s.label), el('span', 'n', String(s.n)));
+    b.addEventListener('click', () => setStage(s.id));
+    stageRow.append(b); stageBtns.push(b);
+  });
+  function setStage(id) { state.stage = id; render(); }
+  $('#driveFilter').addEventListener('change', (e) => { state.drive = +e.target.value; render(); });
+  $('#sortBy').addEventListener('change', (e) => { state.sort = e.target.value; render(); });
+  $('#search').addEventListener('input', (e) => { state.q = e.target.value.trim().toLowerCase(); render(); });
+  $('#resetFilters').addEventListener('click', () => {
+    Object.assign(state, { stage: 'all', drive: 9999, q: '' });
+    $('#driveFilter').value = '9999'; $('#search').value = '';
+    render();
+  });
+  const visible = (p) => (state.stage === 'all' || p.stage === state.stage) && p.drive <= state.drive
+    && (!state.q || fullName(p).toLowerCase().includes(state.q) || p.region.toLowerCase().includes(state.q));
+  const SORTS = {
+    drive: (a, b) => a.drive - b.drive,
+    colour: (a, b) => b.change - a.change || a.fall - b.fall,
+    recent: (a, b) => (b.date || '').localeCompare(a.date || '') || a.drive - b.drive,
+    name: (a, b) => fullName(a).localeCompare(fullName(b)),
+  };
+
+  /* ---------- Park cards ---------- */
+  function meter(label, value, colour) {
+    const m = el('div', 'meter');
+    const track = el('div', 'track'); const fill = el('div', 'fill');
+    fill.style.width = `${value}%`; fill.style.setProperty('--c', colour);
+    track.append(fill);
+    track.setAttribute('role', 'img'); track.setAttribute('aria-label', `${label} ${value}%`);
+    m.append(el('span', null, label), track, el('span', 'num', `${value}%`));
+    return m;
+  }
+  function card(p) {
+    const c = el('article', 'park'); c.id = p.id;
+    const head = el('header');
+    const h = el('h3', null, p.name);
+    h.append(el('small', null, [p.area, `${p.region} region`].filter(Boolean).join(' · ')));
+    const pill = el('span', 'pill', ST[p.stage].label); pill.style.setProperty('--c', ST[p.stage].c);
+    const pd = el('i', 'dot'); pd.style.setProperty('--c', ST[p.stage].c); pill.prepend(pd);
+    head.append(h, pill);
+    const meters = el('div', 'meters');
+    meters.append(meter('Colour change', p.change, ST[p.stage].c), meter('Leaf fall', p.fall, 'var(--st-past)'));
+    const facts = el('dl', 'facts');
+    const fact = (k, v, sw) => { const d = el('div'); const dd = el('dd'); if (sw) { const s = el('i', 'swatch'); s.style.background = sw; dd.append(s); } dd.append(document.createTextNode(v)); d.append(el('dt', null, k), dd); facts.append(d); };
+    fact('Main colour', p.colour, swatchFor(p.colour));
+    fact('From Toronto', fmtDrive(p.drive));
+    fact('Reported', p.date ? `${fmtDay(p.date)}, ${ago(p.date)}` : 'No date');
+    c.append(head, meters, facts);
+    const links = el('div', 'park-links');
+    if (p.viewing) {
+      const v = el('p', 'viewing clamp', `Best viewing: ${p.viewing}`);
+      c.append(v);
+      if (p.viewing.length > 140) {
+        const more = el('button', null, 'Read more'); more.type = 'button';
+        more.addEventListener('click', () => { const open = v.classList.toggle('clamp'); more.textContent = open ? 'Read more' : 'Show less'; });
+        links.append(more);
+      }
+    }
+    const a = el('a', null, 'Park page on Ontario Parks ↗'); a.href = pageUrl(p); a.target = '_blank'; a.rel = 'noopener';
+    const show = el('button', null, 'Show on map'); show.type = 'button';
+    show.addEventListener('click', () => focusPark(p, false, true));
+    links.append(show, a);
+    c.append(links);
+    c.addEventListener('mouseenter', () => highlight(p, true));
+    c.addEventListener('mouseleave', () => highlight(p, false));
+    return c;
+  }
+  const cards = new Map(parks.map((p) => [p.id, card(p)]));
+
+  function render() {
+    stageBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.stage === state.stage)));
+    const shown = parks.filter(visible).sort(SORTS[state.sort]);
+    const list = $('#parkList');
+    list.replaceChildren(...shown.map((p) => cards.get(p.id)));
+    if (!shown.length) list.append(el('p', 'empty', 'No parks match these filters. Try a longer drive or another stage.'));
+    const filtered = state.stage !== 'all' || state.drive < 9999 || state.q;
+    $('#resultCount').textContent = filtered ? `Showing ${shown.length} of ${parks.length} parks` : `All ${parks.length} parks`;
+    $('#resetFilters').hidden = !filtered;
+    dots.forEach((g, id) => { g.style.opacity = shown.some((p) => p.id === id) ? '1' : '0.15'; });
+  }
+
+  /* ---------- Map ---------- */
+  const svg = $('#map'), NS = 'http://www.w3.org/2000/svg';
+  const dots = new Map();
+  let view = 'south';
+  const B = MAP ? MAP.bbox : [-96, 41.3, -73.8, 57.2], K = MAP ? MAP.k : 0.662;
+  const S = 1000 / ((B[2] - B[0]) * K);
+  const P = (lng, lat) => [(lng - B[0]) * K * S, (B[3] - lat) * S];
+  const VIEWS = {
+    all: (() => { const h = MAP ? MAP.h : 1081; return [0, 0, 1000, h]; })(),
+    south: (() => { const [x0, y0] = P(-83.6, 47.2), [x1, y1] = P(-74.2, 41.6); return [x0, y0, x1 - x0, y1 - y0]; })(),
+  };
+  function mk(tag, attrs) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+  if (MAP) {
+    svg.append(mk('rect', { x: -2000, y: -2000, width: 5000, height: 5000, fill: 'var(--water)' }));
+    svg.append(mk('path', { d: MAP.neighbours, fill: 'var(--land)' }));
+    svg.append(mk('path', { d: MAP.ontario, fill: 'var(--ontario)', stroke: 'rgba(255,220,186,0.35)', 'stroke-width': 1, 'vector-effect': 'non-scaling-stroke' }));
+    svg.append(mk('path', { d: MAP.lakes, fill: 'var(--water)' }));
+  }
+  const [tx, ty] = P(TO.lng, TO.lat);
+  const toronto = mk('g', {});
+  const tStar = mk('circle', { cx: tx, cy: ty, fill: 'var(--amber)', stroke: 'var(--night)' });
+  const tLabel = mk('text', { x: tx, y: ty, fill: 'var(--ink)', 'font-family': 'IBM Plex Mono, monospace' });
+  tLabel.textContent = 'Toronto';
+  toronto.append(tStar, tLabel);
+  const dotLayer = mk('g', {});
+  svg.append(dotLayer, toronto);
+  [...parks].sort((a, b) => STAGES.findIndex((s) => s.id === b.stage) - STAGES.findIndex((s) => s.id === a.stage)).forEach((p) => {
+    const [x, y] = P(p.lng, p.lat);
+    const g = mk('g', { class: 'park-dot', tabindex: '0', role: 'button', 'aria-label': `${fullName(p)}: ${ST[p.stage].label}, ${p.change}% colour change` });
+    const c = mk('circle', { cx: x, cy: y, fill: ST[p.stage].c, stroke: 'var(--night)' });
+    g.append(c);
+    g.addEventListener('mouseenter', () => showTip(p));
+    g.addEventListener('mouseleave', hideTip);
+    g.addEventListener('focus', () => showTip(p));
+    g.addEventListener('blur', hideTip);
+    g.addEventListener('click', () => focusPark(p, true));
+    g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); focusPark(p, true); } });
+    dotLayer.append(g); dots.set(p.id, g);
+  });
+  function setView(v) {
+    view = v;
+    svg.setAttribute('viewBox', VIEWS[v].join(' '));
+    const scale = VIEWS[v][2] / 1000;
+    dots.forEach((g) => { const c = g.firstChild; c.setAttribute('r', 7.5 * scale); c.setAttribute('stroke-width', 2 * scale); });
+    tStar.setAttribute('r', 6 * scale); tStar.setAttribute('stroke-width', 2 * scale);
+    tLabel.setAttribute('font-size', 17 * scale);
+    tLabel.setAttribute('x', tx + 10 * scale); tLabel.setAttribute('y', ty + 5 * scale);
+    document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === v)));
+    hideTip();
+  }
+  document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
+  const legend = $('#mapLegend');
+  STAGES.forEach((s) => { const sp = el('span'); const d = el('i', 'dot'); d.style.setProperty('--c', s.c); sp.append(d, document.createTextNode(s.label)); legend.append(sp); });
+
+  const tip = $('#mapTip');
+  function showTip(p) {
+    const g = dots.get(p.id), box = $('#mapBox').getBoundingClientRect(), r = g.getBoundingClientRect();
+    tip.replaceChildren(el('b', null, fullName(p)), document.createTextNode(`${ST[p.stage].label} · ${p.change}% turned · ${fmtDrive(p.drive)}`));
+    tip.style.left = `${r.left + r.width / 2 - box.left}px`;
+    tip.style.top = `${r.top - box.top}px`;
+    tip.hidden = false;
+  }
+  function hideTip() { tip.hidden = true; }
+  let selected = null;
+  function highlight(p, on) { const g = dots.get(p.id); if (!g) return; g.classList.toggle('sel', on || selected === p.id); if (on) dotLayer.append(g); }
+  function focusPark(p, scrollToCard, scrollToMap) {
+    if (!visible(p)) { Object.assign(state, { stage: 'all', drive: 9999, q: '' }); $('#driveFilter').value = '9999'; $('#search').value = ''; render(); }
+    if (selected) { cards.get(selected)?.classList.remove('sel'); dots.get(selected)?.classList.remove('sel'); }
+    selected = p.id;
+    const c = cards.get(p.id); c.classList.add('sel'); highlight(p, true);
+    if (view === 'south') { const [x, y] = P(p.lng, p.lat); const v = VIEWS.south; if (x < v[0] || y < v[1] || x > v[0] + v[2] || y > v[1] + v[3]) setView('all'); }
+    if (scrollToCard) c.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+    if (scrollToMap) { $('#mapBox').scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => showTip(p), 450); }
+  }
+  setView('south');
+  render();
+
+  /* ---------- Closest reporting parks ---------- */
+  [...parks].sort((a, b) => a.drive - b.drive).slice(0, 5).forEach((p) => {
+    const a = el('a'); a.href = `#${p.id}`;
+    a.addEventListener('click', (e) => { e.preventDefault(); focusPark(p, true); });
+    const pill = el('span', 'pill', ST[p.stage].label); pill.style.setProperty('--c', ST[p.stage].c);
+    a.append(el('h3', null, fullName(p)), pill, el('span', 'meta', `${p.change}% turned, ${p.fall}% fallen · ${p.colour} · ${fmtDrive(p.drive)} · reported ${fmtDay(p.date)}`));
+    $('#nearList').append(a);
+  });
+
+  /* ---------- Golden hour planner (standard sunrise equation, downtown Toronto) ---------- */
   function sunTimes(y, m, d, h0deg = -0.833, lat = 43.6532, lon = -79.3832) {
-    const rad = Math.PI / 180;
+    const r = Math.PI / 180;
     const jd = Date.UTC(y, m - 1, d, 12) / 86400000 + 2440587.5;
     const n = Math.round(jd - 2451545.0 + 0.0008);
     const Js = n - lon / 360;
     const M = (357.5291 + 0.98560028 * Js) % 360;
-    const C = 1.9148 * Math.sin(M * rad) + 0.02 * Math.sin(2 * M * rad) + 0.0003 * Math.sin(3 * M * rad);
+    const C = 1.9148 * Math.sin(M * r) + 0.02 * Math.sin(2 * M * r) + 0.0003 * Math.sin(3 * M * r);
     const L = (M + C + 180 + 102.9372) % 360;
-    const Jt = 2451545 + Js + 0.0053 * Math.sin(M * rad) - 0.0069 * Math.sin(2 * L * rad);
-    const sinD = Math.sin(L * rad) * Math.sin(23.4397 * rad), cosD = Math.cos(Math.asin(sinD));
-    const cosW = (Math.sin(h0deg * rad) - Math.sin(lat * rad) * sinD) / (Math.cos(lat * rad) * cosD);
-    const w = Math.acos(Math.max(-1, Math.min(1, cosW))) / rad;
+    const Jt = 2451545 + Js + 0.0053 * Math.sin(M * r) - 0.0069 * Math.sin(2 * L * r);
+    const sinD = Math.sin(L * r) * Math.sin(23.4397 * r), cosD = Math.cos(Math.asin(sinD));
+    const cosW = (Math.sin(h0deg * r) - Math.sin(lat * r) * sinD) / (Math.cos(lat * r) * cosD);
+    const w = Math.acos(Math.max(-1, Math.min(1, cosW))) / r;
     const toDate = (J) => new Date((J - 2440587.5) * 86400000);
     return { rise: toDate(Jt - w / 360), set: toDate(Jt + w / 360) };
   }
-  const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', hour: '2-digit', minute: '2-digit', hour12: false });
-  const fmtDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit' });
-  const t = (d) => fmt.format(d);
-
-  const todayISO = fmtDay.format(new Date());   // yyyy-mm-dd in Toronto
-  const [ty, tm, td] = todayISO.split('-').map(Number);
-  const today = sunTimes(ty, tm, td), todayGold = sunTimes(ty, tm, td, 6);
-  document.getElementById('heroSunset').textContent = t(today.set);
-  document.getElementById('heroGolden').textContent = t(todayGold.set);
-
-  const input = document.getElementById('sunDate');
+  const hm = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', hour: '2-digit', minute: '2-digit', hour12: false });
+  const input = $('#sunDate');
   function updateSun() {
-    const v = input.value || todayISO;
-    const [y, m, d] = v.split('-').map(Number);
+    const [y, m, d] = (input.value || todayISO).split('-').map(Number);
     if (!y || !m || !d) return;
     const s = sunTimes(y, m, d), g = sunTimes(y, m, d, 6);
-    document.getElementById('outRise').textContent = t(s.rise);
-    document.getElementById('outSet').textContent = t(s.set);
-    document.getElementById('outGolden').textContent = t(g.set);
+    $('#outRise').textContent = hm.format(s.rise);
+    $('#outSet').textContent = hm.format(s.set);
+    $('#outGolden').textContent = hm.format(g.set);
     const mins = Math.round((s.set - s.rise) / 60000);
-    const best = m === 10 && d >= 12 ? 'Peak colour is likely in the ravines.' : m === 10 ? 'Maples are turning; peak is usually a little later in the month.' : m === 9 ? 'Early days; look for red on the ravine floors.' : m === 11 && d <= 10 ? 'Late colour; the oaks will be at their best.' : 'Outside the usual colour season.';
-    document.getElementById('outNote').textContent = `${Math.floor(mins / 60)} h ${mins % 60} min of daylight. ${best}`;
+    $('#outNote').textContent = `${Math.floor(mins / 60)} h ${mins % 60} min of daylight. Golden hour runs until sunset, when low light makes the colour glow.`;
   }
-  try { input.value = todayISO; } catch (e) {}
+  input.value = todayISO;
   input.addEventListener('input', updateSun);
   updateSun();
 
-  // Today marker on the colour band (Sep 15 to Nov 15)
-  const start = Date.UTC(ty, 8, 15), end = Date.UTC(ty, 10, 15), now = Date.UTC(ty, tm - 1, td);
-  if (now >= start && now <= end) {
-    const mark = document.getElementById('todayMark');
-    mark.style.left = `${((now - start) / (end - start)) * 100}%`;
-    document.getElementById('todayLabel').textContent = `Today, ${new Intl.DateTimeFormat('en-CA', { month: 'short', day: 'numeric' }).format(new Date(ty, tm - 1, td))}`;
-    mark.hidden = false;
-  }
-
-  /* ---------- Hero: talk to the live scene ---------- */
-  const scene = document.getElementById('heroScene');
-  const send = (msg) => { try { scene.contentWindow.postMessage(msg, '*'); } catch (e) {} };
-  document.querySelectorAll('.scene-cmds [data-cmd]').forEach((b) => b.addEventListener('click', () => {
-    send(b.dataset.cmd === 'gust' ? { maple: 'gust' } : { maple: 'preset', name: b.dataset.name });
-  }));
-  // Stop the 3D scene rendering while the hero is scrolled out of view
-  new IntersectionObserver(([e]) => send({ maple: 'visible', on: e.isIntersecting })).observe(scene);
+  /* ---------- Live scene: pause while scrolled away ---------- */
+  const scene = $('#heroScene');
+  new IntersectionObserver(([e]) => { try { scene.contentWindow.postMessage({ maple: 'visible', on: e.isIntersecting }, '*'); } catch (err) {} }).observe(scene);
 })();
 </script>
 </body>
